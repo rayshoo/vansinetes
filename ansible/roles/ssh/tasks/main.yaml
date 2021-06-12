@@ -1,0 +1,62 @@
+---
+- name: Install openssh (RHEL/CentOS)
+  when: ansible_os_family == "RedHat"
+  become: yes
+  yum:
+    name:
+      - openssh
+      - openssh-client
+      - openssh-server
+    state: present
+
+- name: Install openssh (Debian/Ubuntu)
+  when: ansible_os_family == "Debian"
+  become: yes
+  apt:
+    name:
+      - openssh-client
+      - openssh-server
+    state: present
+
+- name: PasswordAuthentication change no to yes
+  become: yes
+  replace:
+    dest: /etc/ssh/sshd_config
+    regexp: 'PasswordAuthentication no'
+    replace: 'PasswordAuthentication yes'
+    backup: yes
+  notify: sshd restart
+- meta: flush_handlers
+
+- name: Register sshd config file text
+  when: root_login == true
+  become: yes
+  shell: cat /etc/ssh/sshd_config
+  register: result
+  changed_when: false
+
+- name: Change PermitRootLogin no to yes
+  when:
+    - root_login == true
+    - result.stdout | regex_search('#(#|\s)*?PermitRootLogin[\s\x20]*(yes|no)') != ''
+  become: yes
+  replace:
+    dest: /etc/ssh/sshd_config
+    regexp: '#(#|\s)*?PermitRootLogin[\s\x20]*(yes|no)'
+    replace: 'PermitRootLogin yes'
+    backup: yes
+  notify: sshd restart
+- meta: flush_handlers 
+
+- name: Add PermitRootLogin yes
+  when:
+    - root_login == true
+    - result.stdout | regex_search('PermitRootLogin[\s\x20]*(yes|no)') != 'PermitRootLogin yes'
+  become: yes
+  lineinfile:
+    dest: /etc/ssh/sshd_config
+    line: 'PermitRootLogin yes'
+    insertafter: EOF
+    backup: yes
+  notify: sshd restart
+- meta: flush_handlers 

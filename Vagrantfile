@@ -3,21 +3,16 @@
 require 'fileutils'
 
 class Machine
-  def initialize(image, name, cpus, memory, interface, network_type, network_ip, host_port, gui)
+  def initialize(image, name, cpus, memory, network_ip, host_port, gui)
     @image = image
     @name = name
     @cpus = cpus
     @memory = memory
-    @interface = interface
-    set_network_type(network_type)
     @network_ip = network_ip
     @host_port = host_port
     @gui = gui
   end
 
-  def set_network_type(network_type)
-    @network_type = network_type == "public" || network_type == "bridge" ? "public" : "private"
-  end
   def get_image
     return @image
   end
@@ -29,12 +24,6 @@ class Machine
   end
   def get_memory
     return @memory
-  end
-  def get_interface
-    return @interface
-  end
-  def get_network_type
-    return @network_type
   end
   def get_network_ip
     return @network_ip
@@ -76,33 +65,36 @@ Vagrant.configure("2") do |config|
   default_network_ip = ENV['DEFAULT_NETWORK_IP'].split(".")
   default_network = "#{default_network_ip[0]}.#{default_network_ip[1]}.#{default_network_ip[2]}"
   default_ip = default_network_ip.last.to_i
+  server_network_type = ENV["SERVER_NETWORK_TYPE"] != "" ? ENV["SERVER_NETWORK_TYPE"] || ENV["DEFAULT_NETWORK_TYPE"] :  ENV["DEFAULT_NETWORK_TYPE"]
+  server_interface = server_network_type == "public" ? ENV["SERVER_NETWORK_INTERFACE"] != "" ? ENV["SERVER_NETWORK_INTERFACE"] || ENV["DEFAULT_NETWORK_INTERFACE"] : ENV["DEFAULT_NETWORK_INTERFACE"] || nil : nil
+  server_netmask = ENV['SERVER_NETWORK_NETMASK'] != "" ? ENV['SERVER_NETWORK_NETMASK'] || ENV["DEFAULT_NETWORK_NETMASK"] : ENV["DEFAULT_NETWORK_NETMASK"]
 
   machines = Array.new
   
   for i in 1..master + worker
+    default_cpus = (i > worker) ? ENV['DEFAULT_MASTER_CPUS'].to_i : ENV['DEFAULT_WORKER_CPUS'].to_i
+    default_memory = (i > worker) ? ENV['DEFAULT_MASTER_MEMORY'] : ENV['DEFAULT_WORKER_MEMORY']
     server_name = (i > worker) ? "#{master_initial}#{master - (i - worker) + 1}" : "#{worker_initial}#{worker - i + 1}"
     i = master + worker - i + 1
-    server_image = ENV["#{i}_SERVER_IMAGE"] != "" ? ENV["#{i}_SERVER_IMAGE"] || ENV["DEFAULT_IMAGE"] : ENV["DEFAULT_IMAGE"] 
-    server_cpus = ENV["#{i}_SERVER_CPUS"] != "" ? (ENV["#{i}_SERVER_CPUS"] || ENV["DEFAULT_CPUS"]).to_i : ENV["DEFAULT_CPUS"].to_i
-    server_memory = ENV["#{i}_SERVER_MEMORY"] != "" ? (ENV["#{i}_SERVER_MEMORY"] || ENV["DEFAULT_MEMORY"]).to_i : ENV["DEFAULT_MEMORY"].to_i
-    server_network_type = ENV["SERVER_NETWORK_TYPE"] != "" ? ENV["SERVER_NETWORK_TYPE"] || ENV["DEFAULT_NETWORK_TYPE"] :  ENV["DEFAULT_NETWORK_TYPE"]
-    server_interface = server_network_type == "public" ? ENV["SERVER_NETWORK_INTERFACE"] != "" ? ENV["SERVER_NETWORK_INTERFACE"] || ENV["DEFAULT_NETWORK_INTERFACE"] : ENV["DEFAULT_NETWORK_INTERFACE"] || nil : nil
+    server_image = ENV["#{i}_SERVER_IMAGE"] != "" ? ENV["#{i}_SERVER_IMAGE"] || ENV["DEFAULT_IMAGE"] : ENV["DEFAULT_IMAGE"]
+    server_cpus = ENV["#{i}_SERVER_CPUS"] != "" ? ENV["#{i}_SERVER_CPUS"] || default_cpus : default_cpus
+    server_memory = ENV["#{i}_SERVER_MEMORY"] != "" ? (ENV["#{i}_SERVER_MEMORY"] || default_memory).to_i : default_memory.to_i
     server_network_ip = ENV["#{i}_SERVER_NETWORK_IP"] != "" ? ENV["#{i}_SERVER_NETWORK_IP"] || "#{default_network}.#{default_ip + i - 1}" : "#{default_network}.#{default_ip + i - 1}"
     server_host_port = ENV["#{i}_SERVER_HOST_PORT"]  != "" ? ENV["#{i}_SERVER_HOST_PORT"] || ENV["DEFAULT_HOST_PORT"].to_i + i - 1 :  ENV["DEFAULT_HOST_PORT"].to_i + i - 1
     server_gui = ENV["#{i}_SERVER_GUI"] != "" ? str_to_bool(ENV["#{i}_SERVER_GUI"] || ENV["DEFAULT_GUI"]) : str_to_bool(ENV["DEFAULT_GUI"])
-    server_machine = Machine.new(server_image, server_name, server_cpus, server_memory, server_interface, server_network_type, server_network_ip, server_host_port, server_gui)
+    server_machine = Machine.new(server_image, server_name, server_cpus, server_memory, server_network_ip, server_host_port, server_gui)
     machines.push(server_machine)
     
-    puts "server#{i}_name: #{server_name}"
-    puts "server#{i}_image: #{server_image}"
-    puts "server#{i}_cpus: #{server_cpus}"
-    puts "server#{i}_memory: #{server_memory}"
-    puts "server#{i}_network_type: #{server_network_type}"
-    puts "server#{i}_interface: #{server_interface}"
-    puts "server#{i}_network_ip: #{server_network_ip}"
-    puts "server#{i}_host_port: #{server_host_port}"
-    puts "server#{i}_gui: #{server_gui}"
-    puts "-----------------------------------"
+    if ENV["DEBUG"] || ENV['debug']
+      puts "server#{i}_name: #{server_name}"
+      puts "server#{i}_image: #{server_image}"
+      puts "server#{i}_cpus: #{server_cpus}"
+      puts "server#{i}_memory: #{server_memory}"
+      puts "server#{i}_network_ip: #{server_network_ip}"
+      puts "server#{i}_host_port: #{server_host_port}"
+      puts "server#{i}_gui: #{server_gui}"
+      puts "-----------------------------------"
+    end
   end
 
   provision = str_to_bool(ENV['PROVISION'] || false)
@@ -114,8 +106,8 @@ Vagrant.configure("2") do |config|
       j.vm.box = machine.get_image
       j.vm.host_name = machine.get_name
 
-      if machine.get_network_type == "public"
-        j.vm.network "public_network", ip: machine.get_network_ip, netmask: "255.255.255.0", :bridge => machine.get_interface
+      if server_network_type == "public"
+        j.vm.network "public_network", ip: machine.get_network_ip, netmask: server_netmask, :bridge => server_interface
       else
         j.vm.network "private_network", ip: machine.get_network_ip
       end
@@ -132,9 +124,9 @@ Vagrant.configure("2") do |config|
         if i < machines.length - 1
           j.vm.provision "shell", path: "scripts/bash_ssh_conf.sh"
         else
-          # j.vm.provision "file", source: "ansible", destination: "ansible"
+          j.vm.provision "file", source: "ansible", destination: "ansible"
           j.vm.provision "shell", path: "scripts/bootstrap.sh"
-          # j.vm.provision "shell", keep_color: true, inline: "cd ansible && ANSIBLE_FORCE_COLOR=true ansible-playbook site.yaml", privileged: false
+          j.vm.provision "shell", keep_color: true, inline: "cd ansible && ANSIBLE_FORCE_COLOR=true ansible-playbook site.yaml", privileged: false
         end
       end
     end
