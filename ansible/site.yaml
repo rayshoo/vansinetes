@@ -1,7 +1,24 @@
 ---
-- hosts: localhost
-  gather_facts: yes
+- name: ansible master ssh settings
+  hosts: localhost
   vars:
     root_login: yes
   roles:
     - ssh
+    
+- name: ansible_clients ssh setting(key copy)
+  hosts: ansible_clients
+  tasks:
+    - include_tasks: tasks/hosts.yaml
+
+- name: custom settings
+  hosts: localhost
+  gather_facts: yes
+  vars:
+    alias: yes
+    packages:
+      - git
+      - vim
+    vim_plugins: yes
+  roles:
+    - custom

@@ -1,0 +1,10 @@
+#!/bin/bash
+if [ ! -f "{{ ansible_env.HOME }}/.ssh/id_rsa" ]; then
+  yes "{{ ansible_env.HOME }}/.ssh/id_rsa" | ssh-keygen -t rsa -N ""
+else
+  echo "id_rsa file already exists. Skip ssh-keygen..."
+fi
+
+{% for item in groups['cluster'] %}
+cat {{ ansible_env.HOME }}/.ssh/id_rsa.pub | sshpass -p {{ hostvars[item].ansible_pass }} ssh -o StrictHostKeyChecking=no {{ hostvars[item].ansible_user }}@{{ hostvars[item].inventory_hostname }} "tee -a {{ ansible_env.HOME }}/.ssh/authorized_keys"
+{% endfor %}

@@ -26,7 +26,6 @@
     replace: 'PasswordAuthentication yes'
     backup: yes
   notify: sshd restart
-- meta: flush_handlers
 
 - name: Register sshd config file text
   when: root_login == true
@@ -46,7 +45,6 @@
     replace: 'PermitRootLogin yes'
     backup: yes
   notify: sshd restart
-- meta: flush_handlers 
 
 - name: Add PermitRootLogin yes
   when:
@@ -59,4 +57,16 @@
     insertafter: EOF
     backup: yes
   notify: sshd restart
-- meta: flush_handlers 
+
+- name: Update /etc/hosts file
+  become: yes
+  blockinfile:
+    dest: /etc/hosts
+    content: "{{ lookup('template', 'hosts.j2') }}"
+    state: present
+    backup: yes
+    
+- meta: flush_handlers
+
+- name: make ssh connection to hosts
+  include_tasks : connection.yaml

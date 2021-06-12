@@ -1,0 +1,39 @@
+---
+- name: Install sshpass for Authentication (RHEL/CentOS)
+  when: ansible_os_family == "RedHat"
+  become: yes
+  yum:
+    name: sshpass
+    state: present
+
+- name: Install sshpass for Authentication (Debian/Ubuntu)
+  when: ansible_os_family == "Debian"
+  become: yes
+  apt:
+    name: sshpass
+    state: present
+
+- name: create key.sh file
+  template:
+    src: "key.j2"
+    dest: "{{ local_home }}/key.sh"
+    owner: "{{ local_user }}"
+    group: "{{ local_user }}"
+    mode: 0777
+
+- name: execute key.sh file
+  command: "{{ local_home }}/key.sh"
+
+- name: execute key.sh file on root
+  when: root_login == true
+  become: yes
+  command: "{{ local_home }}/key.sh"
+
+- debug:
+    var: local_home
+  become: yes
+
+- name: remove key.sh file
+  file:
+    state: absent
+    path: "{{ local_home }}/key.sh"

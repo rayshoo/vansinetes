@@ -1,0 +1,88 @@
+---
+- name: Ensure .vim/{autoload,bundle} directory exists
+  file:
+    path: "{{ item }}"
+    state: directory
+    mode: 0750
+  loop:
+    - "{{ ansible_env.HOME }}/.vim/autoload"
+    - "{{ ansible_env.HOME }}/.vim/bundle"
+    - "{{ ansible_env.HOME }}/Downloads"
+
+- name: "Git clone vim-plug from remote repository"
+  git:
+    repo: "https://github.com/junegunn/vim-plug.git"
+    dest: "{{ ansible_env.HOME }}/Downloads/vim-plug"
+    version: cffcfe150bda75177920530c5f1911b52f70a065
+
+- name: "Copy plug.vim file in {{ ansible_env.HOME }}/.vim/autoload"
+  copy:
+    src: "{{ ansible_env.HOME }}/Downloads/vim-plug/plug.vim"
+    dest: "{{ ansible_env.HOME }}/.vim/autoload"
+    owner: "{{ ansible_env.USER }}"
+    group: "{{ ansible_env.USER }}"
+    mode: 0664
+
+- name: Create .vimrc file if not exists
+  file:
+    path: "{{ ansible_env.HOME }}/.vimrc"
+    state: touch
+    mode: 0644
+  register: touch_log
+  changed_when: touch_log.diff.before.state != "file"
+
+- name: Configure vimrc plugin
+  blockinfile: 
+    dest: "{{ ansible_env.HOME }}/.vimrc"
+    block: |
+      call plug#begin('~/.vim/plugged')
+      Plug 'pearofducks/ansible-vim'
+      call plug#end()
+    backup: yes
+    marker: "\" {mark} ANSIBLE MANAGED BLOCK"
+    insertbefore: BOF
+
+- name: Check vim plugin installed
+  stat:
+    path: "{{ ansible_env.HOME }}/.vim/plugged/ansible-vim"
+  register: file_check
+
+- name: Install vim plugin
+  shell: "vim -E -s -c \"source ~/.vimrc\" -c PlugInstall -c qa"
+  register: vim_log
+  failed_when: "vim_log.stderr != \"\""
+  changed_when: file_check.stat.exists == false
+
+- name: "Git clone pathogen.vim from remote repository"
+  git:
+    repo: "https://github.com/tpope/vim-pathogen.git"
+    dest: "{{ ansible_env.HOME }}/Downloads/vim-pathogen"
+    version: e0a3efbda5ea8e5b181b2b232ef6453c05d07732
+
+- name: "Copy pathogen.vim file in {{ ansible_env.HOME }}/.vim/autoload"
+  copy:
+    src: "{{ ansible_env.HOME }}/Downloads/vim-pathogen/autoload/pathogen.vim"
+    dest: "{{ ansible_env.HOME }}/.vim/autoload"
+    owner: "{{ ansible_env.USER }}"
+    group: "{{ ansible_env.USER }}"
+    mode: 0664
+
+- name: Unarchive vim-ansible-yaml.tar
+  unarchive:
+    src: "vim-ansible-yaml-1.0.tar.gz"
+    dest: "{{ ansible_env.HOME }}/.vim/bundle/"
+    owner: "{{ ansible_env.USER }}"
+    group: "{{ ansible_env.USER }}"
+    mode: 0775
+
+- name: Configure vimrc syntax
+  lineinfile:
+    dest: "{{ ansible_env.HOME }}/.vimrc"
+    line: "{{ item }}"
+    insertafter: EOF
+    backup: yes
+  with_items:
+    - "set number"
+    - "execute pathogen#infect()"
+    - "syntax on"
+    - "autocmd FileType yaml setlocal ai ts=2 sw=2 et"
