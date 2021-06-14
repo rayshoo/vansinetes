@@ -109,7 +109,7 @@ Vagrant.configure("2") do |config|
     write_file(template.result(binding), 'ansible/hosts.ini')
 
     Dir.foreach("ansible/group_vars/cluster") do | entry |
-      if (entry != "." && entry != "..")
+      if (entry != "." && entry != ".." && entry != ".gitkeep")
         FileUtils.remove_dir("ansible/group_vars/cluster/#{entry}")
       end
     end
