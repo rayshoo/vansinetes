@@ -1,11 +1,13 @@
 # -*- mode: ruby -*-
 # vi: set ft=ruby :
+require 'erb'
 require 'fileutils'
 
 class Machine
-  def initialize(image, name, cpus, memory, network_ip, host_port, gui)
+  def initialize(image, name, role, cpus, memory, network_ip, host_port, gui)
     @image = image
     @name = name
+    @role = role
     @cpus = cpus
     @memory = memory
     @network_ip = network_ip
@@ -18,6 +20,9 @@ class Machine
   end
   def get_name
     return @name
+  end
+  def get_role
+    return @role
   end
   def get_cpus
     return @cpus
@@ -75,6 +80,7 @@ Vagrant.configure("2") do |config|
     default_cpus = (i > worker) ? ENV['DEFAULT_MASTER_CPUS'].to_i : ENV['DEFAULT_WORKER_CPUS'].to_i
     default_memory = (i > worker) ? ENV['DEFAULT_MASTER_MEMORY'] : ENV['DEFAULT_WORKER_MEMORY']
     server_name = (i > worker) ? "#{master_initial}#{master - (i - worker) + 1}" : "#{worker_initial}#{worker - i + 1}"
+    server_role = (i > worker) ? "master" : "worker"
     i = master + worker - i + 1
     server_image = ENV["#{i}_SERVER_IMAGE"] != "" ? ENV["#{i}_SERVER_IMAGE"] || ENV["DEFAULT_IMAGE"] : ENV["DEFAULT_IMAGE"]
     server_cpus = ENV["#{i}_SERVER_CPUS"] != "" ? ENV["#{i}_SERVER_CPUS"] || default_cpus : default_cpus
@@ -82,11 +88,12 @@ Vagrant.configure("2") do |config|
     server_network_ip = ENV["#{i}_SERVER_NETWORK_IP"] != "" ? ENV["#{i}_SERVER_NETWORK_IP"] || "#{default_network}.#{default_ip + i - 1}" : "#{default_network}.#{default_ip + i - 1}"
     server_host_port = ENV["#{i}_SERVER_HOST_PORT"]  != "" ? ENV["#{i}_SERVER_HOST_PORT"] || ENV["DEFAULT_HOST_PORT"].to_i + i - 1 :  ENV["DEFAULT_HOST_PORT"].to_i + i - 1
     server_gui = ENV["#{i}_SERVER_GUI"] != "" ? str_to_bool(ENV["#{i}_SERVER_GUI"] || ENV["DEFAULT_GUI"]) : str_to_bool(ENV["DEFAULT_GUI"])
-    server_machine = Machine.new(server_image, server_name, server_cpus, server_memory, server_network_ip, server_host_port, server_gui)
+    server_machine = Machine.new(server_image, server_name, server_role, server_cpus, server_memory, server_network_ip, server_host_port, server_gui)
     machines.push(server_machine)
     
     if ENV["DEBUG"] || ENV['debug']
       puts "server#{i}_name: #{server_name}"
+      puts "server#{i}_role: #{server_role}"
       puts "server#{i}_image: #{server_image}"
       puts "server#{i}_cpus: #{server_cpus}"
       puts "server#{i}_memory: #{server_memory}"
@@ -94,6 +101,21 @@ Vagrant.configure("2") do |config|
       puts "server#{i}_host_port: #{server_host_port}"
       puts "server#{i}_gui: #{server_gui}"
       puts "-----------------------------------"
+    end
+  end
+
+  if ENV['FILE_CREATE'] || false
+    template = ERB.new File.read('templates/hosts.erb')
+    write_file(template.result(binding), 'ansible/hosts.ini')
+
+    Dir.foreach("ansible/group_vars/cluster") do | entry |
+      if (entry != "." && entry != "..")
+        FileUtils.remove_dir("ansible/group_vars/cluster/#{entry}")
+      end
+    end
+    content = read_file("templates/host_vars.rb")
+    for machine in machines
+      write_file(content, "ansible/group_vars/cluster/#{machine.get_name}.yaml")
     end
   end
 

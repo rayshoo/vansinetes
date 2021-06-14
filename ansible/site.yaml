@@ -6,7 +6,7 @@
   roles:
     - ssh
     
-- name: ansible_clients ssh setting(key copy)
+- name: add hosts in hosts file
   hosts: ansible_clients
   tasks:
     - include_tasks: tasks/hosts.yaml

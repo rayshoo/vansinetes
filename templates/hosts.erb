@@ -1,0 +1,17 @@
+localhost ansible_connection=local
+<% for @machine in machines.reverse %><%= @machine.get_name %> ansible_host=<%= @machine.get_network_ip %>
+<% end %>
+[cluster]<% for @machine in machines.reverse %>
+<%= @machine.get_name %><% end %>
+
+[ansible_master]
+<%= machines.reverse[0].get_name %>
+
+[ansible_clients]<% machines.reverse.each_with_index do |machine, index| %><% if (index > 0) %>
+<%= machine.get_name %><% end %><% end %>
+
+[master]<% for @machine in machines.reverse %><% if @machine.get_role == 'master' %>
+<%= @machine.get_name %><% end %><% end %>
+
+[worker]<% for @machine in machines.reverse %><% if @machine.get_role == 'worker' %>
+<%= @machine.get_name %><% end %><% end %>
