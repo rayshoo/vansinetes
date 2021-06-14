@@ -6,5 +6,10 @@ else
 fi
 
 {% for item in groups['cluster'] %}
-cat {{ ansible_env.HOME }}/.ssh/id_rsa.pub | sshpass -p {{ hostvars[item].ansible_pass }} ssh -o StrictHostKeyChecking=no {{ hostvars[item].ansible_user }}@{{ hostvars[item].inventory_hostname }} "tee -a {{ ansible_env.HOME }}/.ssh/authorized_keys"
+cat {{ ansible_env.HOME }}/.ssh/id_rsa.pub | sshpass -p {{ hostvars[item].ansible_pass }} ssh -o StrictHostKeyChecking=no {{ hostvars[item].ansible_user }}@{{ hostvars[item].inventory_hostname }} "exit"
+{% if hostvars[item].ansible_user == 'root' %}
+cat {{ ansible_env.HOME }}/.ssh/id_rsa.pub | sshpass -p {{ hostvars[item].ansible_pass }} ssh -o StrictHostKeyChecking=no {{ hostvars[item].ansible_user }}@{{ hostvars[item].ansible_host }} "tee -a /root/.ssh/authorized_keys"
+{% else %}
+cat {{ ansible_env.HOME }}/.ssh/id_rsa.pub | sshpass -p {{ hostvars[item].ansible_pass }} ssh -o StrictHostKeyChecking=no {{ hostvars[item].ansible_user }}@{{ hostvars[item].ansible_host }} "tee -a /home/{{ hostvars[item].ansible_user }}/.ssh/authorized_keys"
+{% endif %}
 {% endfor %}

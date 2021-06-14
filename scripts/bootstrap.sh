@@ -1,7 +1,7 @@
 #!/bin/bash
 #
 # Program: Initial vagrant.
-# History: 2017/1/16 Kyle.b Release, 2021/03/15 Brian.Choi Modified
+# History: 2017/1/16 Kyle.b Release, 2021/03/15 rayshoo Modified
 set -e
 OS_NAME=$(awk -F= '/^NAME/{print $2}' /etc/os-release | grep -o "\w*"| head -n 1)
 

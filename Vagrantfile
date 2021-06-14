@@ -41,6 +41,17 @@ class Machine
   end
 end
 
+class String
+  def black;          "\033[30m#{self}\033[0m" end
+  def red;            "\033[31m#{self}\033[0m" end
+  def green;          "\033[32m#{self}\033[0m" end
+  def yellow;         "\033[33m#{self}\033[0m" end
+  def blue;           "\033[34m#{self}\033[0m" end
+  def magenta;        "\033[35m#{self}\033[0m" end
+  def cyan;           "\033[36m#{self}\033[0m" end
+  def white;          "\033[37m#{self}\033[0m" end
+end
+
 def str_to_bool(obj)
   value = obj.to_s.downcase
   return (value == "yes" or value == "true")
@@ -73,6 +84,7 @@ Vagrant.configure("2") do |config|
   server_network_type = ENV["SERVER_NETWORK_TYPE"] != "" ? ENV["SERVER_NETWORK_TYPE"] || ENV["DEFAULT_NETWORK_TYPE"] :  ENV["DEFAULT_NETWORK_TYPE"]
   server_interface = server_network_type == "public" ? ENV["SERVER_NETWORK_INTERFACE"] != "" ? ENV["SERVER_NETWORK_INTERFACE"] || ENV["DEFAULT_NETWORK_INTERFACE"] : ENV["DEFAULT_NETWORK_INTERFACE"] || nil : nil
   server_netmask = ENV['SERVER_NETWORK_NETMASK'] != "" ? ENV['SERVER_NETWORK_NETMASK'] || ENV["DEFAULT_NETWORK_NETMASK"] : ENV["DEFAULT_NETWORK_NETMASK"]
+  root_pass_script = nil
 
   machines = Array.new
   
@@ -92,16 +104,19 @@ Vagrant.configure("2") do |config|
     machines.push(server_machine)
     
     if ENV["DEBUG"] || ENV['debug']
-      puts "server#{i}_name: #{server_name}"
-      puts "server#{i}_role: #{server_role}"
-      puts "server#{i}_image: #{server_image}"
-      puts "server#{i}_cpus: #{server_cpus}"
-      puts "server#{i}_memory: #{server_memory}"
-      puts "server#{i}_network_ip: #{server_network_ip}"
-      puts "server#{i}_host_port: #{server_host_port}"
-      puts "server#{i}_gui: #{server_gui}"
-      puts "-----------------------------------"
+      puts "-----------------------------------".magenta
+      puts "server#{i}_name: #{server_machine.get_name}"
+      puts "server#{i}_role: #{server_machine.get_role}"
+      puts "server#{i}_image: #{server_machine.get_image}"
+      puts "server#{i}_cpus: #{server_machine.get_cpus}"
+      puts "server#{i}_memory: #{server_machine.get_memory}"
+      puts "server#{i}_network_ip: #{server_machine.get_network_ip}"
+      puts "server#{i}_host_port: #{server_machine.get_host_port}"
+      puts "server#{i}_gui: #{server_machine.get_gui}"
     end
+  end
+  if ENV["DEBUG"] || ENV['debug']
+    puts "-----------------------------------".magenta
   end
 
   if ENV['FILE_CREATE'] || false
@@ -114,9 +129,27 @@ Vagrant.configure("2") do |config|
       end
     end
     content = read_file("templates/host_vars.rb")
-    for machine in machines
-      write_file(content, "ansible/group_vars/cluster/#{machine.get_name}.yaml")
+    for node in machines
+      write_file(content, "ansible/group_vars/cluster/#{node.get_name}.yaml")
     end
+  end
+
+  if ENV['ROOT_PASS'] || ENV['root_pass'] || ENV['ROOT_PASSWORD'] || ENV['root_password']
+    check = true
+    while check
+      print "\nEnter the root password to set : ".blue
+      root_pass = STDIN.noecho(&:gets).chomp
+      print "\nConfirm Password : ".blue
+      root_pass_check = STDIN.noecho(&:gets).chomp
+      if root_pass == root_pass_check
+        check = false
+      else
+        print"\npassword mismatch\n".red
+      end
+    end
+    print "\npassword match\n".green
+    template = ERB.new File.read('templates/root_pass.erb')
+    root_pass_script = template.result(binding)
   end
 
   provision = str_to_bool(ENV['PROVISION'] || false)
@@ -143,6 +176,9 @@ Vagrant.configure("2") do |config|
       j.vm.boot_timeout = 600
 
       if provision
+        if ENV['ROOT_PASS'] || ENV['root_pass'] || ENV['ROOT_PASSWORD'] || ENV['root_password']
+          j.vm.provision "shell", inline: root_pass_script
+        end
         if i < machines.length - 1
           j.vm.provision "shell", path: "scripts/bash_ssh_conf.sh"
         else
