@@ -1,5 +1,5 @@
 localhost ansible_connection=local
-<% for @machine in machines.reverse %><%= @machine.get_name %> ansible_host=<%= @machine.get_network_ip %>
+<% for @machine in machines.reverse %><%= @machine.get_name %> ansible_host=<%= @machine.get_network_ip %><% if @machine.get_name == "#{master_initial}1" %> ansible_connection=local<% end %>
 <% end %>
 [cluster]<% for @machine in machines.reverse %>
 <%= @machine.get_name %><% end %>

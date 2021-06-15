@@ -1,29 +1,29 @@
 ---
-# - name: ansible ssh settings
-#   hosts: localhost
-#   # hosts: cluster
-#   serial: 1
-#   vars:
-#     root_login: yes
-#   roles:
-#     - ssh
+- name: ansible ssh settings
+  # hosts: localhost
+  hosts: cluster
+  serial: 1
+  vars:
+    root_login: yes
+  roles:
+    - ssh
     
-# - name: add hosts in hosts file
-#   hosts: ansible_clients
-#   tasks:
-#     - include_tasks: tasks/hosts.yaml
+- name: add hosts in hosts file
+  hosts: ansible_clients
+  tasks:
+    - include_tasks: tasks/hosts.yaml
 
-# - name: custom settings
-#   hosts: localhost
-#   gather_facts: yes
-#   vars:
-#     alias: yes
-#     packages:
-#       - git
-#       - vim
-#     vim_plugins: yes
-#   roles:
-#     - custom
+- name: custom settings
+  hosts: localhost
+  gather_facts: yes
+  vars:
+    alias: yes
+    packages:
+      - git
+      - vim
+    vim_plugins: yes
+  roles:
+    - custom
 
 - name: custom setting(motd)
   hosts: cluster

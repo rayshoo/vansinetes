@@ -22,7 +22,7 @@
   become: yes
   replace:
     dest: /etc/ssh/sshd_config
-    regexp: 'PasswordAuthentication no'
+    regexp: '#(#|\s)*?PasswordAuthentication[\s\x20]*(yes|no)'
     replace: 'PasswordAuthentication yes'
     backup: yes
   notify: sshd restart
