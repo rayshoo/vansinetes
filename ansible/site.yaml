@@ -15,7 +15,6 @@
 
 - name: custom settings
   hosts: localhost
-  gather_facts: yes
   vars:
     alias: yes
     packages:
@@ -30,3 +29,12 @@
   gather_facts: no
   roles:
     - motd
+
+- name: install container runtime
+  hosts: cluster
+  vars:
+    # runtime: docker
+    runtime: containerd
+    # runtime: cri-o
+  roles:
+    - runtime

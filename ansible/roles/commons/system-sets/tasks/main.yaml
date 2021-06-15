@@ -1,0 +1,12 @@
+---
+- name: Disable swap for current session
+  command: swapoff -a
+  become: true
+
+- name: swapoff permanent
+  become: yes
+  replace:
+    dest: /etc/fstab
+    regexp: '(^\s*UUID=)((?:\w+-){4}\w+\s)(\w+\s+)(swap)'
+    replace: '#\1\2\3\4'
+    backup: yes
