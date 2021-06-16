@@ -1,0 +1,5 @@
+*.sh linguist-vendored
+*.erb linguist-vendored
+*.env linguist-vendored
+*.j2 linguist-detectable=true
+*.yaml linguist-detectable=true
