@@ -3,8 +3,6 @@
   # hosts: localhost
   hosts: cluster
   serial: 1
-  vars:
-    root_login: yes
   roles:
     - ssh
     
@@ -13,28 +11,30 @@
   tasks:
     - include_tasks: tasks/hosts.yaml
 
-- name: custom settings
-  hosts: localhost
-  vars:
-    alias: yes
-    packages:
-      - git
-      - vim
-    vim_plugins: yes
+- name: custom settings(root)
+  become: yes
+  hosts: cluster
   roles:
-    - custom
+    - custom/alias
 
-- name: custom setting(motd)
+- name: custom settings
+  hosts: cluster
+  roles:
+    - custom/alias
+    - custom/git
+    - custom/vim
+
+- name: custom settings
   hosts: cluster
   gather_facts: no
   roles:
-    - motd
+    - custom/motd
 
 - name: install container runtime
   hosts: cluster
   vars:
-    # runtime: docker
     runtime: containerd
+    # runtime: docker
     # runtime: cri-o
   roles:
     - runtime

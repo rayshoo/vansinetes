@@ -1,0 +1,12 @@
+---
+- name: Play RedHat os family tasks
+  when: ansible_os_family == "RedHat"
+  include_tasks: redhat.yaml
+
+- name: Play Debian os family tasks
+  when: ansible_os_family == "Debian"
+  include_tasks: debian.yaml
+
+- name: Install vim plugins
+  when: vim_plugins == true
+  include_tasks: vim_plugin.yaml

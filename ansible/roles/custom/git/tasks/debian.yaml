@@ -1,0 +1,14 @@
+---
+- name: Install git latest
+  when: version == 'latest'
+  become: yes
+  apt:
+    name: git
+    state: latest
+
+- name: Install git specific version
+  when: version != 'latest'
+  become: yes
+  apt:
+    name: git={{ version }}
+    state: present

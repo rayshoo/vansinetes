@@ -16,24 +16,24 @@
 - name: create key.sh file
   template:
     src: "key.j2"
-    dest: "{{ local_home }}/key.sh"
-    owner: "{{ local_user }}"
-    group: "{{ local_user }}"
+    dest: "{{ ansible_env.HOME }}/key.sh"
+    owner: "{{ ansible_env.USER }}"
+    group: "{{ ansible_env.USER }}"
     mode: 0777
 
 - name: execute key.sh file
-  command: "{{ local_home }}/key.sh"
+  command: "{{ ansible_env.HOME }}/key.sh"
+
+- when: root_login == true
+  set_fact:
+    local_home : "{{ ansible_env.HOME }}"
 
 - name: execute key.sh file on root
   when: root_login == true
   become: yes
   command: "{{ local_home }}/key.sh"
 
-- debug:
-    var: local_home
-  become: yes
-
 - name: remove key.sh file
   file:
     state: absent
-    path: "{{ local_home }}/key.sh"
+    path: "{{ ansible_env.HOME }}/key.sh"

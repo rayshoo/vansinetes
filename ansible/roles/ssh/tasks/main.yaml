@@ -1,5 +1,5 @@
 ---
-- name: Install openssh (RHEL/CentOS)
+- name: Install openssh (RedHat)
   when: ansible_os_family == "RedHat"
   become: yes
   yum:
@@ -9,7 +9,7 @@
       - openssh-server
     state: present
 
-- name: Install openssh (Debian/Ubuntu)
+- name: Install openssh (Debian)
   when: ansible_os_family == "Debian"
   become: yes
   apt:

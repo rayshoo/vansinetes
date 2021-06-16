@@ -1,0 +1,14 @@
+---
+- name: Install vim-enhanced latest
+  when: version == 'latest'
+  become: yes
+  yum:
+    name: vim-enhanced
+    state: latest
+
+- name: Install vim-enhanced specific version
+  when: version != 'latest'
+  become: yes
+  yum:
+    name: vim-enhanced-{{ version }}
+    state: present
