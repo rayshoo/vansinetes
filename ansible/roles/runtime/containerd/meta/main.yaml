@@ -1,0 +1,5 @@
+---
+dependencies:
+  - { role: commons/os-checker }
+  - { role: commons/system-sets }
+  - { role: commons/download }

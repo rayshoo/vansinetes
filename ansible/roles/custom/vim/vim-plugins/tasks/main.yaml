@@ -7,7 +7,6 @@
   loop:
     - "{{ ansible_env.HOME }}/.vim/autoload"
     - "{{ ansible_env.HOME }}/.vim/bundle"
-    - "{{ ansible_env.HOME }}/Downloads"
 
 - name: "Git clone vim-plug from remote repository"
   git:

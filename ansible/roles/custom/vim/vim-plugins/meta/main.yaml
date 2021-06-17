@@ -1,0 +1,6 @@
+---
+dependencies:
+  - { role: commons/os-checker }
+  - { role: custom/git }
+  - { role: commons/apt-update }
+  - { role: commons/download }

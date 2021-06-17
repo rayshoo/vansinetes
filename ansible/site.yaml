@@ -19,10 +19,13 @@
 
 - name: custom settings
   hosts: cluster
+  vars:
+    vim_plugins: yes
   roles:
     - custom/alias
     - custom/git
-    - custom/vim
+    - custom/vim/vim
+    - { role: custom/vim/vim-plugins, when: vim_plugins == true }
 
 - name: custom settings
   hosts: cluster
@@ -34,7 +37,7 @@
   hosts: cluster
   vars:
     runtime: containerd
-    # runtime: docker
-    # runtime: cri-o
   roles:
-    - runtime
+    - { role: runtime/containerd, when: runtime == 'containerd' }
+    - { role: runtime/docker, when: runtime == 'docker' }
+    - { role: runtime/cri-o, when: runtime == 'cri-o' }

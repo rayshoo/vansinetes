@@ -1,0 +1,8 @@
+---
+- name: Install containerd manaully by binary
+  when: install_method == 'binary'
+  include_tasks: binary.yaml
+
+- name: Install containerd by package manager
+  when: install_method == 'manager'
+  include_tasks: manager.yaml

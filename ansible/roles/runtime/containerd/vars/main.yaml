@@ -1,0 +1,9 @@
+---
+# binary or manager
+install_method: binary
+
+# https://containerd.io/downloads/
+version: 1.5.2
+
+# https://kubernetes.io/ko/docs/setup/production-environment/container-runtimes/
+SystemdCgroup: "true"
