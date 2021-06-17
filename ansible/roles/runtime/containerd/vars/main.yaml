@@ -1,7 +1,4 @@
 ---
-# binary or manager
-install_method: binary
-
 # https://containerd.io/downloads/
 version: 1.5.2
 
