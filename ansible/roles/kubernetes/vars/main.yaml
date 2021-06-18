@@ -1,0 +1,4 @@
+---
+version:
+  - { latest: yes, apt-transport-https: latest, ca-certificates: latest }
+  - { latest: yes, kubelet: latest, kubeadm: latest, kubectl: latest }

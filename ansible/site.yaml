@@ -1,15 +1,14 @@
 ---
 - name: ansible ssh settings
-  # hosts: localhost
   hosts: cluster
   serial: 1
   roles:
     - ssh
     
-- name: add hosts in hosts file
-  hosts: ansible_clients
-  tasks:
-    - include_tasks: tasks/hosts.yaml
+# - name: add hosts in hosts file
+#   hosts: ansible_clients
+#   tasks:
+#     - include: tasks/hosts.yaml
 
 - name: custom settings(root)
   become: yes
@@ -41,3 +40,8 @@
     - { role: runtime/containerd, when: runtime == 'containerd' }
     - { role: runtime/docker, when: runtime == 'docker' }
     - { role: runtime/cri-o, when: runtime == 'cri-o' }
+
+- name: install kubernetes with kubeadm
+  hosts: cluster
+  roles:
+    - kubernetes

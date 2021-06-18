@@ -3,6 +3,7 @@
   when: version == 'latest'
   become: yes
   apt:
+    update_cache: yes
     name: vim
     state: latest
 
@@ -10,5 +11,6 @@
   when: version != 'latest'
   become: yes
   apt:
+    update_cache: yes
     name: vim={{ version }}
     state: present
