@@ -38,10 +38,17 @@
     runtime: containerd
   roles:
     - { role: runtime/containerd, when: runtime == 'containerd' }
-    - { role: runtime/docker, when: runtime == 'docker' }
-    - { role: runtime/cri-o, when: runtime == 'cri-o' }
+    # - { role: runtime/docker, when: runtime == 'docker' }
+    # - { role: runtime/cri-o, when: runtime == 'cri-o' }
 
-- name: install kubernetes with kubeadm
+- name: kubeadm init
   hosts: cluster
   roles:
-    - kubernetes
+    - kubernetes/preinstall
+    - kubernetes/init
+
+- name: kubeadm join
+  hosts: cluster
+  serial: 1
+  roles:
+    - kubernetes/join

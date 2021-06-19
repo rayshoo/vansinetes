@@ -123,14 +123,14 @@ Vagrant.configure("2") do |config|
     template = ERB.new File.read('templates/hosts.erb')
     write_file(template.result(binding), 'ansible/hosts.ini')
 
-    Dir.foreach("ansible/group_vars/cluster") do | entry |
+    Dir.foreach("ansible/host_vars") do | entry |
       if (entry != "." && entry != ".." && entry != ".gitkeep")
-        FileUtils.remove_dir("ansible/group_vars/cluster/#{entry}")
+        FileUtils.remove_dir("ansible/host_vars/#{entry}")
       end
     end
     content = read_file("templates/host_vars.rb")
     for node in machines
-      write_file(content, "ansible/group_vars/cluster/#{node.get_name}.yaml")
+      write_file(content, "ansible/host_vars/#{node.get_name}.yaml")
     end
   end
 
@@ -183,7 +183,7 @@ Vagrant.configure("2") do |config|
           j.vm.provision "shell", path: "scripts/bash_ssh_conf.sh"
         else
           j.vm.provision "file", source: "ansible", destination: "ansible"
-          # j.vm.provision "shell", path: "scripts/bootstrap.sh"
+          j.vm.provision "shell", path: "scripts/bootstrap.sh"
           j.vm.provision "shell", keep_color: true, inline: "cd ansible && ANSIBLE_FORCE_COLOR=true ansible-playbook site.yaml", privileged: false
         end
       end
