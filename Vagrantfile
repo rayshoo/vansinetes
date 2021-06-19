@@ -119,7 +119,7 @@ Vagrant.configure("2") do |config|
     puts "-----------------------------------".magenta
   end
 
-  if ENV['FILE_CREATE'] || false
+  if str_to_bool(ENV['FILE_CREATE'] || false)
     template = ERB.new File.read('templates/hosts.erb')
     write_file(template.result(binding), 'ansible/hosts.ini')
 
@@ -183,7 +183,7 @@ Vagrant.configure("2") do |config|
           j.vm.provision "shell", path: "scripts/bash_ssh_conf.sh"
         else
           j.vm.provision "file", source: "ansible", destination: "ansible"
-          j.vm.provision "shell", path: "scripts/bootstrap.sh"
+          # j.vm.provision "shell", path: "scripts/bootstrap.sh"
           j.vm.provision "shell", keep_color: true, inline: "cd ansible && ANSIBLE_FORCE_COLOR=true ansible-playbook site.yaml", privileged: false
         end
       end
