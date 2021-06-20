@@ -24,10 +24,6 @@
 - name: execute key.sh file
   command: "{{ ansible_env.HOME }}/key.sh"
 
-- when: root_login == true
-  set_fact:
-    local_home : "{{ ansible_env.HOME }}"
-
 - name: execute key.sh file on root
   when: root_login == true
   become: yes

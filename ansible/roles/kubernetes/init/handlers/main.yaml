@@ -1,0 +1,4 @@
+---
+- name: install cni network plugin
+  when: ansible_hostname == groups['ansible_master'][0]
+  include_tasks: "{{ network_plugin }}.yaml"

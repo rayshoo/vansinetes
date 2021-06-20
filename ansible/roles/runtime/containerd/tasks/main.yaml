@@ -16,9 +16,6 @@
     group: "{{ ansible_env.USER }}"
     mode: 0755
 
-- set_fact:
-    local_home : "{{ ansible_env.HOME }}"
-
 - name: Copy containerd binaries in PATH
   become: yes
   copy:
@@ -53,5 +50,4 @@
     group: root
     mode: 0644
   notify: containerd_restart
-
 - meta: flush_handlers

@@ -1,0 +1,13 @@
+---
+- name: Create .vimrc file if no exists
+  file:
+    path: "{{ ansible_env.HOME }}/.vimrc"
+    state: touch
+    mode: 0644
+  register: touch_log
+  changed_when: touch_log.diff.before.state != "file"
+
+- name: Configure Vimrc
+  lineinfile:
+    dest: "{{ ansible_env.HOME }}/.vimrc"
+    line: set ai et ts=2 sw=2

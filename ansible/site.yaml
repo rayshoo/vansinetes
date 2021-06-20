@@ -4,51 +4,39 @@
   serial: 1
   roles:
     - ssh
-    
-# - name: add hosts in hosts file
-#   hosts: ansible_clients
-#   tasks:
-#     - include: tasks/hosts.yaml
 
-- name: custom settings(root)
-  become: yes
-  hosts: cluster
-  roles:
-    - custom/alias
-
-- name: custom settings
-  hosts: cluster
-  vars:
-    vim_plugins: yes
-  roles:
-    - custom/alias
-    - custom/git
-    - custom/vim/vim
-    - { role: custom/vim/vim-plugins, when: vim_plugins == true }
-
-- name: custom settings
-  hosts: cluster
-  gather_facts: no
-  roles:
-    - custom/motd
-
-- name: install container runtime
+- name: kubernetes install
   hosts: cluster
   vars:
     runtime: containerd
   roles:
     - { role: runtime/containerd, when: runtime == 'containerd' }
-    # - { role: runtime/docker, when: runtime == 'docker' }
-    # - { role: runtime/cri-o, when: runtime == 'cri-o' }
-
-- name: kubeadm init
-  hosts: cluster
-  roles:
+    - { role: runtime/docker, when: runtime == 'docker' }
+    - { role: runtime/cri-o, when: runtime == 'cri-o' }
     - kubernetes/preinstall
     - kubernetes/init
-
-- name: kubeadm join
-  hosts: cluster
-  serial: 1
-  roles:
     - kubernetes/join
+- hosts: master
+  roles:
+    - kubernetes/config
+
+- name: custom settings
+  hosts: cluster
+  roles:
+    - custom/alias/ansible
+    - custom/alias/vim
+    - custom/alias/kubernetes
+    - custom/git
+    - custom/vim/vim
+    - custom/vim/vim-plugins
+    - custom/vim/vim-custom
+    - custom/motd
+
+- name: custom settings(root)
+  become: yes
+  hosts: cluster
+  roles:
+    - custom/alias/ansible
+    - custom/alias/vim
+    - custom/alias/kubernetes
+    - custom/vim/vim-custom

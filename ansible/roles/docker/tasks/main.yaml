@@ -1,0 +1,50 @@
+---
+- name: Download docker binary files
+  get_url:
+    url: https://download.docker.com/linux/static/stable/x86_64/docker-{{ version }}.tgz
+    dest: "{{ ansible_env.HOME }}/Downloads/docker-{{ version }}.tgz"
+    owner: "{{ ansible_env.USER }}"
+    group: "{{ ansible_env.USER }}"
+    mode: 0644
+
+- name: Unarchive docker binary files
+  unarchive:
+    src: "{{ ansible_env.HOME }}/Downloads/docker-{{ version }}.tgz"
+    dest: "{{ ansible_env.HOME }}/Downloads"
+    owner: "{{ ansible_env.USER }}"
+    group: "{{ ansible_env.USER }}"
+    mode: 0775
+
+- name: copy docker binary files in path
+  become: yes
+  copy:
+    src: "{{ local_home }}/Downloads/docker/{{ item }}"
+    dest: "/usr/bin"
+    owner: root
+    group: root
+    mode: 0775
+  with_items:
+    - docker
+    - dockerd
+    - docker-init
+    - docker-proxy
+
+- name: docker group create
+  become: yes
+  group:
+    name: docker
+    state: present
+
+- name: generate docker service and socket
+  become: yes
+  copy:
+    src: "{{ item }}"
+    dest: "/usr/lib/systemd/system"
+    owner: root
+    group: root
+    mode: 0644
+  with_items:
+    - docker.service
+    - docker.socket
+  notify: docker service start
+- meta: flush_handlers

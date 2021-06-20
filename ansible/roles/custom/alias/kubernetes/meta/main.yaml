@@ -1,0 +1,4 @@
+---
+dependencies:
+  - { role: custom/alias }
+  - { role: custom/bash_completion }

@@ -1,7 +1,7 @@
 ---
-- name: Create .bashrc file if no exists
+- name: Create .vimrc file if not exists
   file:
-    path: "{{ ansible_env.HOME }}/.bashrc"
+    path: "{{ ansible_env.HOME }}/.vimrc"
     state: touch
     mode: 0644
   register: touch_log

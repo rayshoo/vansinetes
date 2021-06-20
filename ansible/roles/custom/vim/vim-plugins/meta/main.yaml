@@ -3,3 +3,4 @@ dependencies:
   - { role: commons/os-checker }
   - { role: custom/git }
   - { role: commons/download }
+  - { role: custom/vim }

@@ -103,7 +103,7 @@ Vagrant.configure("2") do |config|
     server_machine = Machine.new(server_image, server_name, server_role, server_cpus, server_memory, server_network_ip, server_host_port, server_gui)
     machines.push(server_machine)
     
-    if ENV["DEBUG"] || ENV['debug']
+    if str_to_bool(ENV["DEBUG"] || ENV['debug'] || false)
       puts "-----------------------------------".magenta
       puts "server#{i}_name: #{server_machine.get_name}"
       puts "server#{i}_role: #{server_machine.get_role}"
@@ -115,7 +115,7 @@ Vagrant.configure("2") do |config|
       puts "server#{i}_gui: #{server_machine.get_gui}"
     end
   end
-  if ENV["DEBUG"] || ENV['debug']
+  if str_to_bool(ENV["DEBUG"] || ENV['debug'] || false)
     puts "-----------------------------------".magenta
   end
 
@@ -152,7 +152,7 @@ Vagrant.configure("2") do |config|
     root_pass_script = template.result(binding)
   end
 
-  provision = str_to_bool(ENV['PROVISION'] || false)
+  provision = str_to_bool(ENV['PROVISION'] || ENV['provision']  || false)
 
   (0..machines.length - 1).each do |i|
     machine = machines.at(i)
@@ -184,7 +184,11 @@ Vagrant.configure("2") do |config|
         else
           j.vm.provision "file", source: "ansible", destination: "ansible"
           j.vm.provision "shell", path: "scripts/bootstrap.sh"
-          j.vm.provision "shell", keep_color: true, inline: "cd ansible && ANSIBLE_FORCE_COLOR=true ansible-playbook site.yaml", privileged: false
+          if str_to_bool(ENV["DEBUG"] || ENV['debug'] || false)
+            j.vm.provision "shell", keep_color: true, inline: "cd ansible && ANSIBLE_FORCE_COLOR=true ansible-playbook site.yaml -v", privileged: false
+          else
+            j.vm.provision "shell", keep_color: true, inline: "cd ansible && ANSIBLE_FORCE_COLOR=true ansible-playbook site.yaml", privileged: false
+          end
         end
       end
     end

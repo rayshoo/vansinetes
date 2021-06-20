@@ -1,0 +1,5 @@
+---
+network_plugin: calico
+calico_version: 3.18
+pod_subnet: 192.168.0.0/16
+docker_install: true
