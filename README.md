@@ -1,7 +1,7 @@
 # Vansible with Kubeadm
 
-[Vansible with Kubespray](https://github.com/rayshoo/vansible_with_kubespray)의 후속 프로젝트
-
+**[Vansible with Kubespray](https://github.com/rayshoo/vansible_with_kubespray)의 후속 프로젝트**<br/>
+**A follow-up project to [Vansible with Kubespray](https://github.com/rayshoo/vansible_with_kubespray)**
 ## 소개
 쉽고 빠른 Docker+Kubernetes 개발, 학습 및 강의 환경 구축을 위해 설계된<br/>
 Vagrant, Ansible, Kubeadm를 사용한 IaC(Infra as Code) 도구
@@ -67,7 +67,6 @@ $ curl http://m1:5000/v2/
 
 <hr/>
 
-A follow-up project to [Vansible with Kubespray](https://github.com/rayshoo/vansible_with_kubespray)<br/>
 ## Introduce
 IaC (Infra as Code) tool designed for easy and fast Docker + Kubernetes development, learning, and lecture environment construction<br/>
 with using Vagrant, Ansible, Kubeadm.
