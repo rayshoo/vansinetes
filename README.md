@@ -36,6 +36,7 @@ $ vagrant ssh $(vagrant status | tail -5 | sed -n '1p' | awk '{ print $1}')
 
 # 기본 설정이라면 아래의 명령어로 접속이 가능하다
 $ vagrant ssh m1
+$ ssh vagrant@10.254.1.51
 $ ssh -p 5701 vagrant@localhost
 ```
 
@@ -101,6 +102,7 @@ $ vagrant ssh $(vagrant status | tail -5 | sed -n '1p' | awk '{ print $1}')
 
 # If it is the default setting, you can access it with the following command
 $ vagrant ssh m1
+$ ssh vagrant@10.254.1.51
 $ ssh -p 5701 vagrant@localhost
 ```
 
@@ -158,6 +160,16 @@ it appears to have been deleted normally, but it is not actually deleted once at
 ### [Cri-o](https://cri-o.io/)
 
 ### [Kubernetes](https://kubernetes.io/ko/docs/home/)
+
+<hr/>
+
+## 추가 개발 예정, Development plan
+- Add multi-master node keepalived, haproxy task
+- docker runtime role
+- cri-o runtime role
+- install ruby environment role
+- install nodejs environment role
+- other cni plugins task
 
 <hr/>
  
