@@ -22,21 +22,21 @@ $ vagrant plugin install vagrant-env
 
 # 프로비전이 실패할 경우를 대비해서 초기 설치 상태로 스냅샷을 생성한다
 $ provision=false vagrant up
-$ vagrant snapshot save init
+$ vagrant snapshot save up
 
 # 다음의 명령어로 저장한 스냅샷으로 초기화 가능
-$ vagrant snapshot restore init
+$ vagrant snapshot restore up
 
-# 더 정확한 정보를 확인하고 싶다면 debug 옵션을 추가 입력한다
+# root 패스워드 입력 시, 자동으로 설정된다
 $ root_pass=true vagrant provision --color
-# or
-$ debug=true root_pass=true vagrant provision --color
+# 더 정확한 정보를 확인하고 싶다면 debug 옵션을 추가 입력한다
+$ debug=true vagrant provision --color
 
 $ vagrant ssh $(vagrant status | tail -5 | sed -n '1p' | awk '{ print $1}')
 
 # 기본 설정이라면 아래의 명령어로 접속이 가능하다
 $ vagrant ssh m1
-$ ssh -p 5750 vagrant@localhost
+$ ssh -p 5701 vagrant@localhost
 ```
 
 ## 참고 사항
@@ -47,7 +47,14 @@ $ ssh -p 5750 vagrant@localhost
 alias ans='ansible'
 alias anp='ansible-playbook'
 alias vi='vim'
+alias d='docker'
 alias k='kubectl'
+```
+
+사설 도커 레지스트리가 생성되며, insecure 옵션으로 https 없이도 사용 가능하다
+```
+$ curl http://m1:5000/v2/
+{}
 ```
 
 ## 문제 해결
@@ -80,21 +87,21 @@ $ vagrant plugin install vagrant-env
 
 # Create a snapshot of the initial installation state in case provisioning fails
 $ provision=false vagrant up
-$ vagrant snapshot save init
+$ vagrant snapshot save up
 
 # It can be initialized with the saved snapshot with the following command
-$ vagrant snapshot restore init
+$ vagrant snapshot restore up
 
-# If you want to check more accurate information, add the debug option
+# It is automatically set when the root password is entered.
 $ root_pass=true vagrant provision --color
-# or
-$ debug=true root_pass=true vagrant provision --color
+# If you want to check more accurate information, add the debug option
+$ debug=true vagrant provision --color
 
 $ vagrant ssh $(vagrant status | tail -5 | sed -n '1p' | awk '{ print $1}')
 
 # If it is the default setting, you can access it with the following command
 $ vagrant ssh m1
-$ ssh -p 5750 vagrant@localhost
+$ ssh -p 5701 vagrant@localhost
 ```
 
 ## Note
@@ -105,7 +112,14 @@ Several aliases are automatically registered.
 alias ans='ansible'
 alias anp='ansible-playbook'
 alias vi='vim'
+alias d='docker'
 alias k='kubectl'
+```
+
+A private docker registry is created and can be used without https with the insecure option
+```
+$ curl http://m1:5000/v2/
+{}
 ```
 
 ## Trouble Shooting
