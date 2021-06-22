@@ -152,7 +152,7 @@ Vagrant.configure("2") do |config|
     root_pass_script = template.result(binding)
   end
 
-  provision = str_to_bool(ENV['PROVISION'] || ENV['provision']  || false)
+  provision = (ENV['PROVISION'] || ENV['provision']) == nil ? true : str_to_bool(ENV['PROVISION'] || ENV['provision'])
 
   (0..machines.length - 1).each do |i|
     machine = machines.at(i)
