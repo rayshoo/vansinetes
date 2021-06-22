@@ -1,4 +1,4 @@
 .vagrant
 
 ansible/hosts.ini
-ansible/group_vars/cluster/*
+ansible/host_vars/
