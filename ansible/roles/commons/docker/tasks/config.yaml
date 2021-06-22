@@ -14,7 +14,7 @@
 
 - name: generate docker config file to use systemd driver
   become: yes
-  when: SystemdCgroup == 'true'
+  when: systemd_cgroup == 'true'
   copy:
     src: daemon.json
     dest: /etc/docker/daemon.json
@@ -42,3 +42,5 @@
     name: "{{ local_user }}"
     groups: docker
     append: yes
+
+- meta: flush_handlers

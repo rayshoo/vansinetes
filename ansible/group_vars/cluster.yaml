@@ -3,4 +3,6 @@ local_home: "{{ lookup('env','HOME') }}"
 local_user: "{{ lookup('env','USER') }}"
 
 # https://kubernetes.io/ko/docs/setup/production-environment/container-runtimes/
-SystemdCgroup: "true"
+systemd_cgroup: "true"
+
+docker_registry: yes

@@ -25,6 +25,7 @@
   roles:
     - custom/alias/ansible
     - custom/alias/vim
+    - custom/alias/docker
     - custom/alias/kubernetes
     - custom/git
     - custom/vim/vim
@@ -38,5 +39,6 @@
   roles:
     - custom/alias/ansible
     - custom/alias/vim
+    - custom/alias/docker
     - custom/alias/kubernetes
     - custom/vim/vim-custom

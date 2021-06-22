@@ -9,4 +9,4 @@
   when: docker_registry is defined and docker_registry == true
   include: registry.yaml
 
-- meta: flush_handlers
+
