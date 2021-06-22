@@ -1,0 +1,12 @@
+---
+- name: docker install
+  include: install.yaml
+
+- name: docker config
+  include: config.yaml
+
+- name: docker registry
+  when: docker_registry is defined and docker_registry == true
+  include: registry.yaml
+
+- meta: flush_handlers

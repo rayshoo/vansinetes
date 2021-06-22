@@ -3,7 +3,7 @@
     path: "{{ ansible_env.HOME }}/.kube"
     state: directory
 
-- name: Mode 777 for admin.conf temporary"
+- name: Mode 777 for admin.conf temporary
   become: yes
   file:
     path: /etc/kubernetes/admin.conf
@@ -18,7 +18,7 @@
     group: "{{ local_user }}"
     mode: 0600
 
-- name: Mode 600 for admin.conf again"
+- name: Mode 600 for admin.conf again
   become: yes
   file:
     path: /etc/kubernetes/admin.conf

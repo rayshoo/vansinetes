@@ -25,4 +25,4 @@
 - name: docker install
   when: docker_install == true
   include_role:
-    name: docker
+    name: commons/docker

@@ -1,0 +1,44 @@
+---
+- name: docker group create
+  become: yes
+  group:
+    name: docker
+    state: present
+
+- name: Ensure docker directory exists
+  become: yes
+  file:
+    path: /etc/docker
+    state: directory
+    mode: 0755
+
+- name: generate docker config file to use systemd driver
+  become: yes
+  when: SystemdCgroup == 'true'
+  copy:
+    src: daemon.json
+    dest: /etc/docker/daemon.json
+    owner: root
+    group: root
+    mode: 0644
+  notify: docker service start
+
+- name: generate docker service and socket
+  become: yes
+  copy:
+    src: "{{ item }}"
+    dest: "/usr/lib/systemd/system"
+    owner: root
+    group: root
+    mode: 0644
+  with_items:
+    - docker.service
+    - docker.socket
+  notify: docker service start
+
+- name: add docker group on user
+  become: yes
+  user:
+    name: "{{ local_user }}"
+    groups: docker
+    append: yes
