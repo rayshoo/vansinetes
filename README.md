@@ -29,8 +29,8 @@ $ vagrant snapshot restore up
 
 # root 패스워드 입력 시, 자동으로 설정된다
 $ root_pass=true vagrant provision --color
-# 더 정확한 정보를 확인하고 싶다면 debug 옵션을 추가 입력한다
-$ debug=true vagrant provision --color
+# 더 자세한 정보를 확인하고 싶다면 debug 옵션을 추가 입력한다
+$ debug=true root_pass=true vagrant provision --color
 
 $ vagrant ssh $(vagrant status | tail -5 | sed -n '1p' | awk '{ print $1}')
 
@@ -56,6 +56,12 @@ alias k='kubectl'
 ```
 $ curl http://m1:5000/v2/
 {}
+```
+
+vagrant 유저로 docker와 kubectl 명령어가 사용 가능하다
+```
+$ d ps
+$ k get nodes
 ```
 
 ## 문제 해결
@@ -94,8 +100,8 @@ $ vagrant snapshot restore up
 
 # It is automatically set when the root password is entered.
 $ root_pass=true vagrant provision --color
-# If you want to check more accurate information, add the debug option
-$ debug=true vagrant provision --color
+# For more detailed information, add the debug option.
+$ debug=true root_pass=true vagrant provision --color
 
 $ vagrant ssh $(vagrant status | tail -5 | sed -n '1p' | awk '{ print $1}')
 
@@ -121,6 +127,12 @@ A private docker registry is created and can be used without https with the inse
 ```
 $ curl http://m1:5000/v2/
 {}
+```
+
+You can use docker and kubectl commands as the vagrant user.
+```
+$ d ps
+$ k get nodes
 ```
 
 ## Trouble Shooting
