@@ -58,10 +58,10 @@ $ curl http://m1:5000/v2/
 {}
 ```
 
-vagrant 유저로 docker와 kubectl 명령어가 사용 가능하다
+vagrant 유저로 docker와 kubectl 명령어를 사용 가능하다
 ```
 $ d ps
-$ k get nodes
+$ k get nodes -o wide
 ```
 
 ## 문제 해결
@@ -132,7 +132,7 @@ $ curl http://m1:5000/v2/
 You can use docker and kubectl commands as the vagrant user.
 ```
 $ d ps
-$ k get nodes
+$ k get nodes -o wide
 ```
 
 ## Trouble Shooting
