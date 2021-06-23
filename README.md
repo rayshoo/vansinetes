@@ -36,8 +36,11 @@ $ vagrant ssh $(vagrant status | tail -5 | sed -n '1p' | awk '{ print $1}')
 
 # 기본 설정이라면 아래의 명령어로 접속이 가능하다
 $ vagrant ssh m1
-$ ssh vagrant@10.254.1.51
+$ ssh vagrant@10.254.1.51 # 리눅스 환경에서는 virtual box에서 별도의 호스트 네트워크 구성 필요
 $ ssh -p 5701 vagrant@localhost
+
+# 초기 vagrant 유저 비밀번호
+vagrant
 ```
 
 ## 참고 사항
@@ -107,8 +110,11 @@ $ vagrant ssh $(vagrant status | tail -5 | sed -n '1p' | awk '{ print $1}')
 
 # If it is the default setting, you can access it with the following command
 $ vagrant ssh m1
-$ ssh vagrant@10.254.1.51
+$ ssh vagrant@10.254.1.51 # In a Linux environment, a separate host network configuration is required in a virtual box
 $ ssh -p 5701 vagrant@localhost
+
+# initial vagrant user password
+vagrant
 ```
 
 ## Note
