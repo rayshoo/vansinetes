@@ -182,6 +182,7 @@ it appears to have been deleted normally, but it is not actually deleted once at
 
 ## 추가 개발 예정, Development plan
 - Add multi-master node keepalived, haproxy task
+- MetalLB role
 - docker runtime role
 - cri-o runtime role
 - install ruby environment role
