@@ -1,32 +1,37 @@
-- name: Creates directory
-  file:
-    path: "{{ ansible_env.HOME }}/.kube"
-    state: directory
-
-- name: Mode 777 for admin.conf temporary
+---
+- name: Register /var/lib/kubelet/config.yaml file text
+  when: systemd_cgroup == 'true'
   become: yes
-  file:
-    path: /etc/kubernetes/admin.conf
-    mode: 0777
+  shell: cat /var/lib/kubelet/config.yaml
+  register: result
+  changed_when: false
 
-- name: Make kubectl work for non-root user
+- name: Change cgroup driver to systemd
+  when:
+    - systemd_cgroup == 'true'
+    - result.stdout | regex_search('^(cgroupDriver:\s*)(cgroupfs)', multiline=True)
   become: yes
-  copy:
-    src: /etc/kubernetes/admin.conf
-    dest: "{{ local_home }}/.kube/config"
-    owner: "{{ local_user }}"
-    group: "{{ local_user }}"
-    mode: 0600
+  replace:
+    dest: /var/lib/kubelet/config.yaml
+    regexp: '^(cgroupDriver:)\s*(cgroupfs)'
+    replace: '\1 systemd'
+    backup: yes
+  notify: kubelet service restart
 
-- name: Mode 600 for admin.conf again
-  become: yes
-  file:
-    path: /etc/kubernetes/admin.conf
-    mode: 0600
-
-- name: export KUBECONFIG(root)
-  when: root_config == true
+- name: add cgroup driver in kubelet config file
+  when:
+    - systemd_cgroup == 'true'
+    - not result.stdout | regex_search('^(cgroupDriver:\s*)(systemd|cgroupfs)', multiline=True)
   become: yes
   lineinfile:
-    dest: /root/.bashrc
-    line: export KUBECONFIG=/etc/kubernetes/admin.conf
+    dest: /var/lib/kubelet/config.yaml
+    line: 'cgroupDriver: systemd'
+    insertafter: EOF
+    backup: yes
+  notify: kubelet service restart
+
+- meta: flush_handlers
+
+- name: master node config
+  when: ansible_hostname in groups['master']
+  include: master.yaml

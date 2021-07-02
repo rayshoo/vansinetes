@@ -1,6 +1,5 @@
 ---
 dependencies:
   - { role: commons/os-checker }
-  - { role: runtime/system-sets }
   - { role: commons/download }
   - { role: runtime/runc }

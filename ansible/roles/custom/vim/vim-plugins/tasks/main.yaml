@@ -76,4 +76,4 @@
     - "set number"
     - "execute pathogen#infect()"
     - "syntax on"
-    - "autocmd FileType yaml setlocal ai ts=2 sw=2 et"
+    - "autocmd FileType yaml setlocal ai et ts=2 sw=2 sts=2"

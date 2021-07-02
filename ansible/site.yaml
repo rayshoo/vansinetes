@@ -16,8 +16,6 @@
     - kubernetes/preinstall
     - kubernetes/init
     - kubernetes/join
-- hosts: master
-  roles:
     - kubernetes/config
 
 - name: custom settings

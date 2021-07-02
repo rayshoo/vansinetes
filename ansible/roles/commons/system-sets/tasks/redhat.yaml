@@ -1,0 +1,36 @@
+---
+- name: change permissive status to Selinux
+  become: yes
+  selinux:
+    policy: targeted
+    state: permissive
+
+- name: allow control node required ports to firewalld
+  when:
+    - ansible_hostname in groups['master']
+  become: yes
+  firewalld:
+    port: "{{ item }}"
+    permanent: true
+    immediate: yes
+    state: enabled
+  with_items:
+    - 6443/tcp # kubernetes api server
+    - 2379-2380/tcp # etcd server client api
+    - 10250-10252/tcp  # kubelet api, scheduler, controller-manager
+    - 30000-32767/tcp # nodeport services
+  ignore_errors: yes
+
+- name: allow worker node required ports to firewalld
+  when:
+    - ansible_hostname in groups['worker']
+  become: yes
+  firewalld:
+    port: "{{ item }}"
+    permanent: true
+    immediate: yes
+    state: enabled
+  with_items:
+    - 10250/tcp # kubelet api
+    - 30000-32767/tcp # nodeport services
+  ignore_errors: yes

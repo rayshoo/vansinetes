@@ -9,7 +9,7 @@
 - name: Create daemon.json if no exists
   become: yes
   file:
-    path: "/etc/docker/daemon.json"
+    path: /etc/docker/daemon.json
     state: touch
     mode: 0644
   register: touch_log

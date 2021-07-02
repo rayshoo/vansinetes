@@ -6,3 +6,24 @@
 - name: Play Debian os family tasks
   when: ansible_os_family == "Debian"
   include_tasks: debian.yaml
+
+- name: Register {{ kubeadm_conf_path }} file text
+  when: systemd_cgroup == 'true'
+  become: yes
+  shell: cat {{ kubeadm_conf_path }}
+  register: result
+  changed_when: false
+
+- name: Change cgroup driver cgroupfs to systemd
+  when:
+    - systemd_cgroup == 'true'
+    - result.stdout | regex_search('^((?:ExecStart=)(?:(?!--cgroup-driver=).)+)$', multiline=True)
+  become: yes
+  replace:
+    dest: "{{ kubeadm_conf_path }}"
+    regexp: '^((?:ExecStart=)(?:(?!--cgroup-driver=).)+)$'
+    replace: '\1 --cgroup-driver=systemd'
+    backup: yes
+  notify: kubelet service restart
+
+- meta: flush_handlers

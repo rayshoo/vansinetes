@@ -7,23 +7,23 @@
   become: yes
   replace:
     dest: /etc/fstab
-    regexp: '(^\s*UUID=)((?:\w+-){4}\w+\s)(\w+\s+)(swap)'
-    replace: '#\1\2\3\4'
+    regexp: '^(\s*)([^#\n]+\s+)(\w+\s+)swap(\s+.*)$'
+    replace: '#\1\2\3swap\4'
     backup: yes
 
-- name: Create container-runtime.conf file if no exists
+- name: Create k8s.conf file if no exists
   become: yes
   file:
-    path: /etc/modules-load.d/container-runtime.conf
+    path: /etc/modules-load.d/k8s.conf
     state: touch
     mode: 0644
   register: touch_log
   changed_when: touch_log.diff.before.state != "file"
 
-- name: write modules in container-runtime.conf file
+- name: write modules in k8s.conf file
   become: yes
   lineinfile:
-    dest: /etc/modules-load.d/container-runtime.conf
+    dest: /etc/modules-load.d/k8s.conf
     line: "{{ item }}"
   with_items:
     - overlay
@@ -38,10 +38,10 @@
     - overlay
     - br_netfilter
 
-- name: Create 99-kubernetes-cri.conf file if no exists
+- name: Create k8s.conf file if no exists
   become: yes
   file:
-    path: /etc/sysctl.d/99-kubernetes-cri.conf
+    path: /etc/sysctl.d/k8s.conf
     state: touch
     mode: 0644
   register: touch_log
@@ -53,9 +53,13 @@
     name: "{{ item.name }}"
     value: "{{ item.value }}"
     state: present
-    sysctl_file: /etc/sysctl.d/99-kubernetes-cri.conf
+    sysctl_file: /etc/sysctl.d/k8s.conf
     reload: yes
   with_items:
     - { name: 'net.bridge.bridge-nf-call-iptables', value: '1' }
     - { name: 'net.ipv4.ip_forward', value: '1' }
     - { name: 'net.bridge.bridge-nf-call-ip6tables', value: '1' }
+
+- name: Play RedHat os family tasks
+  when: ansible_os_family == "RedHat"
+  include_tasks: redhat.yaml

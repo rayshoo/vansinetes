@@ -60,9 +60,9 @@
   apt:
     update_cache: yes
     name:
-      - kubelet={{ version[1].kubelet }}
-      - kubeadm={{ version[1].kubeadm }}
-      - kubectl={{ version[1].kubectl }}
+      - kubelet={{ version[1].kubelet }}-00
+      - kubeadm={{ version[1].kubeadm }}-00
+      - kubectl={{ version[1].kubectl }}-00 
     state: present
 
 - name: Hold kubelet, kubeadm, kubectl
@@ -75,3 +75,6 @@
     - kubeadm
     - kubectl
 
+- name: set fact kubeadm conf path
+  set_fact:
+    kubeadm_conf_path: /etc/systemd/system/kubelet.service.d/10-kubeadm.conf

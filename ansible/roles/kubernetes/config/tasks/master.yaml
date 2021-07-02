@@ -1,0 +1,33 @@
+---
+- name: Creates directory
+  file:
+    path: "{{ ansible_env.HOME }}/.kube"
+    state: directory
+
+- name: Mode 777 for admin.conf temporary
+  become: yes
+  file:
+    path: /etc/kubernetes/admin.conf
+    mode: 0777
+
+- name: Make kubectl work for non-root user
+  become: yes
+  copy:
+    src: /etc/kubernetes/admin.conf
+    dest: "{{ local_home }}/.kube/config"
+    owner: "{{ local_user }}"
+    group: "{{ local_user }}"
+    mode: 0600
+
+- name: Mode 600 for admin.conf again
+  become: yes
+  file:
+    path: /etc/kubernetes/admin.conf
+    mode: 0600
+
+- name: export KUBECONFIG(root)
+  when: root_config == true
+  become: yes
+  lineinfile:
+    dest: /root/.bashrc
+    line: export KUBECONFIG=/etc/kubernetes/admin.conf
