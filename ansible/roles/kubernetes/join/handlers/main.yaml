@@ -1,0 +1,8 @@
+---
+- name: kubelet service restart
+  become: yes
+  systemd:
+    name: kubelet
+    state: restarted
+    enabled: yes
+  ignore_errors: yes

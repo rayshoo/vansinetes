@@ -1,0 +1,31 @@
+---
+- name: Install systemd-resolved
+  when: hostvars[groups['ansible_master'][0]].ansible_os_family == 'Debian'
+  become: yes
+  yum:
+    name: systemd-resolved
+    state: present
+  ignore_errors: yes
+
+- name: Enable and start systemd-resolved
+  when: hostvars[groups['ansible_master'][0]].ansible_os_family == 'Debian'
+  become: yes
+  systemd:
+    name: systemd-resolved
+    state: started
+    enabled: yes
+  ignore_errors: yes
+  register: result
+
+- name: change kubelet resolv-conf when fail to start systemd-resolved
+  when:
+    - hostvars[groups['ansible_master'][0]].ansible_os_family == 'Debian'
+    - result.failed == true
+  become: yes 
+  replace:
+    path: /var/lib/kubelet/kubeadm-flags.env
+    regexp: '^(KUBELET_KUBEADM_ARGS=\")(?!.*--resolv-conf)'
+    replace: '\1--resolv-conf=/etc/resolv.conf '
+    backup: yes
+  notify: kubelet service restart
+  ignore_errors: yes
