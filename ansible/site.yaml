@@ -11,7 +11,7 @@
     runtime: containerd
   roles:
     - { role: runtime/containerd, when: runtime == 'containerd' }
-    # - { role: runtime/docker, when: runtime == 'docker' } # incomplete
+    # - { role: runtime/docker, when: runtime == 'docker' }
     # - { role: runtime/cri-o, when: runtime == 'cri-o' } # incomplete
     - kubernetes/preinstall
     - kubernetes/init

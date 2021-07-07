@@ -6,6 +6,7 @@
     name:
       - openssh
     state: present
+    update_cache: yes
 
 - name: Install openssh (Debian)
   when: ansible_os_family == "Debian"
@@ -15,6 +16,7 @@
       - openssh-client
       - openssh-server
     state: present
+    update_cache: yes
 
 - name: PasswordAuthentication change no to yes
   become: yes

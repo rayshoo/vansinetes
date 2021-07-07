@@ -1,0 +1,41 @@
+---
+- name: Play RedHat os family tasks
+  when: ansible_os_family == "RedHat"
+  include_tasks: redhat.yaml
+
+- name: Play Debian os family tasks
+  when: ansible_os_family == "Debian"
+  include_tasks: debian.yaml
+
+- name: docker group create
+  become: yes
+  group:
+    name: docker
+    state: present
+
+- name: Ensure docker directory exists
+  become: yes
+  file:
+    path: /etc/docker
+    state: directory
+    mode: 0755
+
+- name: generate docker config file to use systemd driver
+  become: yes
+  when: systemd_cgroup == 'true'
+  copy:
+    src: daemon.json
+    dest: /etc/docker/daemon.json
+    owner: root
+    group: root
+    mode: 0644
+  notify: docker service start
+
+- name: add docker group on user
+  become: yes
+  user:
+    name: "{{ local_user }}"
+    groups: docker
+    append: yes
+
+- meta: flush_handlers

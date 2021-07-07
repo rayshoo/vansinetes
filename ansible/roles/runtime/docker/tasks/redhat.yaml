@@ -1,0 +1,33 @@
+---
+- name: Add Docker yum repository
+  become: yes
+  get_url:
+    url: https://download.docker.com/linux/centos/docker-ce.repo
+    dest: /etc/yum.repos.d/
+    owner: root
+    group: root
+    mode: 0644
+
+- name: Install docker engine latest
+  when: version == 'latest'
+  become: yes
+  yum:
+    name:
+      - docker-ce
+      - docker-ce-cli
+      - containerd.io
+    state: latest
+    update_cache: yes
+  notify: docker service start
+
+- name: Install docker engine specific version
+  when: version != 'latest'
+  become: yes
+  yum:
+    name:
+      - docker-ce-{{ version }}
+      - docker-ce-cli-{{ version }}
+      - containerd.io
+    state: present
+    update_cache: yes
+  notify: docker service start
