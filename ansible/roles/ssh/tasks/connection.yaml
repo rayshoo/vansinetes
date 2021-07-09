@@ -15,7 +15,7 @@
 
 - name: create key.sh file
   template:
-    src: "key.j2"
+    src: key.j2
     dest: "{{ ansible_env.HOME }}/key.sh"
     owner: "{{ ansible_env.USER }}"
     group: "{{ ansible_env.USER }}"
@@ -31,5 +31,5 @@
 
 - name: remove key.sh file
   file:
-    state: absent
     path: "{{ ansible_env.HOME }}/key.sh"
+    state: absent

@@ -24,7 +24,7 @@
     backup: yes
     insertbefore: EOF
 
-- name: Install latest kubelet, kubeadm, kubectl
+- name: Install latest kubelet, kubeadm, kubectl, kubernetes-cni
   when: version[1].latest == true
   become: yes
   yum:
@@ -33,9 +33,10 @@
       - kubelet
       - kubeadm
       - kubectl
+      - kubernetes-cni
     state: latest
 
-- name: Install specific version kubelet, kubeadm, kubectl
+- name: Install specific version kubelet, kubeadm, kubectl, kubernetes-cni
   when: version[1].latest == false
   become: yes
   yum:
@@ -44,6 +45,7 @@
       - kubelet-{{ version[1].kubelet }}
       - kubeadm-{{ version[1].kubeadm }}
       - kubectl-{{ version[1].kubectl }}
+      - kubernetes-cni-{{ version[1].kubernetes_cni }}
     state: present
 
 - name: Enable service kubelet
@@ -51,7 +53,3 @@
   systemd:
     name: kubelet
     enabled: yes
-
-- name: set fact kubeadm conf path
-  set_fact:
-    kubeadm_conf_path: /usr/lib/systemd/system/kubelet.service.d/10-kubeadm.conf

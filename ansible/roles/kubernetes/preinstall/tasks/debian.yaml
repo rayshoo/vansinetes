@@ -15,8 +15,8 @@
   apt:
     update_cache: yes
     name:
-      - apt-transport-https={{ version[0].apt-transport-https }}
-      - ca-certificates={{ version[0].ca-certificates }}
+      - apt-transport-https={{ version[0].apt_transport_https }}
+      - ca-certificates={{ version[0].ca_certificates }}
     state: present
 
 - name: Download the Google Cloud public signing key
@@ -43,7 +43,7 @@
     dest: /etc/apt/sources.list.d/kubernetes.list
     line: deb [signed-by=/usr/share/keyrings/kubernetes-archive-keyring.gpg] https://apt.kubernetes.io/ kubernetes-xenial main
 
-- name: Install latest kubelet, kubeadm, kubectl
+- name: Install latest kubelet, kubeadm, kubectl, kubernetes-cni
   when: version[1].latest == true
   become: yes
   apt:
@@ -52,9 +52,10 @@
       - kubelet
       - kubeadm
       - kubectl
+      - kubernetes-cni
     state: latest
 
-- name: Install specific version kubelet, kubeadm, kubectl
+- name: Install specific version kubelet, kubeadm, kubectl, kubernetes-cni
   when: version[1].latest == false
   become: yes
   apt:
@@ -62,10 +63,11 @@
     name:
       - kubelet={{ version[1].kubelet }}-00
       - kubeadm={{ version[1].kubeadm }}-00
-      - kubectl={{ version[1].kubectl }}-00 
+      - kubectl={{ version[1].kubectl }}-00
+      - kubernetes-cni={{ version[1].kubernetes_cni }}-00
     state: present
 
-- name: Hold kubelet, kubeadm, kubectl
+- name: Hold kubelet, kubeadm, kubectl, kubernetes-cni
   become: yes
   dpkg_selections:
     name: "{{ item }}"
@@ -74,7 +76,4 @@
     - kubelet
     - kubeadm
     - kubectl
-
-- name: set fact kubeadm conf path
-  set_fact:
-    kubeadm_conf_path: /etc/systemd/system/kubelet.service.d/10-kubeadm.conf
+    - kubernetes-cni

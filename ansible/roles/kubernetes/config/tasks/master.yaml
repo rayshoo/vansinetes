@@ -4,11 +4,11 @@
     path: "{{ ansible_env.HOME }}/.kube"
     state: directory
 
-- name: Mode 777 for admin.conf temporary
+- name: chmod o+x admin.conf temporary
   become: yes
   file:
     path: /etc/kubernetes/admin.conf
-    mode: 0777
+    mode: o+rx
 
 - name: Make kubectl work for non-root user
   become: yes
@@ -19,11 +19,11 @@
     group: "{{ local_user }}"
     mode: 0600
 
-- name: Mode 600 for admin.conf again
+- name: chmod o-x admin.conf again
   become: yes
   file:
     path: /etc/kubernetes/admin.conf
-    mode: 0600
+    mode: o-rx
 
 - name: export KUBECONFIG(root)
   when: root_config == true

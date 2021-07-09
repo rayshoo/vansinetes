@@ -1,7 +1,15 @@
 ---
-- name: check kubernetes already installed or 6443 port already using
-  shell: ps -aux | grep secure-port=6443 | grep -v grep 
-  register: result
+- name: Ensure kubelet directory exists
+  become: yes
+  file:
+    path: /var/lib/kubelet
+    state: directory
+    mode: 0700
+
+- name: check node already in cluster
+  become: yes
+  shell: ls /var/lib/kubelet | grep config.yaml
+  register: node_state
   changed_when: false
   failed_when: false
 
@@ -9,7 +17,9 @@
   when: ansible_hostname == groups['ansible_master'][0]
   include: init.yaml
 
-- set_fact:
+- name: Get certificate key
+  when: version[1].kubeadm is version('1.14','>=')
+  set_fact:
     cert: "{{ cert.stdout_lines[-1] }}"
     
 - set_fact:

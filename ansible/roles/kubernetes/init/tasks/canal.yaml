@@ -1,0 +1,8 @@
+---
+- name: install canal network plugin
+  become: yes
+  when: ansible_hostname == groups['ansible_master'][0]
+  shell: kubectl --kubeconfig=/etc/kubernetes/admin.conf create -f {{ item }}
+  with_items:
+    - https://docs.projectcalico.org/v3.3/getting-started/kubernetes/installation/hosted/canal/rbac.yaml
+    - https://docs.projectcalico.org/v3.3/getting-started/kubernetes/installation/hosted/canal/canal.yaml
