@@ -134,22 +134,29 @@ Vagrant.configure("2") do |config|
     end
   end
 
-  if ENV['ROOT_PASS'] || ENV['root_pass'] || ENV['ROOT_PASSWORD'] || ENV['root_password']
-    check = true
-    while check
-      print "\nEnter the root password to set : ".blue
-      root_pass = STDIN.noecho(&:gets).chomp
-      print "\nConfirm Password : ".blue
-      root_pass_check = STDIN.noecho(&:gets).chomp
-      if root_pass == root_pass_check
-        check = false
+  if ENV['ROOT_PASS'] != nil || ENV['root_pass'] != nil
+    if ENV['ROOT_PASS'] != "false" && ENV['root_pass'] != "false" && ENV['ROOT_PASS'] != "no" && ENV['root_pass'] != "no"  
+      if ENV['ROOT_PASS'] == "true" || ENV['root_pass'] == "true" || ENV['ROOT_PASS'] == "yes" || ENV['root_pass'] == "yes"
+        check = true
+        while check
+          print "\nEnter the root password to set : ".blue
+          root_pass = STDIN.noecho(&:gets).chomp
+          print "\nConfirm Password : ".blue
+          root_pass_check = STDIN.noecho(&:gets).chomp
+          if root_pass == root_pass_check
+            check = false
+          else
+            print"\npassword mismatch\n".red
+          end
+        end
+        print "\npassword match\n".green
       else
-        print"\npassword mismatch\n".red
+        root_pass = ENV['ROOT_PASS'] || ENV['root_pass']
+        puts "The root password was entered through the terminal. Be mindful of security..".yellow
       end
+      template = ERB.new File.read('templates/root_pass.erb')
+      root_pass_script = template.result(binding)
     end
-    print "\npassword match\n".green
-    template = ERB.new File.read('templates/root_pass.erb')
-    root_pass_script = template.result(binding)
   end
 
   provision = (ENV['PROVISION'] || ENV['provision']) == nil ? true : str_to_bool(ENV['PROVISION'] || ENV['provision'])
@@ -176,7 +183,7 @@ Vagrant.configure("2") do |config|
       j.vm.boot_timeout = 600
 
       if provision
-        if ENV['ROOT_PASS'] || ENV['root_pass'] || ENV['ROOT_PASSWORD'] || ENV['root_password']
+        if root_pass != nil
           j.vm.provision "shell", inline: root_pass_script
         end
         if i < machines.length - 1

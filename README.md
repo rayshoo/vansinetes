@@ -27,8 +27,11 @@ $ vagrant snapshot save up
 # 다음의 명령어로 저장한 스냅샷으로 초기화 가능
 $ vagrant snapshot restore up
 
-# root 패스워드 입력 시, 자동으로 설정된다
+# root_pass=true 옵션을 지정하면 프롬프트에서 root 패스워드를 지정 가능하다
 $ root_pass=true vagrant provision --color
+# 혹은 터미널에 'true'와 'yes' 를 제외한 비밀번호를 직접 입력할 수도 있다
+$ root_pass=<password> vagrant provision --color
+
 # 더 자세한 정보를 확인하고 싶다면 debug 옵션을 추가 입력한다
 $ debug=true root_pass=true vagrant provision --color
 
@@ -101,8 +104,11 @@ $ vagrant snapshot save up
 # It can be initialized with the saved snapshot with the following command
 $ vagrant snapshot restore up
 
-# It is automatically set when the root password is entered.
+# If you specify the root_pass=true option, you can specify the root password at the prompt.
 $ root_pass=true vagrant provision --color
+# Alternatively, you can directly enter the password excluding 'true' and 'yes' in the terminal.
+$ root_pass=<password> vagrant provision --color
+
 # For more detailed information, add the debug option.
 $ debug=true root_pass=true vagrant provision --color
 
