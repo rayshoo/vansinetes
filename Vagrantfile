@@ -78,12 +78,14 @@ Vagrant.configure("2") do |config|
   worker = ENV['WORKER'].to_i
   master_initial = ENV['MASTER_INITIAL']
   worker_initial = ENV['WORKER_INITIAL']
+  master_initial_number = ENV['MASTER_INITIAL_NUMBER'].to_i
+  worker_initial_number = ENV['WORKER_INITIAL_NUMBER'].to_i
   default_network_ip = ENV['DEFAULT_NETWORK_IP'].split(".")
   default_network = "#{default_network_ip[0]}.#{default_network_ip[1]}.#{default_network_ip[2]}"
   default_ip = default_network_ip.last.to_i
-  server_network_type = ENV["SERVER_NETWORK_TYPE"] != "" ? ENV["SERVER_NETWORK_TYPE"] || ENV["DEFAULT_NETWORK_TYPE"] :  ENV["DEFAULT_NETWORK_TYPE"]
-  server_interface = server_network_type == "public" ? ENV["SERVER_NETWORK_INTERFACE"] != "" ? ENV["SERVER_NETWORK_INTERFACE"] || ENV["DEFAULT_NETWORK_INTERFACE"] : ENV["DEFAULT_NETWORK_INTERFACE"] || nil : nil
-  server_netmask = ENV['SERVER_NETWORK_NETMASK'] != "" ? ENV['SERVER_NETWORK_NETMASK'] || ENV["DEFAULT_NETWORK_NETMASK"] : ENV["DEFAULT_NETWORK_NETMASK"]
+  server_network_type = ENV["MANUAL_NETWORK_TYPE"] != "" ? ENV["MANUAL_NETWORK_TYPE"] || ENV["DEFAULT_NETWORK_TYPE"] :  ENV["DEFAULT_NETWORK_TYPE"]
+  server_interface = server_network_type == "public" ? ENV["MANUAL_NETWORK_INTERFACE"] != "" ? ENV["MANUAL_NETWORK_INTERFACE"] || ENV["DEFAULT_NETWORK_INTERFACE"] : ENV["DEFAULT_NETWORK_INTERFACE"] || nil : nil
+  server_netmask = ENV['MANUAL_NETWORK_NETMASK'] != "" ? ENV['MANUAL_NETWORK_NETMASK'] || ENV["DEFAULT_NETWORK_NETMASK"] : ENV["DEFAULT_NETWORK_NETMASK"]
   root_pass_script = nil
 
   machines = Array.new
@@ -91,7 +93,7 @@ Vagrant.configure("2") do |config|
   for i in 1..master + worker
     default_cpus = (i > worker) ? ENV['DEFAULT_MASTER_CPUS'].to_i : ENV['DEFAULT_WORKER_CPUS'].to_i
     default_memory = (i > worker) ? ENV['DEFAULT_MASTER_MEMORY'] : ENV['DEFAULT_WORKER_MEMORY']
-    server_name = (i > worker) ? "#{master_initial}#{master - (i - worker) + 1}" : "#{worker_initial}#{worker - i + 1}"
+    server_name = (i > worker) ? "#{master_initial}#{master - (i - worker) + master_initial_number}" : "#{worker_initial}#{worker - i + worker_initial_number}"
     server_role = (i > worker) ? "master" : "worker"
     i = master + worker - i + 1
     server_image = ENV["#{i}_SERVER_IMAGE"] != "" ? ENV["#{i}_SERVER_IMAGE"] || ENV["DEFAULT_IMAGE"] : ENV["DEFAULT_IMAGE"]
@@ -171,7 +173,7 @@ Vagrant.configure("2") do |config|
       if server_network_type == "public"
         j.vm.network "public_network", ip: machine.get_network_ip, netmask: server_netmask, :bridge => server_interface
       else
-        j.vm.network "private_network", ip: machine.get_network_ip
+        j.vm.network "private_network", ip: machine.get_network_ip, netmask: server_netmask
       end
       j.vm.network "forwarded_port", guest: 22, host: machine.get_host_port, auto_correct: false, id: "ssh"
       j.vm.provider :virtualbox do |vb, override|
