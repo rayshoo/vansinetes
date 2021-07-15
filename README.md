@@ -1,10 +1,5 @@
 # Vansinetes
 
-**[Vansible with Kubespray](https://github.com/rayshoo/vansible_with_kubespray)의 후속 프로젝트**<br/>
-**A follow-up project to [Vansible with Kubespray](https://github.com/rayshoo/vansible_with_kubespray)**
-
-<hr/>
-
 ## 소개, Introduce
 쉽고 빠른 Docker+Kubernetes 개발, 학습 및 강의 환경 구축을 위해 설계된<br/>
 Vagrant, Ansible, Kubeadm를 사용한 IaC(Infra as Code) 도구
@@ -12,19 +7,13 @@ Vagrant, Ansible, Kubeadm를 사용한 IaC(Infra as Code) 도구
 IaC (Infra as Code) tool designed for easy and fast Docker + Kubernetes development, learning, and lecture environment construction<br/>
 with using Vagrant, Ansible, Kubeadm.
 
-<hr/>
-
 ## 문서, Documents
 ### [한글](https://github.com/rayshoo/vansible_with_kubeadm/wiki/Korean)
 ### [English](https://github.com/rayshoo/vansible_with_kubeadm/wiki/English)
 
-<hr/>
-
 ## 라이센스, License
 
 ### [Apache License 2.0](LICENSE)
-
-<hr/>
 
 ## 공식 문서, Official Documents
 
