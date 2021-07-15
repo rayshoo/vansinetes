@@ -1,5 +1,0 @@
----
-dependencies:
-  - { role: commons/os-checker }
-  - { role: commons/download }
-  - { role: runtime/runc }

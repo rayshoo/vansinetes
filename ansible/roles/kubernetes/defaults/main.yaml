@@ -1,0 +1,20 @@
+---
+network_plugin: calico
+pod_subnet: 192.168.0.0/16
+docker_install: true
+root_config: yes
+
+# dependent
+# kubeadm,kubectl (1.11.2 ~ 1.13.4) : kubernetes-cni (0.6.0)
+# kubeadm,kubectl (1.13.5 ~ 1.13.6) : kubernetes-cni (0.7.5)
+# kubeadm,kubectl (1.14.0 ~ 1.14.2) : kubernetes-cni (0.7.5)
+version:
+  apt_transport_https: latest
+  ca_certificates: latest
+  kubelet: 1.20.2
+  kubeadm: 1.20.2
+  kubectl: 1.20.2
+  kubernetes_cni: 0.8.7
+  calico: 3.18
+  flannel: 0.14.0
+  canal: 3.14

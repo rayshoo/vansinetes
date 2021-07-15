@@ -5,22 +5,11 @@
   roles:
     - ssh
 
-- name: kubernetes install
-  hosts: cluster
-  vars:
-    runtime: containerd
-  roles:
-    - { role: runtime/containerd, when: runtime == 'containerd' }
-    - { role: runtime/docker, when: runtime == 'docker' }
-    # - { role: runtime/cri-o, when: runtime == 'cri-o' } # incomplete
-    - kubernetes/preinstall
-    - kubernetes/init
-    - kubernetes/join
-    - kubernetes/config
-
-- name: custom settings
+- name: kubernetes install, custom settings
   hosts: cluster
   roles:
+    - runtime
+    - kubernetes
     - custom/alias/ansible
     - custom/alias/vim
     - custom/alias/docker

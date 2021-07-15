@@ -1,4 +1,12 @@
 ---
+- name: Play RedHat os family tasks
+  when: ansible_os_family == "RedHat"
+  include_tasks: redhat.yaml
+
+- name: Play Debian os family tasks
+  when: ansible_os_family == "Debian"
+  include_tasks: debian.yaml
+
 - name: docker group create
   become: yes
   group:
@@ -21,19 +29,6 @@
     owner: root
     group: root
     mode: 0644
-  notify: docker service start
-
-- name: generate docker service and socket
-  become: yes
-  copy:
-    src: "{{ item }}"
-    dest: /etc/systemd/system
-    owner: root
-    group: root
-    mode: 0644
-  with_items:
-    - docker.service
-    - docker.socket
   notify: docker service start
 
 - name: add docker group on user

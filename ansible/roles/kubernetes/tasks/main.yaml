@@ -1,0 +1,10 @@
+---
+- name: kubernetes install
+  include_role:
+    name: "{{ item }}"
+  with_items:
+    - kubernetes/roles/preinstall
+    - kubernetes/roles/init
+    - kubernetes/roles/cni
+    - kubernetes/roles/join
+    - kubernetes/roles/config

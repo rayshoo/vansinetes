@@ -1,0 +1,55 @@
+---
+- name: Install packages needed to use the Kubernetes
+  become: yes
+  apt:
+    update_cache: yes
+    name:
+      - apt-transport-https{% if version.apt_transport_https is defined and version.apt_transport_https != 'latest' %}={{ version.apt_transport_https }}{% endif %}
+      - ca-certificates{% if version.ca_certificates is defined and version.ca_certificates != 'latest' %}={{ version.ca_certificates }}{% endif %}
+    state: present
+
+- name: Download the Google Cloud public signing key
+  become: yes
+  get_url:
+    url: https://packages.cloud.google.com/apt/doc/apt-key.gpg
+    dest: /usr/share/keyrings/kubernetes-archive-keyring.gpg
+    owner: root
+    group: root
+    mode: 0644
+
+- name: Create Kubernetes apt repository list file if no exists
+  become: yes
+  file:
+    path: /etc/apt/sources.list.d/kubernetes.list
+    state: touch
+    mode: 0644
+  register: touch_log
+  changed_when: touch_log.diff.before.state != "file"
+
+- name: write Kubernetes apt repository in list file
+  become: yes
+  lineinfile:
+    dest: /etc/apt/sources.list.d/kubernetes.list
+    line: deb [signed-by=/usr/share/keyrings/kubernetes-archive-keyring.gpg] https://apt.kubernetes.io/ kubernetes-xenial main
+
+- name: Install kubelet, kubeadm, kubectl, kubernetes-cni
+  become: yes
+  apt:
+    update_cache: yes
+    name:
+      - kubelet{% if version.kubelet is defined and version.kubelet != 'latest' %}={{ version.kubelet }}-00{% endif %}
+      - kubeadm{% if version.kubeadm is defined and version.kubeadm != 'latest' %}={{ version.kubeadm }}-00{% endif %}
+      - kubectl{% if version.kubectl is defined and version.kubectl != 'latest' %}={{ version.kubectl }}-00{% endif %}
+      - kubernetes-cni{% if version.kubernetes_cni is defined and version.kubernetes_cni != 'latest' %}={{ version.kubernetes_cni }}-00{% endif %}
+    state: present
+
+- name: Hold kubelet, kubeadm, kubectl, kubernetes-cni
+  become: yes
+  dpkg_selections:
+    name: "{{ item }}"
+    selection: hold
+  with_items:
+    - kubelet
+    - kubeadm
+    - kubectl
+    - kubernetes-cni

@@ -1,0 +1,19 @@
+---
+- name: install calico network plugin
+  become: yes
+  when:
+    - ansible_hostname == groups['ansible_master'][0]
+    - pod_subnet == '192.168.0.0/16'
+  shell: kubectl --kubeconfig=/etc/kubernetes/admin.conf create -f https://docs.projectcalico.org/v{{ version.calico }}/manifests/calico.yaml
+
+
+# - name: allow required calico ports to firewalld
+#   when: ansible_os_family == "RedHat"
+#   become: yes
+#   firewalld:
+#     port: 179/tcp
+#     permanent: true
+#     immediate: yes
+#     state: enabled
+
+# kubectl set env daemonset/calico-node -n kube-system IP_AUTODETECTION_METHOD=interface=eth.*

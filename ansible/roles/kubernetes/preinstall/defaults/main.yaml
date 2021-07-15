@@ -1,8 +1,0 @@
----
-version:
-  - { latest: yes, apt_transport_https: latest, ca_certificates: latest }
-  # Depends
-  # kubeadm,kubectl (1.11.2 ~ 1.13.4) : kubernetes-cni (0.6.0)
-  # kubeadm,kubectl (1.13.5 ~ 1.13.6) : kubernetes-cni (0.7.5)
-  # kubeadm,kubectl (1.14.0 ~ 1.14.2) : kubernetes-cni (0.7.5)
-  - { latest: false, kubelet: 1.20.2, kubeadm: 1.20.2, kubectl: 1.20.2, kubernetes_cni: 0.8.7 }

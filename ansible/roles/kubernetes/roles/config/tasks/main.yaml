@@ -1,0 +1,37 @@
+---
+- name: Register /var/lib/kubelet/config.yaml file text
+  when: cgroup_driver == 'systemd'
+  become: yes
+  shell: cat /var/lib/kubelet/config.yaml
+  register: result
+  changed_when: false
+
+- name: Change cgroup driver to systemd
+  when:
+    - cgroup_driver == 'systemd'
+    - result.stdout | regex_search('^(cgroupDriver:\s*)(cgroupfs)', multiline=True)
+  become: yes
+  replace:
+    dest: /var/lib/kubelet/config.yaml
+    regexp: '^(cgroupDriver:)\s*(cgroupfs)'
+    replace: '\1 systemd'
+    backup: yes
+  notify: kubelet service restart
+
+- name: add cgroup driver in kubelet config file
+  when:
+    - cgroup_driver == 'systemd'
+    - not result.stdout | regex_search('^(cgroupDriver:\s*)(systemd|cgroupfs)', multiline=True)
+  become: yes
+  lineinfile:
+    dest: /var/lib/kubelet/config.yaml
+    line: 'cgroupDriver: systemd'
+    insertafter: EOF
+    backup: yes
+  notify: kubelet service restart
+
+- meta: flush_handlers
+
+- name: master node config
+  when: ansible_hostname in groups['master']
+  include: master.yaml

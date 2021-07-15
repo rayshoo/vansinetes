@@ -1,0 +1,65 @@
+---
+- name: chmod o+r certificate files
+  when:
+    - groups['master'] | length > 1
+    - version.kubeadm is version('1.14','<')
+    - ansible_hostname == groups['ansible_master'][0]
+  become: yes
+  file:
+    path: /etc/kubernetes/pki/{{ item }}
+    mode: o+r
+  with_items:
+    - etcd/ca.crt
+    - etcd/ca.key
+    - front-proxy-ca.crt
+    - front-proxy-ca.key
+    - sa.pub
+    - sa.key
+    - ca.crt
+    - ca.key
+
+- name: include manual_endpoint.yaml
+  when:
+    - groups['master'] | length > 1
+    - version.kubeadm is version('1.16','<')
+    - ansible_hostname == groups['ansible_master'][0]
+  include: manual_endpoint.yaml
+
+- name: include master.yaml
+  when:
+    - groups['master'] | length > 1
+    - node_state.rc != 0
+    - ansible_hostname in groups['master']
+    - ansible_hostname != groups['ansible_master'][0]
+  include: multi_master.yaml
+
+- name: chmod o-r certificate files
+  when:
+    - groups['master'] | length > 1
+    - version.kubeadm is version('1.14','<')
+    - ansible_hostname == groups['ansible_master'][0]
+  become: yes
+  file:
+    path: /etc/kubernetes/pki/{{ item }}
+    mode: o-r
+  with_items:
+    - etcd/ca.crt
+    - etcd/ca.key
+    - front-proxy-ca.crt
+    - front-proxy-ca.key
+    - sa.pub
+    - sa.key
+    - ca.crt
+    - ca.key
+
+- name: kubeadm worker node join
+  when:
+    - node_state.rc != 0
+    - ansible_hostname in groups['worker']
+  become: yes
+  shell: "{{ join_command }}"
+  ignore_errors: yes
+
+- name: Play RedHat os family tasks
+  when: ansible_os_family == "RedHat"
+  include_tasks: redhat.yaml
