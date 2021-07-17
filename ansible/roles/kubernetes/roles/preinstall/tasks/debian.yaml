@@ -3,9 +3,10 @@
   become: yes
   apt:
     update_cache: yes
+    force: yes
     name:
-      - apt-transport-https{% if version.apt_transport_https is defined and version.apt_transport_https != 'latest' %}={{ version.apt_transport_https }}{% endif %}
-      - ca-certificates{% if version.ca_certificates is defined and version.ca_certificates != 'latest' %}={{ version.ca_certificates }}{% endif %}
+      - apt-transport-https{{ '=' + version.apt_transport_https if version.apt_transport_https is defined and version.apt_transport_https != 'latest' else '' }}
+      - ca-certificates{{ '=' + version.ca_certificates if version.ca_certificates is defined and version.ca_certificates != 'latest' else '' }}
     state: present
 
 - name: Download the Google Cloud public signing key
@@ -36,11 +37,12 @@
   become: yes
   apt:
     update_cache: yes
+    force: yes
     name:
-      - kubelet{% if version.kubelet is defined and version.kubelet != 'latest' %}={{ version.kubelet }}-00{% endif %}
-      - kubeadm{% if version.kubeadm is defined and version.kubeadm != 'latest' %}={{ version.kubeadm }}-00{% endif %}
-      - kubectl{% if version.kubectl is defined and version.kubectl != 'latest' %}={{ version.kubectl }}-00{% endif %}
-      - kubernetes-cni{% if version.kubernetes_cni is defined and version.kubernetes_cni != 'latest' %}={{ version.kubernetes_cni }}-00{% endif %}
+      - kubelet{{ '=' + version.kubelet + '-00' if version.kubelet is defined and version.kubelet != 'latest' else '' }}
+      - kubeadm{{ '=' + version.kubeadm + '-00' if version.kubeadm is defined and version.kubeadm != 'latest' else '' }}
+      - kubectl{{ '=' + version.kubectl + '-00' if version.kubectl is defined and version.kubectl != 'latest' else '' }}
+      - kubernetes-cni{{ '=' + version.kubernetes_cni + '-00' if version.kubernetes_cni is defined and version.kubernetes_cni != 'latest' else '' }}
     state: present
 
 - name: Hold kubelet, kubeadm, kubectl, kubernetes-cni
