@@ -10,4 +10,4 @@
 - name: Configure Vimrc
   lineinfile:
     dest: "{{ ansible_env.HOME }}/.vimrc"
-    line: set ai et ts=2 sw=2
+    line: set ai et ts=2 sw=2 sts=2
