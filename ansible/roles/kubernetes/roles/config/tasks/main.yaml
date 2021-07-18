@@ -1,6 +1,6 @@
 ---
 - name: Register /var/lib/kubelet/config.yaml file text
-  when: cgroup_driver == 'systemd'
+  when: systemd_cgroup == true
   become: yes
   shell: cat /var/lib/kubelet/config.yaml
   register: result
@@ -8,7 +8,7 @@
 
 - name: Change cgroup driver to systemd
   when:
-    - cgroup_driver == 'systemd'
+    - systemd_cgroup == true
     - result.stdout | regex_search('^(cgroupDriver:\s*)(cgroupfs)', multiline=True)
   become: yes
   replace:
@@ -20,7 +20,7 @@
 
 - name: add cgroup driver in kubelet config file
   when:
-    - cgroup_driver == 'systemd'
+    - systemd_cgroup == true
     - not result.stdout | regex_search('^(cgroupDriver:\s*)(systemd|cgroupfs)', multiline=True)
   become: yes
   lineinfile:

@@ -109,7 +109,7 @@ version = 2
             NoPivotRoot = false
             Root = ""
             ShimCgroup = ""
-{% if cgroup_driver == 'systemd' %}
+{% if systemd_cgroup == true %}
             SystemdCgroup = true
 {% else %}
             SystemdCgroup = false

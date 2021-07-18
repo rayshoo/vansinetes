@@ -22,7 +22,7 @@
 
 - name: generate docker config file to use systemd driver
   become: yes
-  when: cgroup_driver == 'systemd'
+  when: systemd_cgroup == true
   copy:
     src: daemon.json
     dest: /etc/docker/daemon.json

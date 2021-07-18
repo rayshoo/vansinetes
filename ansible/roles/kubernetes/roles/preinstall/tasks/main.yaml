@@ -8,7 +8,7 @@
   include_tasks: debian.yaml
 
 - name: Change cgroup driver cgroupfs to systemd
-  when: cgroup_driver == 'systemd'
+  when: systemd_cgroup == true
   become: yes
   replace:
     dest: "{{ item }}/kubelet.service.d/10-kubeadm.conf"
