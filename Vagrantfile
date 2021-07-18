@@ -189,10 +189,20 @@ Vagrant.configure("2") do |config|
           j.vm.provision "shell", inline: root_pass_script
         end
         if i < machines.length - 1
-          j.vm.provision "shell", path: "scripts/bash_ssh_conf.sh"
+          if str_to_bool(ENV["MIRROR_CHANGE"] || false)
+              j.vm.provision "file", source: "files", destination: "files"
+              j.vm.provision "shell", path: "scripts/bash_ssh_conf.sh", args: "mirror"
+            else
+              j.vm.provision "shell", path: "scripts/bash_ssh_conf.sh"
+          end
         else
           j.vm.provision "file", source: "ansible", destination: "ansible"
-          j.vm.provision "shell", path: "scripts/bootstrap.sh"
+          if str_to_bool(ENV["MIRROR_CHANGE"] || false)
+              j.vm.provision "file", source: "files", destination: "files"
+              j.vm.provision "shell", path: "scripts/bootstrap.sh", args: "mirror"
+            else
+              j.vm.provision "shell", path: "scripts/bootstrap.sh"
+          end
           if str_to_bool(ENV["DEBUG"] || ENV['debug'] || false)
             j.vm.provision "shell", keep_color: true, inline: "cd ansible && ANSIBLE_FORCE_COLOR=true ansible-playbook site.yaml -v", privileged: false
           else

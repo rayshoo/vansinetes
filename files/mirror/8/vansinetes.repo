@@ -1,0 +1,20 @@
+[AppStream]
+name=CentOS-$releasever - AppStream
+baseurl=http://mirror.kakao.com/$contentdir/$releasever/AppStream/$basearch/os/
+gpgcheck=1
+enabled=1
+gpgkey=http://mirror.kakao.com/centos/RPM-GPG-KEY-CentOS-Official
+
+[BaseOS]
+name=CentOS-$releasever - Base
+baseurl=http://mirror.kakao.com/$contentdir/$releasever/BaseOS/$basearch/os/
+gpgcheck=1
+enabled=1
+gpgkey=http://mirror.kakao.com/centos/RPM-GPG-KEY-CentOS-Official
+
+[extras]
+name=CentOS-$releasever - Extras
+baseurl=http://mirror.kakao.com/$contentdir/$releasever/extras/$basearch/os/
+gpgcheck=1
+enabled=1
+gpgkey=http://mirror.kakao.com/centos/RPM-GPG-KEY-CentOS-Official
