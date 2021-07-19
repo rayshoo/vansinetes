@@ -62,7 +62,7 @@
       name: systemd-resolved
       state: stopped
       enabled: no
-    ignore_errors: yes
+    failed_when: false
 
   - set_fact:
       nameserver_list: "{{ nameserver_list | default('') }} {{ item }}"

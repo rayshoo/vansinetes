@@ -2,7 +2,7 @@
 - name: define pod-network-cidr flag
   when: pod_subnet is defined
   set_fact:
-    pod_subnet: "--pod-network-cidr={{ pod_subnet }}"
+    pod_network_cidr: "--pod-network-cidr={{ pod_subnet }}"
 
 - name: kubeadm init
   when:
@@ -10,7 +10,7 @@
     - version.kubeadm is version('1.16','<')
   become: yes 
   shell: |
-    kubeadm init {{ pod_subnet | default('') }} \
+    kubeadm init {{ pod_network_cidr | default('') }} \
     --apiserver-advertise-address={{ ansible_host }} \
     
 - name: kubeadm init
@@ -19,7 +19,7 @@
     - version.kubeadm is version('1.16','>=')
   become: yes 
   shell: |
-    kubeadm init {{ pod_subnet | default('') }} \
+    kubeadm init {{ pod_network_cidr | default('') }} \
     --control-plane-endpoint="{{ ansible_host }}:6443" \
     --apiserver-advertise-address={{ ansible_host }}
 

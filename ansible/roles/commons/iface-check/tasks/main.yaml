@@ -10,6 +10,6 @@
 
 - name: get interface name which on ansible host ip
   set_fact:
-    iface: item.iface
+    iface: "{{ item.iface }}"
   when: "{{ item.ansible }}.ipv4.address is defined and {{ item.ansible }}.ipv4.address == ansible_host"
   loop: "{{ new_ifaces }}"
