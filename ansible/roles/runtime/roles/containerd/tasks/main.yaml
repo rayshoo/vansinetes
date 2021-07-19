@@ -2,7 +2,7 @@
 - name: Download binaries
   get_url:
     url: https://github.com/containerd/containerd/releases/download/v{{ version.containerd }}/containerd-{{ version.containerd }}-linux-amd64.tar.gz
-    dest: "{{ ansible_env.HOME }}/Downloads/containerd.tar"
+    dest: "{{ ansible_env.HOME }}/downloads/containerd.tar"
     owner: "{{ ansible_env.USER }}"
     group: "{{ ansible_env.USER }}"
     mode: 0644
@@ -10,8 +10,8 @@
 
 - name: Unarchive containerd binaries archive
   unarchive:
-    src: "{{ ansible_env.HOME }}/Downloads/containerd.tar"
-    dest: "{{ ansible_env.HOME }}/Downloads"
+    src: "{{ ansible_env.HOME }}/downloads/containerd.tar"
+    dest: "{{ ansible_env.HOME }}/downloads"
     owner: "{{ ansible_env.USER }}"
     group: "{{ ansible_env.USER }}"
     mode: 0755
@@ -19,7 +19,7 @@
 - name: Copy containerd binaries in PATH
   become: yes
   copy:
-    src: "{{ local_home }}/Downloads/bin/"
+    src: "{{ local_home }}/downloads/bin/"
     dest: /usr/local/bin
     owner: root
     group: root

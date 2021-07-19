@@ -1,6 +1,6 @@
 ---
-- name: Ensure Downloads directory exists
+- name: Ensure downloads directory exists
   file:
-    path: "{{ ansible_env.HOME }}/Downloads"
+    path: "{{ ansible_env.HOME }}/downloads"
     state: directory
     mode: 0750

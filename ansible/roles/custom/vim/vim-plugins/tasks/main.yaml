@@ -11,12 +11,12 @@
 - name: "Git clone vim-plug from remote repository"
   git:
     repo: "https://github.com/junegunn/vim-plug.git"
-    dest: "{{ ansible_env.HOME }}/Downloads/vim-plug"
+    dest: "{{ ansible_env.HOME }}/downloads/vim-plug"
     version: cffcfe150bda75177920530c5f1911b52f70a065
 
 - name: "Copy plug.vim file in {{ ansible_env.HOME }}/.vim/autoload"
   copy:
-    src: "{{ ansible_env.HOME }}/Downloads/vim-plug/plug.vim"
+    src: "{{ ansible_env.HOME }}/downloads/vim-plug/plug.vim"
     dest: "{{ ansible_env.HOME }}/.vim/autoload"
     owner: "{{ ansible_env.USER }}"
     group: "{{ ansible_env.USER }}"
@@ -47,12 +47,12 @@
 - name: "Git clone pathogen.vim from remote repository"
   git:
     repo: "https://github.com/tpope/vim-pathogen.git"
-    dest: "{{ ansible_env.HOME }}/Downloads/vim-pathogen"
+    dest: "{{ ansible_env.HOME }}/downloads/vim-pathogen"
     version: e0a3efbda5ea8e5b181b2b232ef6453c05d07732
 
 - name: "Copy pathogen.vim file in {{ ansible_env.HOME }}/.vim/autoload"
   copy:
-    src: "{{ ansible_env.HOME }}/Downloads/vim-pathogen/autoload/pathogen.vim"
+    src: "{{ ansible_env.HOME }}/downloads/vim-pathogen/autoload/pathogen.vim"
     dest: "{{ ansible_env.HOME }}/.vim/autoload"
     owner: "{{ ansible_env.USER }}"
     group: "{{ ansible_env.USER }}"
