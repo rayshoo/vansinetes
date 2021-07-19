@@ -2,7 +2,10 @@
 local_home: "{{ lookup('env','HOME') }}"
 local_user: "{{ lookup('env','USER') }}"
 
-# https://kubernetes.io/ko/docs/setup/production-environment/container-runtimes/
-systemd_cgroup: yes
+systemd_cgroup: yes  # https://kubernetes.io/ko/docs/setup/production-environment/container-runtimes/
+systemd_resolved: no
+nameservers:
+  - 8.8.8.8
+  - 8.8.4.4
 
 docker_registry: yes

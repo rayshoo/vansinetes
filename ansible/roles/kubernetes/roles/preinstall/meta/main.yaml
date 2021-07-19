@@ -1,4 +1,5 @@
 ---
 dependencies:
-  - { role: commons/os-checker }
+  - { role: commons/os-check }
+  - { role: commons/iface-check }
   - { role: commons/system-sets }

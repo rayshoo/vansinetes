@@ -7,20 +7,11 @@
   when: ansible_os_family == "Debian"
   include_tasks: debian.yaml
 
-- name: Change cgroup driver cgroupfs to systemd
-  when: systemd_cgroup == true
-  become: yes
-  replace:
-    dest: "{{ item }}/kubelet.service.d/10-kubeadm.conf"
-    regexp: '^((?:ExecStart=)(?:(?!--cgroup-driver=).)+)$'
-    replace: '\1 --cgroup-driver=systemd'
-    backup: yes
-  with_items:
-    - /usr/lib/systemd/system
-    - /var/lib/systemd/system
-    - /etc/systemd/system
-    - /lib/systemd/system
-  ignore_errors: yes
+- name: set kubelet cgroup-driver
+  include: cgroup_driver.yaml
+
+- name: set kubelet resolv-conf
+  include: resolv_conf.yaml
 
 - name: kubelet service restart
   become: yes

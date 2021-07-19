@@ -1,0 +1,44 @@
+---
+- when: systemd_resolved
+  block:
+  - name: Change resolvConf to systemd
+    when: result.stdout | regex_search('^(resolvConf:\s*)\S*', multiline=True)
+    become: yes
+    replace:
+      dest: /var/lib/kubelet/config.yaml
+      regexp: '^(resolvConf:\s*)\S*'
+      replace: '\1/run/systemd/resolve/resolv.conf'
+      backup: yes
+    notify: kubelet service restart
+
+  - name: add systemd resolvConf
+    when: not result.stdout | regex_search('^(resolvConf:\s*)\S*', multiline=True)
+    become: yes
+    lineinfile:
+      dest: /var/lib/kubelet/config.yaml
+      line: 'resolvConf: /run/systemd/resolve/resolv.conf'
+      insertafter: EOF
+      backup: yes
+    notify: kubelet service restart
+
+- when: not systemd_resolved
+  block:
+  - name: Change resolvConf to default
+    when: result.stdout | regex_search('^(resolvConf:\s*)\S*', multiline=True)
+    become: yes
+    replace:
+      dest: /var/lib/kubelet/config.yaml
+      regexp: '^(resolvConf:\s*)\S*'
+      replace: '\1/etc/resolv.conf'
+      backup: yes
+    notify: kubelet service restart
+
+  - name: add default resolvConf
+    when: not result.stdout | regex_search('^(resolvConf:\s*)\S*', multiline=True)
+    become: yes
+    lineinfile:
+      dest: /var/lib/kubelet/config.yaml
+      line: 'resolvConf: /etc/resolv.conf'
+      insertafter: EOF
+      backup: yes
+    notify: kubelet service restart

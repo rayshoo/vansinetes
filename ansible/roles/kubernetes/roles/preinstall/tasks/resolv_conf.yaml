@@ -1,0 +1,121 @@
+---
+- when: systemd_resolved
+  block:
+  - name: Disable and stop NetworkManager
+    become: yes
+    systemd:
+      name: NetworkManager
+      state: stopped
+      enabled: no
+    failed_when: false
+
+  - name: generate systemd_resolved resolved.conf file
+    become: yes
+    template:
+      src: resolved.conf.j2
+      dest: /etc/systemd/resolved.conf
+      owner: root
+      group: root
+      mode: 0644
+
+  - name: Enable and restart systemd-resolved
+    become: yes
+    systemd:
+      name: systemd-resolved
+      state: restarted
+      enabled: yes
+    ignore_errors: yes
+
+  - name: change kubelet resolv-conf to systemd-resolved
+    become: yes 
+    replace:
+      path: "{{ item }}/kubelet.service.d/10-kubeadm.conf"
+      regexp: '^(ExecStart=)(.*(?=--resolv-conf))--resolv-conf=\S*(.*)'
+      replace: '\1\2--resolv-conf=/run/systemd/resolve/resolv.conf\3'
+      backup: yes
+    with_items:
+      - /usr/lib/systemd/system
+      - /var/lib/systemd/system
+      - /etc/systemd/system
+      - /lib/systemd/system
+    failed_when: false
+
+  - name: set kubelet resolv-conf to systemd-resolved
+    become: yes 
+    replace:
+      path: "{{ item }}/kubelet.service.d/10-kubeadm.conf"
+      regexp: '^((?:ExecStart=)(?:(?!--resolv-conf).)+)$'
+      replace: '\1 --resolv-conf=/run/systemd/resolve/resolv.conf'
+      backup: yes
+    with_items:
+      - /usr/lib/systemd/system
+      - /var/lib/systemd/system
+      - /etc/systemd/system
+      - /lib/systemd/system
+    failed_when: false
+
+- when: not systemd_resolved
+  block:
+  - name: Disable and stop systemd-resolved
+    become: yes
+    systemd:
+      name: systemd-resolved
+      state: stopped
+      enabled: no
+    ignore_errors: yes
+
+  - set_fact:
+      nameserver_list: "{{ nameserver_list | default('') }} {{ item }}"
+    with_items: "{{ nameservers }}"
+
+  - name: set nameservers in /etc/resolv.conf
+    become: yes 
+    replace:
+      path: /etc/resolv.conf
+      regexp: '^(nameserver).*'
+      replace: '\1{{ nameserver_list }}'
+      backup: yes
+
+  - name: add nameservers when using NetworkManager
+    nmcli:
+      conn_name: "System {{ iface }}"
+      type: ethernet
+      dns4: "{{ nameservers }}"
+      state: present
+    failed_when: false
+
+  - name: restart NetworkManager
+    become: yes
+    systemd:
+      name: NetworkManager
+      state: restarted
+      enabled: yes
+    failed_when: false
+
+  - name: change kubelet resolv-conf to default resolv
+    become: yes 
+    replace:
+      path: "{{ item }}/kubelet.service.d/10-kubeadm.conf"
+      regexp: '^(ExecStart=)(.*(?=--resolv-conf))--resolv-conf=\S*(.*)'
+      replace: '\1\2--resolv-conf=/etc/resolv.conf\3'
+      backup: yes
+    with_items:
+      - /usr/lib/systemd/system
+      - /var/lib/systemd/system
+      - /etc/systemd/system
+      - /lib/systemd/system
+    failed_when: false
+
+  - name: set kubelet resolv-conf to default resolv
+    become: yes 
+    replace:
+      path: "{{ item }}/kubelet.service.d/10-kubeadm.conf"
+      regexp: '^((?:ExecStart=)(?:(?!--resolv-conf).)+)$'
+      replace: '\1 --resolv-conf=/etc/resolv.conf '
+      backup: yes
+    with_items:
+      - /usr/lib/systemd/system
+      - /var/lib/systemd/system
+      - /etc/systemd/system
+      - /lib/systemd/system
+    failed_when: false

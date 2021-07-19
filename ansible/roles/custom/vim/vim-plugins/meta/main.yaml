@@ -1,6 +1,6 @@
 ---
 dependencies:
-  - { role: commons/os-checker }
+  - { role: commons/os-check }
   - { role: custom/git }
   - { role: commons/download }
   - { role: custom/vim }

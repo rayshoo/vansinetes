@@ -6,29 +6,11 @@
   register: result
   changed_when: false
 
-- name: Change cgroup driver to systemd
-  when:
-    - systemd_cgroup == true
-    - result.stdout | regex_search('^(cgroupDriver:\s*)(cgroupfs)', multiline=True)
-  become: yes
-  replace:
-    dest: /var/lib/kubelet/config.yaml
-    regexp: '^(cgroupDriver:)\s*(cgroupfs)'
-    replace: '\1 systemd'
-    backup: yes
-  notify: kubelet service restart
+- name: set cgroup-driver in kubelet config file
+  include: cgroup_driver.yaml
 
-- name: add cgroup driver in kubelet config file
-  when:
-    - systemd_cgroup == true
-    - not result.stdout | regex_search('^(cgroupDriver:\s*)(systemd|cgroupfs)', multiline=True)
-  become: yes
-  lineinfile:
-    dest: /var/lib/kubelet/config.yaml
-    line: 'cgroupDriver: systemd'
-    insertafter: EOF
-    backup: yes
-  notify: kubelet service restart
+- name: set resolv-confset in kubelet config file
+  include: resolv_conf.yaml
 
 - meta: flush_handlers
 

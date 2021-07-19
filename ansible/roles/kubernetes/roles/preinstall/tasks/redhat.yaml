@@ -40,3 +40,11 @@
   systemd:
     name: kubelet
     enabled: yes
+
+- name: Install systemd-resolved
+  when: systemd_resolved
+  become: yes
+  yum:
+    name: systemd-resolved
+    state: present
+  failed_when: false

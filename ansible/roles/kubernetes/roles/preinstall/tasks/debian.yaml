@@ -55,3 +55,11 @@
     - kubeadm
     - kubectl
     - kubernetes-cni
+
+- name: Install systemd-resolved
+  when: systemd_resolved
+  become: yes
+  apt:
+    name: systemd-resolved
+    state: present
+  failed_when: false

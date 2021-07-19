@@ -1,0 +1,60 @@
+---
+- when: systemd_cgroup
+  block:
+  - name: Change cgroup driver to systemd
+    become: yes 
+    replace:
+      path: "{{ item }}/kubelet.service.d/10-kubeadm.conf"
+      regexp: '^(ExecStart=)(.*(?=--cgroup-driver))--cgroup-driver=\S*(.*)'
+      replace: '\1\2--cgroup-driver=systemd\3'
+      backup: yes
+    with_items:
+      - /usr/lib/systemd/system
+      - /var/lib/systemd/system
+      - /etc/systemd/system
+      - /lib/systemd/system
+    failed_when: false
+
+  - name: add systemd cgroup driver
+    become: yes
+    replace:
+      dest: "{{ item }}/kubelet.service.d/10-kubeadm.conf"
+      regexp: '^((?:ExecStart=)(?:(?!--cgroup-driver=).)+)$'
+      replace: '\1 --cgroup-driver=systemd'
+      backup: yes
+    with_items:
+      - /usr/lib/systemd/system
+      - /var/lib/systemd/system
+      - /etc/systemd/system
+      - /lib/systemd/system
+    failed_when: false
+
+- when: not systemd_cgroup
+  block:
+  - name: Change cgroup driver to cgroupfs
+    become: yes 
+    replace:
+      path: "{{ item }}/kubelet.service.d/10-kubeadm.conf"
+      regexp: '^(ExecStart=)(.*(?=--cgroup-driver))--cgroup-driver=\S*(.*)'
+      replace: '\1\2--cgroup-driver=cgroupfs\3'
+      backup: yes
+    with_items:
+      - /usr/lib/systemd/system
+      - /var/lib/systemd/system
+      - /etc/systemd/system
+      - /lib/systemd/system
+    failed_when: false
+
+  - name: add cgroupfs cgroup driver
+    become: yes
+    replace:
+      dest: "{{ item }}/kubelet.service.d/10-kubeadm.conf"
+      regexp: '^((?:ExecStart=)(?:(?!--cgroup-driver=).)+)$'
+      replace: '\1 --cgroup-driver=cgroupfs'
+      backup: yes
+    with_items:
+      - /usr/lib/systemd/system
+      - /var/lib/systemd/system
+      - /etc/systemd/system
+      - /lib/systemd/system
+    failed_when: false

@@ -34,3 +34,12 @@
     - 10250/tcp # kubelet api
     - 30000-32767/tcp # nodeport services
   ignore_errors: yes
+
+- name: enable masquerade to firewalld
+  become: yes
+  firewalld:
+    masquerade: enable
+    permanent: true
+    immediate: yes
+    state: enabled
+  ignore_errors: yes

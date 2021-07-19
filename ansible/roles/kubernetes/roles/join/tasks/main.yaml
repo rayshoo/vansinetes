@@ -59,7 +59,3 @@
   become: yes
   shell: "{{ join_command }}"
   ignore_errors: yes
-
-- name: Play RedHat os family tasks
-  when: ansible_os_family == "RedHat"
-  include_tasks: redhat.yaml

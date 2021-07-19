@@ -1,0 +1,44 @@
+---
+- when: systemd_cgroup
+  block:
+  - name: Change cgroup driver cgroupfs to systemd
+    when: result.stdout | regex_search('^(cgroupDriver:\s*)(cgroupfs)', multiline=True)
+    become: yes
+    replace:
+      dest: /var/lib/kubelet/config.yaml
+      regexp: '^(cgroupDriver:)\s*(cgroupfs)'
+      replace: '\1 systemd'
+      backup: yes
+    notify: kubelet service restart
+
+  - name: add cgroup driver in kubelet config file
+    when: not result.stdout | regex_search('^(cgroupDriver:\s*)(systemd|cgroupfs)', multiline=True)
+    become: yes
+    lineinfile:
+      dest: /var/lib/kubelet/config.yaml
+      line: 'cgroupDriver: systemd'
+      insertafter: EOF
+      backup: yes
+    notify: kubelet service restart
+
+- when: not systemd_cgroup
+  block:
+  - name: Change cgroup driver systemd to cgroupfs
+    when: result.stdout | regex_search('^(cgroupDriver:\s*)(systemd)', multiline=True)
+    become: yes
+    replace:
+      dest: /var/lib/kubelet/config.yaml
+      regexp: '^(cgroupDriver:)\s*(systemd)'
+      replace: '\1 cgroupfs'
+      backup: yes
+    notify: kubelet service restart
+
+  - name: add cgroup driver in kubelet config file
+    when: not result.stdout | regex_search('^(cgroupDriver:\s*)(systemd|cgroupfs)', multiline=True)
+    become: yes
+    lineinfile:
+      dest: /var/lib/kubelet/config.yaml
+      line: 'cgroupDriver: cgroupfs'
+      insertafter: EOF
+      backup: yes
+    notify: kubelet service restart
