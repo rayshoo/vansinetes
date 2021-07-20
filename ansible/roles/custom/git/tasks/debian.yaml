@@ -1,7 +1,6 @@
 ---
 - name: Install git latest
   when: version == 'latest'
-  become: yes
   apt:
     update_cache: yes
     name: git
@@ -9,7 +8,6 @@
 
 - name: Install git specific version
   when: version != 'latest'
-  become: yes
   apt:
     update_cache: yes
     name: git={{ version }}

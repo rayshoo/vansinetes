@@ -1,6 +1,5 @@
 ---
 - name: Create kubernetes repo file if no exists
-  become: yes
   file:
     path: /etc/yum.repos.d/kubernetes.repo
     state: touch
@@ -9,7 +8,6 @@
   changed_when: touch_log.diff.before.state != "file"
 
 - name: Configure kubernetes.repo
-  become: yes
   blockinfile: 
     dest: /etc/yum.repos.d/kubernetes.repo
     block: |
@@ -25,25 +23,22 @@
     insertbefore: EOF
 
 - name: Install kubelet, kubeadm, kubectl, kubernetes-cni
-  become: yes
   yum:
     disable_excludes: kubernetes
     name:
-      - kubelet{% if version.kubelet is defined and version.kubelet != 'latest' %}-{{ version.kubelet }}{% endif %}
-      - kubeadm{% if version.kubeadm is defined and version.kubeadm != 'latest' %}-{{ version.kubeadm }}{% endif %}
-      - kubectl{% if version.kubectl is defined and version.kubectl != 'latest' %}-{{ version.kubectl }}{% endif %}
-      - kubernetes-cni{% if version.kubernetes_cni is defined and version.kubernetes_cni != 'latest' %}-{{ version.kubernetes_cni }}{% endif %}
+      - kubelet{% if version['kubelet'] is defined and version['kubelet'] != 'latest' %}-{{ version['kubelet'] }}{% endif %}
+      - kubeadm{% if version['kubeadm'] is defined and version['kubeadm'] != 'latest' %}-{{ version['kubeadm'] }}{% endif %}
+      - kubectl{% if version['kubectl'] is defined and version['kubectl'] != 'latest' %}-{{ version['kubectl'] }}{% endif %}
+      - kubernetes-cni{% if version['kubernetes_cni'] is defined and version['kubernetes_cni'] != 'latest' %}-{{ version['kubernetes_cni'] }}{% endif %}
     state: present
 
 - name: Enable service kubelet
-  become: yes
   systemd:
     name: kubelet
     enabled: yes
 
 - name: Install systemd-resolved
   when: systemd_resolved
-  become: yes
   yum:
     name: systemd-resolved
     state: present

@@ -2,7 +2,6 @@
 - when: systemd_resolved
   block:
   - name: Disable and stop NetworkManager
-    become: yes
     systemd:
       name: NetworkManager
       state: stopped
@@ -10,7 +9,6 @@
     failed_when: false
 
   - name: generate systemd_resolved resolved.conf file
-    become: yes
     template:
       src: resolved.conf.j2
       dest: /etc/systemd/resolved.conf
@@ -19,7 +17,6 @@
       mode: 0644
 
   - name: Enable and restart systemd-resolved
-    become: yes
     systemd:
       name: systemd-resolved
       state: restarted
@@ -27,7 +24,6 @@
     ignore_errors: yes
 
   - name: change kubelet resolv-conf to systemd-resolved
-    become: yes 
     replace:
       path: "{{ item }}/kubelet.service.d/10-kubeadm.conf"
       regexp: '^(ExecStart=)(.*(?=--resolv-conf))--resolv-conf=\S*(.*)'
@@ -41,7 +37,6 @@
     failed_when: false
 
   - name: set kubelet resolv-conf to systemd-resolved
-    become: yes 
     replace:
       path: "{{ item }}/kubelet.service.d/10-kubeadm.conf"
       regexp: '^((?:ExecStart=)(?:(?!--resolv-conf).)+)$'
@@ -57,7 +52,6 @@
 - when: not systemd_resolved
   block:
   - name: Disable and stop systemd-resolved
-    become: yes
     systemd:
       name: systemd-resolved
       state: stopped
@@ -69,7 +63,6 @@
     with_items: "{{ nameservers }}"
 
   - name: set nameservers in /etc/resolv.conf
-    become: yes 
     replace:
       path: /etc/resolv.conf
       regexp: '^(nameserver).*'
@@ -85,7 +78,6 @@
     failed_when: false
 
   - name: restart NetworkManager
-    become: yes
     systemd:
       name: NetworkManager
       state: restarted
@@ -93,7 +85,6 @@
     failed_when: false
 
   - name: change kubelet resolv-conf to default resolv
-    become: yes 
     replace:
       path: "{{ item }}/kubelet.service.d/10-kubeadm.conf"
       regexp: '^(ExecStart=)(.*(?=--resolv-conf))--resolv-conf=\S*(.*)'
@@ -107,7 +98,6 @@
     failed_when: false
 
   - name: set kubelet resolv-conf to default resolv
-    become: yes 
     replace:
       path: "{{ item }}/kubelet.service.d/10-kubeadm.conf"
       regexp: '^((?:ExecStart=)(?:(?!--resolv-conf).)+)$'

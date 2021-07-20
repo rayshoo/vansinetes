@@ -1,3 +1,9 @@
 ---
+- name: Ensure docker directory exists
+  file:
+    path: "{{ local['home'] }}/downloads/cni"
+    state: directory
+    mode: 0755
+
 - name: install cni network plugin
   include_tasks: "{{ network_plugin }}.yaml"

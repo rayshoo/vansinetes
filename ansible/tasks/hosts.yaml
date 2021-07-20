@@ -1,6 +1,5 @@
 ---
 - name: Update /etc/hosts file
-  become: yes
   blockinfile:
     dest: /etc/hosts
     content: "{{ lookup('template', 'hosts.j2') }}"

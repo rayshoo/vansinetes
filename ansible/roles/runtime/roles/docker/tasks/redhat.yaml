@@ -1,6 +1,5 @@
 ---
 - name: Add Docker yum repository
-  become: yes
   get_url:
     url: https://download.docker.com/linux/centos/docker-ce.repo
     dest: /etc/yum.repos.d/
@@ -9,8 +8,7 @@
     mode: 0644
 
 - name: Install docker engine latest
-  when: version == 'latest'
-  become: yes
+  when: version['docker'] == 'latest'
   yum:
     name:
       - docker-ce
@@ -21,14 +19,14 @@
   notify: docker service start
 
 - name: List the docker-ce versions available in repo
-  when: version != 'latest'
+  when: version['docker'] != 'latest'
   shell: yum list docker-ce --showduplicates | sort -r
   register: result
 
 - name: Get the exact docker-ce version name in yum repo - 1-1
   when:
-    - version != 'latest'
-    - version in item
+    - version['docker'] != 'latest'
+    - version['docker'] in item
     - "':' in item"
   set_fact:
     yum_docker_ce_version: "{{ item.split(':')[1].split(' ') }}"
@@ -36,8 +34,8 @@
 
 - name: Get the exact docker-ce version name in yum repo - 1-2
   when:
-    - version != 'latest'
-    - version in item
+    - version['docker'] != 'latest'
+    - version['docker'] in item
     - "not ':' in item"
   set_fact:
     yum_docker_ce_version: "{{ item.split(' ') }}"
@@ -46,20 +44,20 @@
 - name: Get the exact docker-ce version name in yum repo - 2
   when:
     - yum_docker_ce_version is defined
-    - version in item
+    - version['docker'] in item
   set_fact:
     yum_docker_ce_version: "{{ item | trim }}"
   with_items: "{{ yum_docker_ce_version }}"
 
 - name: List the docker-ce-cli versions available in yum repo
-  when: version != 'latest'
+  when: version['docker'] != 'latest'
   shell: yum list docker-ce-cli --showduplicates | sort -r
   register: result
 
 - name: Get the exact docker-ce-cli version name in yum repo - 1-1
   when:
-    - version != 'latest'
-    - version in item
+    - version['docker'] != 'latest'
+    - version['docker'] in item
     - "':' in item"
   set_fact:
     yum_docker_ce_cli_version: "{{ item.split(':')[1].split(' ') }}"
@@ -67,8 +65,8 @@
 
 - name: Get the exact docker-ce-cli version name in yum repo - 1-2
   when:
-    - version != 'latest'
-    - version in item
+    - version['docker'] != 'latest'
+    - version['docker'] in item
     - "not ':' in item"
   set_fact:
     yum_docker_ce_cli_version: "{{ item.split(' ') }}"
@@ -77,16 +75,15 @@
 - name: Get the exact docker-ce-cli version name in yum repo - 2
   when:
     - yum_docker_ce_cli_version is defined
-    - version in item
+    - version['docker'] in item
   set_fact:
     yum_docker_ce_cli_version: "{{ item | trim }}"
   with_items: "{{ yum_docker_ce_cli_version }}"
 
 - name: Install docker engine specific version
   when:
-    - version != 'latest'
+    - version['docker'] != 'latest'
     - item.install
-  become: yes
   yum:
     name: "{{ item.package }}"
     state: present

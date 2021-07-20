@@ -1,8 +1,7 @@
 ---
 - name: Download binaries
-  become: yes
   get_url:
-    url: https://github.com/opencontainers/runc/releases/download/v{{ version.runc }}/runc.amd64
+    url: https://github.com/opencontainers/runc/releases/download/v{{ version['runc'] }}/runc.amd64
     dest: "/usr/local/sbin/runc"
     owner: root
     group: root

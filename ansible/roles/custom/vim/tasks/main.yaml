@@ -1,8 +1,10 @@
 ---
 - name: Create .vimrc file if not exists
   file:
-    path: "{{ ansible_env.HOME }}/.vimrc"
+    path: "{{ ansible_env['HOME'] }}/.vimrc"
     state: touch
+    owner: "{{ ansible_env['USER'] }}"
+    group: "{{ ansible_env['USER'] }}"
     mode: 0644
   register: touch_log
   changed_when: touch_log.diff.before.state != "file"

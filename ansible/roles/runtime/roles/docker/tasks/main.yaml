@@ -8,20 +8,17 @@
   include_tasks: debian.yaml
 
 - name: docker group create
-  become: yes
   group:
     name: docker
     state: present
 
 - name: Ensure docker directory exists
-  become: yes
   file:
     path: /etc/docker
     state: directory
     mode: 0755
 
 - name: generate docker config file to use systemd driver
-  become: yes
   when: systemd_cgroup == true
   copy:
     src: daemon.json
@@ -32,9 +29,8 @@
   notify: docker service start
 
 - name: add docker group on user
-  become: yes
   user:
-    name: "{{ local_user }}"
+    name: "{{ ansible_env['USER'] }}"
     groups: docker
     append: yes
 

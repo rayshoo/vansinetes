@@ -69,4 +69,4 @@
 - meta: flush_handlers
 
 - name: make ssh connection to hosts
-  include_tasks : connection.yaml
+  include : connection.yaml

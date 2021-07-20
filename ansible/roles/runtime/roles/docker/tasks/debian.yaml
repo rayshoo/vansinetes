@@ -1,6 +1,5 @@
 ---
 - name: Install packages to install docker
-  become: yes
   apt:
     name:
       - apt-transport-https
@@ -12,7 +11,6 @@
     update_cache: yes
 
 - name: Add Docker APT GPG key
-  become: yes
   apt_key:
     url: https://download.docker.com/linux/ubuntu/gpg
 
@@ -24,15 +22,13 @@
     lsb_release: "{{ lsb_release.stdout }}"
 
 - name: Add Docker APT repository
-  become: yes
   apt_repository:
     repo: deb https://download.docker.com/linux/ubuntu {{ lsb_release }} stable
     state: present
     filename: docker
 
 - name: Install docker engine latest
-  when: version.docker == 'latest'
-  become: yes
+  when: version['docker'] == 'latest'
   apt:
     name:
       - docker-ce
@@ -43,37 +39,36 @@
   notify: docker service start
 
 - name: List the docker-ce versions available in repo
-  when: version.docker != 'latest'
+  when: version['docker'] != 'latest'
   shell: apt-cache madison docker-ce
   register: result
 
 - name: Get the exact docker-ce version name in apt repo
   when:
-    - version.docker != 'latest'
-    - version.docker in item
+    - version['docker'] != 'latest'
+    - version['docker'] in item
   set_fact:
     apt_docker_ce_version: "{{ item.split('|')[1] | trim }}"
   with_items: "{{ result.stdout_lines }}"
 
 
 - name: List the docker-ce-cli versions available in repo
-  when: version.docker != 'latest'
+  when: version['docker'] != 'latest'
   shell: apt-cache madison docker-ce-cli
   register: result
 
 - name: Get the exact docker-ce-cli version name in apt repo
   when:
-    - version.docker != 'latest'
-    - version.docker in item
+    - version['docker'] != 'latest'
+    - version['docker'] in item
   set_fact:
     apt_docker_ce_cli_version: "{{ item.split('|')[1] | trim }}"
   with_items: "{{ result.stdout_lines }}"
 
 - name: Install docker engine specific version
   when:
-    - version.docker != 'latest'
+    - version['docker'] != 'latest'
     - item.install
-  become: yes
   apt:
     name: "{{ item.package }}"
     state: present

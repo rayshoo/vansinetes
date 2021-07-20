@@ -1,6 +1,5 @@
 ---
 - name: change permissive status to Selinux
-  become: yes
   selinux:
     policy: targeted
     state: permissive
@@ -8,7 +7,6 @@
 - name: allow control node required ports to firewalld
   when:
     - ansible_hostname in groups['master']
-  become: yes
   firewalld:
     port: "{{ item }}"
     permanent: true
@@ -24,7 +22,6 @@
 - name: allow worker node required ports to firewalld
   when:
     - ansible_hostname in groups['worker']
-  become: yes
   firewalld:
     port: "{{ item }}"
     permanent: true
@@ -36,7 +33,6 @@
   ignore_errors: yes
 
 - name: enable masquerade to firewalld
-  become: yes
   firewalld:
     masquerade: enable
     permanent: true

@@ -1,9 +1,10 @@
 ---
-local_home: "{{ lookup('env','HOME') }}"
-local_user: "{{ lookup('env','USER') }}"
+local:
+  user: "{{ lookup('env','USER') }}"
+  home: "{{ lookup('env','HOME') }}"
 
 systemd_cgroup: yes  # https://kubernetes.io/ko/docs/setup/production-environment/container-runtimes/
-systemd_resolved: no
+systemd_resolved: yes
 nameservers:
   - 8.8.8.8
   - 8.8.4.4

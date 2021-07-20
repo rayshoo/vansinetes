@@ -1,24 +1,25 @@
 ---
-- name: Download docker binary files
-  get_url:
-    url: https://download.docker.com/linux/static/stable/x86_64/docker-{{ version }}.tgz
-    dest: "{{ ansible_env.HOME }}/downloads/docker-{{ version }}.tgz"
-    owner: "{{ ansible_env.USER }}"
-    group: "{{ ansible_env.USER }}"
-    mode: 0644
+- when: ansible_hostname == groups['ansible_master'][0]
+  block:
+  - name: Download docker binary files
+    get_url:
+      url: https://download.docker.com/linux/static/stable/x86_64/docker-{{ version }}.tgz
+      dest: "{{ local['home'] }}/downloads/docker-{{ version }}.tgz"
+      owner: "{{ local['user'] }}"
+      group: "{{ local['user'] }}"
+      mode: 0644
 
-- name: Unarchive docker binary files
-  unarchive:
-    src: "{{ ansible_env.HOME }}/downloads/docker-{{ version }}.tgz"
-    dest: "{{ ansible_env.HOME }}/downloads"
-    owner: "{{ ansible_env.USER }}"
-    group: "{{ ansible_env.USER }}"
-    mode: 0775
+  - name: Unarchive docker binary files
+    unarchive:
+      src: "{{ local['home'] }}/downloads/docker-{{ version }}.tgz"
+      dest: "{{ local['home'] }}/downloads"
+      owner: "{{ local['user'] }}"
+      group: "{{ local['user'] }}"
+      mode: 0775
 
 - name: copy docker binary files in path
-  become: yes
   copy:
-    src: "{{ local_home }}/downloads/docker/{{ item }}"
+    src: "{{ local['home'] }}/downloads/docker/{{ item }}"
     dest: "/usr/bin"
     owner: root
     group: root
@@ -28,3 +29,4 @@
     - dockerd
     - docker-init
     - docker-proxy
+  failed_when: false

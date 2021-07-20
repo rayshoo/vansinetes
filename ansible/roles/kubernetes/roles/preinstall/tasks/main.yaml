@@ -14,7 +14,6 @@
   include: resolv_conf.yaml
 
 - name: kubelet service restart
-  become: yes
   systemd:
     daemon_reload: yes
     name: kubelet

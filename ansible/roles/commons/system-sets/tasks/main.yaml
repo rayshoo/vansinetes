@@ -4,7 +4,6 @@
   become: true
 
 - name: swapoff permanent
-  become: yes
   replace:
     dest: /etc/fstab
     regexp: '^(\s*)([^#\n]+\s+)(\w+\s+)swap(\s+.*)$'
@@ -12,7 +11,6 @@
     backup: yes
 
 - name: Create k8s.conf file if no exists
-  become: yes
   file:
     path: /etc/modules-load.d/k8s.conf
     state: touch
@@ -21,7 +19,6 @@
   changed_when: touch_log.diff.before.state != "file"
 
 - name: write modules in k8s.conf file
-  become: yes
   lineinfile:
     dest: /etc/modules-load.d/k8s.conf
     line: "{{ item }}"
@@ -30,7 +27,6 @@
     - br_netfilter
 
 - name: Load overlay & br_netfilter module
-  become: yes
   modprobe:
     name: "{{ item }}"
     state: present
@@ -39,7 +35,6 @@
     - br_netfilter
 
 - name: Create k8s.conf file if no exists
-  become: yes
   file:
     path: /etc/sysctl.d/k8s.conf
     state: touch
@@ -48,7 +43,6 @@
   changed_when: touch_log.diff.before.state != "file"
 
 - name: apply sysctl entries
-  become: yes
   sysctl:
     name: "{{ item.name }}"
     value: "{{ item.value }}"

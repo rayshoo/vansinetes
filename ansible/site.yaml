@@ -1,31 +1,36 @@
 ---
 - name: ansible ssh settings
   hosts: cluster
+  gather_facts: yes
   serial: 1
   roles:
-    - ssh
+    - role: ssh
+    - become: yes
+      role: commons/setup
+    - role: ssh
 
 - name: kubernetes install, custom settings
   hosts: cluster
-  roles:
-    - runtime
-    - kubernetes
-    - custom/alias/ansible
-    - custom/alias/vim
-    - custom/alias/docker
-    - custom/alias/kubernetes
-    - custom/git
-    - custom/vim/vim
-    - custom/vim/vim-plugins
-    - custom/vim/vim-custom
-    - custom/motd
-
-- name: custom settings(root)
+  gather_facts: no
   become: yes
-  hosts: cluster
   roles:
-    - custom/alias/ansible
-    - custom/alias/vim
-    - custom/alias/docker
-    - custom/alias/kubernetes
-    - custom/vim/vim-custom
+    - become: no
+      role: commons/setup
+    - role: runtime
+    - role: kubernetes
+    - role: custom/alias/ansible
+    - role: custom/alias/vim
+    - role: custom/alias/docker
+    - role: custom/alias/kubernetes
+    - role: custom/git
+    - role: custom/vim/vim
+    - role: custom/vim/vim-plugins
+    - role: custom/vim/vim-custom
+    - role: custom/motd
+    - role: commons/setup
+    - role: custom/alias/ansible
+    - role: custom/alias/vim
+    - role: custom/alias/docker
+    - role: custom/alias/kubernetes
+    - role: custom/vim/vim-plugins
+    - role: custom/vim/vim-custom

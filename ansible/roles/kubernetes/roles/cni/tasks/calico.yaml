@@ -1,6 +1,5 @@
 ---
 - name: allow required calico ports to firewalld
-  become: yes
   firewalld:
     port: 179/tcp
     permanent: true
@@ -10,56 +9,34 @@
 
 - when: ansible_hostname == groups['ansible_master'][0]
   block:
-  - name: Remove calico yaml file if already exists
-    become: yes
-    file:
-      path: "{{ ansible_env.HOME }}/downloads/calico_v{{ version.calico }}.yaml"
-      state: absent
-
   - name: download calico yaml file
     get_url:
-      url: https://docs.projectcalico.org/v{{ version.calico }}/manifests/calico.yaml
-      dest: "{{ ansible_env.HOME }}/downloads/calico_v{{ version.calico }}.yaml"
-      owner: "{{ ansible_env.USER }}"
-      group: "{{ ansible_env.USER }}"
+      url: https://docs.projectcalico.org/v{{ version['calico'] }}/manifests/calico.yaml
+      dest: "{{ local['home'] }}/downloads/cni/calico_v{{ version['calico'] }}.yaml"
+      owner: "{{ local['user'] }}"
+      group: "{{ local['user'] }}"
       mode: 0644
-
-  - name: check calico nework plugin already exists
-    become: yes
-    shell: kubectl --kubeconfig=/etc/kubernetes/admin.conf get pods -n kube-system | grep calico
-    register: result
-    failed_when: false
-    
-  - name: delete calico network plugin if already exists
-    when: result.stdout_lines | length > 0
-    become: yes
-    async: "{{ item['async'] }}"
-    poll: "{{ item['poll'] }}"
-    shell: "{{ item['shell'] }}"
-    with_items:
-      - { async: "10", poll: "0", shell: "kubectl --kubeconfig=/etc/kubernetes/admin.conf delete -n kube-system poddisruptionbudgets.policy calico-kube-controllers" }
-      - { async: "10", poll: "0", shell: "kubectl --kubeconfig=/etc/kubernetes/admin.conf delete -n kube-system deployments.apps calico-kube-controllers" }
-      - { async: "15", poll: "15", shell: "kubectl --kubeconfig=/etc/kubernetes/admin.conf delete -n kube-system daemonsets.apps calico-node" }
-      - { async: "10", poll: "0", shell: "kubectl --kubeconfig=/etc/kubernetes/admin.conf delete -f {{ ansible_env.HOME }}/downloads/calico_v{{ version.calico }}.yaml" }
-      - { async: "10", poll: "0", shell: "kubectl --kubeconfig=/etc/kubernetes/admin.conf delete -n kube-system pods --all" }
-    failed_when: false
 
   - name: set pod subnet in calico yaml file
     replace:
-      dest: "{{ ansible_env.HOME }}/downloads/calico_v{{ version.calico }}.yaml"
+      dest: "{{ local['home'] }}/downloads/cni/calico_v{{ version['calico'] }}.yaml"
       regexp: "{{ item['regexp'] }}"
       replace: "{{ item['replace'] }}"
     with_items:
       - { regexp: "# - name: CALICO_IPV4POOL_CIDR", replace: "- name: CALICO_IPV4POOL_CIDR" }
       - { regexp: "#   value: \"192.168.0.0/16\"", replace: "  value: \"{{ pod_subnet }}\"" }
 
+  - name: check calico nework plugin already exists
+    shell: kubectl --kubeconfig=/etc/kubernetes/admin.conf get pods -n kube-system | grep calico
+    register: result
+    failed_when: false
+
   - name: install calico network plugin
-    become: yes
-    shell: kubectl --kubeconfig=/etc/kubernetes/admin.conf create -f {{ ansible_env.HOME }}/downloads/calico_v{{ version.calico }}.yaml
+    when: result.stdout_lines | length == 0
+    shell: kubectl --kubeconfig=/etc/kubernetes/admin.conf create -f {{ local['home'] }}/downloads/cni/calico_v{{ version['calico'] }}.yaml
     failed_when: false
 
   - name: set interface in calico daemonset
-    become: yes
     async: 10
     poll: 0
     shell: kubectl --kubeconfig=/etc/kubernetes/admin.conf set env daemonset/calico-node -n kube-system IP_AUTODETECTION_METHOD=interface={{ iface }}

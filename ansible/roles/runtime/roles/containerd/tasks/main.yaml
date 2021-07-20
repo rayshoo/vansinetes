@@ -1,32 +1,29 @@
 ---
 - name: Download binaries
   get_url:
-    url: https://github.com/containerd/containerd/releases/download/v{{ version.containerd }}/containerd-{{ version.containerd }}-linux-amd64.tar.gz
-    dest: "{{ ansible_env.HOME }}/downloads/containerd.tar"
-    owner: "{{ ansible_env.USER }}"
-    group: "{{ ansible_env.USER }}"
+    url: https://github.com/containerd/containerd/releases/download/v{{ version['containerd'] }}/containerd-{{ version['containerd'] }}-linux-amd64.tar.gz
+    dest: "{{ local['home'] }}/downloads/containerd.tar"
+    owner: "{{ local['user'] }}"
+    group: "{{ local['user'] }}"
     mode: 0644
-
 
 - name: Unarchive containerd binaries archive
   unarchive:
-    src: "{{ ansible_env.HOME }}/downloads/containerd.tar"
-    dest: "{{ ansible_env.HOME }}/downloads"
-    owner: "{{ ansible_env.USER }}"
-    group: "{{ ansible_env.USER }}"
+    src: "{{ local['home'] }}/downloads/containerd.tar"
+    dest: "{{ local['home'] }}/downloads"
+    owner: "{{ local['user'] }}"
+    group: "{{ local['user'] }}"
     mode: 0755
 
 - name: Copy containerd binaries in PATH
-  become: yes
   copy:
-    src: "{{ local_home }}/downloads/bin/"
-    dest: /usr/local/bin
+    src: "{{ local['home'] }}/downloads/bin/"
+    dest: /usr/bin
     owner: root
     group: root
     mode: 0755
 
 - name: Add containerd service
-  become: yes
   copy:
     src: containerd.service
     dest: /etc/systemd/system
@@ -35,14 +32,12 @@
     mode: 0644
 
 - name: Ensure containerd config folder exists
-  become: yes
   file:
     path: /etc/containerd
     state: directory
     mode: 0750
 
 - name: Generate default containerd config file
-  become: yes
   template:
     src: config.j2
     dest: /etc/containerd/config.toml

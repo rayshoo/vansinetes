@@ -5,26 +5,35 @@
     state: directory
     mode: 0750
   loop:
-    - "{{ ansible_env.HOME }}/.vim/autoload"
-    - "{{ ansible_env.HOME }}/.vim/bundle"
+    - "{{ ansible_env['HOME'] }}/.vim/autoload"
+    - "{{ ansible_env['HOME'] }}/.vim/bundle"
 
-- name: "Git clone vim-plug from remote repository"
-  git:
-    repo: "https://github.com/junegunn/vim-plug.git"
-    dest: "{{ ansible_env.HOME }}/downloads/vim-plug"
-    version: cffcfe150bda75177920530c5f1911b52f70a065
+- when: ansible_hostname == groups['ansible_master'][0]
+  block:
+  - name: Git clone vim-plug from remote repository
+    git:
+      repo: https://github.com/junegunn/vim-plug.git
+      dest: "{{ local['home'] }}/downloads/vim-plug"
+      version: cffcfe150bda75177920530c5f1911b52f70a065
 
-- name: "Copy plug.vim file in {{ ansible_env.HOME }}/.vim/autoload"
+  - name: change vim-plug owner to {{ local['user'] }}
+    file:
+      dest: "{{ local['home'] }}/downloads/vim-plug"
+      owner: "{{ local['user'] }}"
+      group: "{{ local['user'] }}"
+      recurse: yes
+
+- name: Copy plug.vim file in {{ ansible_env['HOME'] }}/.vim/autoload
   copy:
-    src: "{{ ansible_env.HOME }}/downloads/vim-plug/plug.vim"
-    dest: "{{ ansible_env.HOME }}/.vim/autoload"
-    owner: "{{ ansible_env.USER }}"
-    group: "{{ ansible_env.USER }}"
+    src: "{{ local['home'] }}/downloads/vim-plug/plug.vim"
+    dest: "{{ ansible_env['HOME'] }}/.vim/autoload"
+    owner: "{{ ansible_env['USER'] }}"
+    group: "{{ ansible_env['USER'] }}"
     mode: 0664
 
 - name: Configure vimrc plugin
   blockinfile: 
-    dest: "{{ ansible_env.HOME }}/.vimrc"
+    dest: "{{ ansible_env['HOME'] }}/.vimrc"
     block: |
       call plug#begin('~/.vim/plugged')
       Plug 'pearofducks/ansible-vim'
@@ -35,7 +44,7 @@
 
 - name: Check vim plugin installed
   stat:
-    path: "{{ ansible_env.HOME }}/.vim/plugged/ansible-vim"
+    path: "{{ ansible_env['HOME'] }}/.vim/plugged/ansible-vim"
   register: file_check
 
 - name: Install vim plugin
@@ -44,36 +53,45 @@
   failed_when: "vim_log.stderr != \"\""
   changed_when: file_check.stat.exists == false
 
-- name: "Git clone pathogen.vim from remote repository"
-  git:
-    repo: "https://github.com/tpope/vim-pathogen.git"
-    dest: "{{ ansible_env.HOME }}/downloads/vim-pathogen"
-    version: e0a3efbda5ea8e5b181b2b232ef6453c05d07732
+- when: ansible_hostname == groups['ansible_master'][0]
+  block:
+  - name: Git clone pathogen.vim from remote repository
+    git:
+      repo: https://github.com/tpope/vim-pathogen.git
+      dest: "{{ local['home'] }}/downloads/vim-pathogen"
+      version: e0a3efbda5ea8e5b181b2b232ef6453c05d07732
 
-- name: "Copy pathogen.vim file in {{ ansible_env.HOME }}/.vim/autoload"
+  - name: change vim-pathogen owner to {{ local['user'] }}
+    file:
+      dest: "{{ local['home'] }}/downloads/vim-pathogen"
+      owner: "{{ local['user'] }}"
+      group: "{{ local['user'] }}"
+      recurse: yes
+
+- name: "Copy pathogen.vim file in {{ ansible_env['HOME'] }}/.vim/autoload"
   copy:
-    src: "{{ ansible_env.HOME }}/downloads/vim-pathogen/autoload/pathogen.vim"
-    dest: "{{ ansible_env.HOME }}/.vim/autoload"
-    owner: "{{ ansible_env.USER }}"
-    group: "{{ ansible_env.USER }}"
+    src: "{{ local['home'] }}/downloads/vim-pathogen/autoload/pathogen.vim"
+    dest: "{{ ansible_env['HOME'] }}/.vim/autoload"
+    owner: "{{ ansible_env['USER'] }}"
+    group: "{{ ansible_env['USER'] }}"
     mode: 0664
 
 - name: Unarchive vim-ansible-yaml.tar
   unarchive:
     src: "vim-ansible-yaml-1.0.tar.gz"
-    dest: "{{ ansible_env.HOME }}/.vim/bundle/"
-    owner: "{{ ansible_env.USER }}"
-    group: "{{ ansible_env.USER }}"
+    dest: "{{ ansible_env['HOME'] }}/.vim/bundle/"
+    owner: "{{ ansible_env['USER'] }}"
+    group: "{{ ansible_env['USER'] }}"
     mode: 0775
 
 - name: Configure vimrc syntax
   lineinfile:
-    dest: "{{ ansible_env.HOME }}/.vimrc"
+    dest: "{{ ansible_env['HOME'] }}/.vimrc"
     line: "{{ item }}"
     insertafter: EOF
     backup: yes
   with_items:
-    - "set number"
-    - "execute pathogen#infect()"
-    - "syntax on"
-    - "autocmd FileType yaml setlocal ai et ts=2 sw=2 sts=2"
+    - set number
+    - execute pathogen#infect()
+    - syntax on
+    - autocmd FileType yaml setlocal ai et ts=2 sw=2 sts=2

@@ -1,7 +1,6 @@
 ---
 - name: Ensure kubernetes directory exists
-  when: version.kubeadm is version('1.14','<')
-  become: yes
+  when: version['kubeadm'] is version('1.14','<')
   file:
     path: "{{ item }}"
     state: directory
@@ -12,8 +11,7 @@
     - /etc/kubernetes/pki/etcd
 
 - name: copy certificate files
-  when: version.kubeadm is version('1.14','<')
-  become: yes
+  when: version['kubeadm'] is version('1.14','<')
   copy:
     src: /etc/kubernetes/pki/{{ item }}
     dest: /etc/kubernetes/pki/{{ item }}
@@ -31,21 +29,21 @@
     - ca.key
 
 - name: kubeadm master node join
-  when: version.kubeadm is version('1.14','<')
-  become: yes
+  when: version['kubeadm'] is version('1.14','<')
+  throttle: 1
   shell: "{{ join_command }} --experimental-control-plane --apiserver-advertise-address={{ ansible_host }}"
   ignore_errors: yes
 
 - name: kubeadm master node join
   when:
-    - version.kubeadm is version('1.15','<')
-    - version.kubeadm is version('1.14','>=')
-  become: yes
+    - version['kubeadm'] is version('1.15','<')
+    - version['kubeadm'] is version('1.14','>=')
+  throttle: 1
   shell: "{{ join_command }} --experimental-control-plane --certificate-key {{ cert }} --apiserver-advertise-address={{ ansible_host }}"
   ignore_errors: yes
 
 - name: kubeadm master node join
-  when: version.kubeadm is version('1.15','>=')
-  become: yes
+  when: version['kubeadm'] is version('1.15','>=')
+  throttle: 1
   shell: "{{ join_command }} --control-plane --certificate-key {{ cert }} --apiserver-advertise-address={{ ansible_host }}"
   ignore_errors: yes

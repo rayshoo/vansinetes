@@ -1,25 +1,21 @@
 ---
 - name: Generate kube-config yaml file
-  become: yes
-  shell: kubectl --kubeconfig=/etc/kubernetes/admin.conf get -n kube-system cm kubeadm-config -o yaml > {{ ansible_env.HOME }}/kubeadm-config.yaml
+  shell: kubectl --kubeconfig=/etc/kubernetes/admin.conf get -n kube-system cm kubeadm-config -o yaml > {{ ansible_env['HOME'] }}/kubeadm-config.yaml
   register: generate_kube_config
   until: generate_kube_config.rc == 0
   retries: 10
   delay: 3
 
 - name: Define control-plane-endpoint
-  become: yes
   replace:
-    dest: "{{ ansible_env.HOME }}/kubeadm-config.yaml"
+    dest: "{{ ansible_env['HOME'] }}/kubeadm-config.yaml"
     regexp: '^(\s*controlPlaneEndpoint:\s*)\S*'
     replace: '\1"{{ hostvars[groups["ansible_master"][0]].ansible_host }}:6443"'
 
 - name: Apply control-plane-endpoint
-  become: yes
-  shell: kubectl --kubeconfig=/etc/kubernetes/admin.conf apply -f {{ ansible_env.HOME }}/kubeadm-config.yaml
+  shell: kubectl --kubeconfig=/etc/kubernetes/admin.conf apply -f {{ ansible_env['HOME'] }}/kubeadm-config.yaml
 
 - name: Remove kube-config yaml file
-  become: yes
   file:
-    path: "{{ ansible_env.HOME }}/kubeadm-config.yaml"
+    path: "{{ ansible_env['HOME'] }}/kubeadm-config.yaml"
     state: absent
