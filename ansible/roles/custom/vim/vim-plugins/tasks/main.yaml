@@ -3,6 +3,8 @@
   file:
     path: "{{ item }}"
     state: directory
+    owner: "{{ ansible_env['USER'] }}"
+    group: "{{ ansible_env['USER'] }}"
     mode: 0750
   loop:
     - "{{ ansible_env['HOME'] }}/.vim/autoload"
