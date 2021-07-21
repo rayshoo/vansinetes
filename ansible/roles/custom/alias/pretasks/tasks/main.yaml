@@ -1,0 +1,10 @@
+---
+- name: Create .bashrc file if no exists
+  file:
+    path: "{{ target['home'] }}/.bashrc"
+    state: touch
+    owner: "{{ target['user'] }}"
+    group: "{{ target['user'] }}"
+    mode: 0644
+  register: touch_log
+  changed_when: touch_log.diff.before.state != "file"

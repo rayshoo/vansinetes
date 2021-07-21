@@ -1,0 +1,5 @@
+---
+- set_fact:
+    target:
+      user: "{{ ansible_env['USER'] }}"
+      home: "{{ ansible_env['HOME'] }}"

@@ -1,4 +1,4 @@
 ---
 dependencies:
-  - { role: commons/download }
-  - { role: commons/iface-check }
+  - role: commons/download
+  - role: commons/iface-check

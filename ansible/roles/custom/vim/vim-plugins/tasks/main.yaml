@@ -3,12 +3,12 @@
   file:
     path: "{{ item }}"
     state: directory
-    owner: "{{ ansible_env['USER'] }}"
-    group: "{{ ansible_env['USER'] }}"
+    owner: "{{ target['user'] }}"
+    group: "{{ target['user'] }}"
     mode: 0750
   loop:
-    - "{{ ansible_env['HOME'] }}/.vim/autoload"
-    - "{{ ansible_env['HOME'] }}/.vim/bundle"
+    - "{{ target['home'] }}/.vim/autoload"
+    - "{{ target['home'] }}/.vim/bundle"
 
 - when: ansible_hostname == groups['ansible_master'][0]
   block:
@@ -25,17 +25,27 @@
       group: "{{ local['user'] }}"
       recurse: yes
 
-- name: Copy plug.vim file in {{ ansible_env['HOME'] }}/.vim/autoload
+- name: Copy plug.vim file in {{ target['home'] }}/.vim/autoload
   copy:
     src: "{{ local['home'] }}/downloads/vim-plug/plug.vim"
-    dest: "{{ ansible_env['HOME'] }}/.vim/autoload"
-    owner: "{{ ansible_env['USER'] }}"
-    group: "{{ ansible_env['USER'] }}"
+    dest: "{{ target['home'] }}/.vim/autoload"
+    owner: "{{ target['user'] }}"
+    group: "{{ target['user'] }}"
     mode: 0664
+
+- name: Create .vimrc file if not exists
+  file:
+    path: "{{ target['home'] }}/.vimrc"
+    state: touch
+    owner: "{{ target['user'] }}"
+    group: "{{ target['user'] }}"
+    mode: 0644
+  register: touch_log
+  changed_when: touch_log.diff.before.state != "file"
 
 - name: Configure vimrc plugin
   blockinfile: 
-    dest: "{{ ansible_env['HOME'] }}/.vimrc"
+    dest: "{{ target['home'] }}/.vimrc"
     block: |
       call plug#begin('~/.vim/plugged')
       Plug 'pearofducks/ansible-vim'
@@ -46,7 +56,7 @@
 
 - name: Check vim plugin installed
   stat:
-    path: "{{ ansible_env['HOME'] }}/.vim/plugged/ansible-vim"
+    path: "{{ target['home'] }}/.vim/plugged/ansible-vim"
   register: file_check
 
 - name: Install vim plugin
@@ -70,25 +80,25 @@
       group: "{{ local['user'] }}"
       recurse: yes
 
-- name: "Copy pathogen.vim file in {{ ansible_env['HOME'] }}/.vim/autoload"
+- name: "Copy pathogen.vim file in {{ target['home'] }}/.vim/autoload"
   copy:
     src: "{{ local['home'] }}/downloads/vim-pathogen/autoload/pathogen.vim"
-    dest: "{{ ansible_env['HOME'] }}/.vim/autoload"
-    owner: "{{ ansible_env['USER'] }}"
-    group: "{{ ansible_env['USER'] }}"
+    dest: "{{ target['home'] }}/.vim/autoload"
+    owner: "{{ target['user'] }}"
+    group: "{{ target['user'] }}"
     mode: 0664
 
 - name: Unarchive vim-ansible-yaml.tar
   unarchive:
     src: "vim-ansible-yaml-1.0.tar.gz"
-    dest: "{{ ansible_env['HOME'] }}/.vim/bundle/"
-    owner: "{{ ansible_env['USER'] }}"
-    group: "{{ ansible_env['USER'] }}"
+    dest: "{{ target['home'] }}/.vim/bundle/"
+    owner: "{{ target['user'] }}"
+    group: "{{ target['user'] }}"
     mode: 0775
 
 - name: Configure vimrc syntax
   lineinfile:
-    dest: "{{ ansible_env['HOME'] }}/.vimrc"
+    dest: "{{ target['home'] }}/.vimrc"
     line: "{{ item }}"
     insertafter: EOF
     backup: yes

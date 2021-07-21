@@ -3,6 +3,10 @@ local:
   user: "{{ lookup('env','USER') }}"
   home: "{{ lookup('env','HOME') }}"
 
+target:
+  user: "{{ ansible_env['USER'] }}"
+  home: "{{ ansible_env['HOME'] }}"
+
 systemd_cgroup: yes  # https://kubernetes.io/ko/docs/setup/production-environment/container-runtimes/
 systemd_resolved: yes
 nameservers:

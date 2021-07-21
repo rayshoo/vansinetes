@@ -1,0 +1,34 @@
+---
+- name: check ssh keypair exists
+  become: yes
+  stat:
+    path: "{{ target['home'] }}/.ssh/id_rsa"
+  register: keypair
+
+- when: not keypair.stat.exists
+  block:
+  - name: Ensure .ssh directory exists
+    become: yes
+    file:
+      path: "{{ target['home'] }}/.ssh"
+      state: directory
+      owner: "{{ target['user'] }}"
+      group: "{{ target['user'] }}"
+      mode: 0755
+
+  - name: generate openssh keypair with the default values (4096 bits, rsa)
+    become: yes
+    openssh_keypair:
+      path: "{{ target['home'] }}/.ssh/id_rsa"
+      owner: "{{ target['user'] }}"
+      group: "{{ target['user'] }}"
+
+  - name: change owner of the generated pub key
+    become: yes
+    file:
+      path: "{{ target['home'] }}/.ssh/id_rsa.pub"
+      owner: "{{ target['user'] }}"
+      group: "{{ target['user'] }}"
+
+- name: execute key.sh
+  shell: "{{ lookup('template', 'key.j2') }}"

@@ -1,6 +1,6 @@
 - name: Configure Bashrc
   lineinfile:
-    dest: "{{ ansible_env['HOME'] }}/.bashrc"
+    dest: "{{ target['home'] }}/.bashrc"
     line: "{{ item }}"
   with_items:
     - "alias ans='ansible'"

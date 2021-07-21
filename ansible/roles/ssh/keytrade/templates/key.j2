@@ -1,0 +1,9 @@
+#!/bin/bash
+{% for item in groups['cluster'] %}
+sshpass -p {{ hostvars[item].ansible_pass }} ssh -o StrictHostKeyChecking=no {{ hostvars[item].ansible_user }}@{{ hostvars[item].inventory_hostname }} "exit"
+sudo cat {{ target['home'] }}/.ssh/id_rsa.pub | sshpass -p {{ hostvars[item].ansible_pass }} ssh -o StrictHostKeyChecking=no {{ hostvars[item].ansible_user }}@{{ hostvars[item].ansible_host }} "tee -a /home/{{ hostvars[item].ansible_user }}/.ssh/authorized_keys"
+{% if root_login %}
+sshpass -p {{ hostvars[item].ansible_pass }} ssh -o StrictHostKeyChecking=no {{ hostvars[item].ansible_user }}@{{ hostvars[item].ansible_host }} "sudo mkdir /root/.ssh" 2>/dev/null || true
+sudo cat {{ target['home'] }}/.ssh/id_rsa.pub | sshpass -p {{ hostvars[item].ansible_pass }} ssh -o StrictHostKeyChecking=no {{ hostvars[item].ansible_user }}@{{ hostvars[item].ansible_host }} "sudo tee -a /root/.ssh/authorized_keys"
+{% endif %}
+{% endfor %}

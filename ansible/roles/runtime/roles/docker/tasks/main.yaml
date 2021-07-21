@@ -30,7 +30,7 @@
 
 - name: add docker group on user
   user:
-    name: "{{ ansible_env['USER'] }}"
+    name: "{{ target['user'] }}"
     groups: docker
     append: yes
 

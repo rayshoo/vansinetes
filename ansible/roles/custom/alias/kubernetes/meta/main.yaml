@@ -1,4 +1,4 @@
 ---
+allow_duplicates: yes
 dependencies:
-  - { role: custom/alias }
-  - { role: custom/bash_completion }
+  - role: custom/bash_completion

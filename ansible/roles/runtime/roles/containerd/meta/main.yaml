@@ -1,5 +1,5 @@
 ---
 dependencies:
-  - { role: commons/os-check }
-  - { role: commons/download }
-  - { role: runtime/roles/runc }
+  - role: commons/os-check
+  - role: commons/download
+  - role: runtime/roles/runc

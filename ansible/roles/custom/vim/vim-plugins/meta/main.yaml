@@ -1,6 +1,6 @@
 ---
+allow_duplicates: yes
 dependencies:
-  - { role: commons/os-check }
-  - { role: custom/git }
-  - { role: commons/download }
-  - { role: custom/vim }
+  - role: commons/os-check
+  - role: custom/git
+  - role: commons/download

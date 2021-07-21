@@ -1,3 +1,2 @@
 ---
-dependencies:
-  - { role: custom/alias }
+allow_duplicates: yes

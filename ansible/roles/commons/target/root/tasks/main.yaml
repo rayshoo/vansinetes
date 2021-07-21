@@ -1,0 +1,5 @@
+---
+- set_fact:
+    target:
+      user: root
+      home: /root
