@@ -3,13 +3,8 @@
   set_fact:
     ifaces: "{{ ansible_interfaces | difference(['lo', 'docker0']) }}"
 
-- name: change inferfaces name
-  set_fact:
-    new_ifaces: "{{ new_ifaces | default([]) + [{'iface': item, 'ansible': 'ansible_' ~ item}] }}"
-  with_items: "{{ ifaces }}"
-
 - name: get interface name which on ansible host ip
+  when: ansible_facts[item]['ipv4']['address'] is defined and ansible_facts[item]['ipv4']['address'] == ansible_host
   set_fact:
-    iface: "{{ item.iface }}"
-  when: "{{ item.ansible }}.ipv4.address is defined and {{ item.ansible }}.ipv4.address == ansible_host"
-  loop: "{{ new_ifaces }}"
+    iface: "{{ item }}"
+  with_items: "{{ ifaces }}"
