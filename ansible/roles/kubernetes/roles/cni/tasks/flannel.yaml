@@ -1,1 +1,40 @@
-# https://raw.githubusercontent.com/flannel-io/flannel/v0.14.0/Documentation/kube-flannel.yml
+---
+- name: allow required flannel ports to firewalld
+  firewalld:
+    port: "{{ item }}"
+    permanent: true
+    immediate: yes
+    state: enabled
+  with_items:
+    - 8285/udp
+    - 8472/udp
+  failed_when: false
+
+- when: ansible_hostname == groups['ansible_master'][0]
+  block:
+  - name: download flannel yaml file
+    get_url:
+      url: https://raw.githubusercontent.com/flannel-io/flannel/v{{ version['flannel'] }}/Documentation/kube-flannel.yml
+      dest: "{{ local['home'] }}/downloads/cni/flannel_v{{ version['flannel'] }}.yaml"
+      owner: "{{ local['user'] }}"
+      group: "{{ local['user'] }}"
+      mode: 0644
+
+  - name: set pod subnet, interface in flannel yaml file
+    replace:
+      dest: "{{ local['home'] }}/downloads/cni/flannel_v{{ version['flannel'] }}.yaml"
+      regexp: "{{ item['regexp'] }}"
+      replace: "{{ item['replace'] }}"
+    with_items:
+      - { regexp: "10.244.0.0/16", replace: "{{ pod_subnet }}" }
+      - { regexp: "^(\\s*)(- --ip-masq\n^\\s*- --kube-subnet-mgr\n)", replace: "\\1\\2\\1- --iface={{ iface }}\n" }
+
+  - name: check flannel nework plugin already exists
+    shell: kubectl --kubeconfig=/etc/kubernetes/admin.conf get pods -n kube-system | grep flannel
+    register: result
+    failed_when: false
+
+  - name: install flannel network plugin
+    when: result.stdout_lines | length == 0
+    shell: kubectl --kubeconfig=/etc/kubernetes/admin.conf create -f {{ local['home'] }}/downloads/cni/flannel_v{{ version['flannel'] }}.yaml
+    failed_when: false
