@@ -1,13 +1,6 @@
 ---
 - when: systemd_resolved
   block:
-  - name: Disable and stop NetworkManager
-    systemd:
-      name: NetworkManager
-      state: stopped
-      enabled: no
-    failed_when: false
-
   - name: generate systemd_resolved resolved.conf file
     template:
       src: resolved.conf.j2
@@ -15,13 +8,16 @@
       owner: root
       group: root
       mode: 0644
+    notify: Enable and restart systemd-resolved
 
-  - name: Enable and restart systemd-resolved
-    systemd:
-      name: systemd-resolved
-      state: restarted
-      enabled: yes
-    ignore_errors: yes
+  - name: add nameservers when using NetworkManager
+    nmcli:
+      conn_name: "System {{ iface }}"
+      type: ethernet
+      dns4: 127.0.0.53
+      state: present
+    failed_when: false
+    notify: restart NetworkManager
 
   - name: change kubelet resolv-conf to systemd-resolved
     replace:
@@ -35,6 +31,7 @@
       - /etc/systemd/system
       - /lib/systemd/system
     failed_when: false
+    notify: kubelet service restart
 
   - name: set kubelet resolv-conf to systemd-resolved
     replace:
@@ -48,6 +45,7 @@
       - /etc/systemd/system
       - /lib/systemd/system
     failed_when: false
+    notify: kubelet service restart
 
 - when: not systemd_resolved
   block:
@@ -76,13 +74,7 @@
       dns4: "{{ nameservers }}"
       state: present
     failed_when: false
-
-  - name: restart NetworkManager
-    systemd:
-      name: NetworkManager
-      state: restarted
-      enabled: yes
-    failed_when: false
+    notify: restart NetworkManager
 
   - name: change kubelet resolv-conf to default resolv
     replace:
@@ -96,6 +88,7 @@
       - /etc/systemd/system
       - /lib/systemd/system
     failed_when: false
+    notify: kubelet service restart
 
   - name: set kubelet resolv-conf to default resolv
     replace:
@@ -109,3 +102,4 @@
       - /etc/systemd/system
       - /lib/systemd/system
     failed_when: false
+    notify: kubelet service restart

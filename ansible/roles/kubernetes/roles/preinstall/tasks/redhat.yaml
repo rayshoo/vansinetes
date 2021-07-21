@@ -31,11 +31,7 @@
       - kubectl{% if version['kubectl'] is defined and version['kubectl'] != 'latest' %}-{{ version['kubectl'] }}{% endif %}
       - kubernetes-cni{% if version['kubernetes_cni'] is defined and version['kubernetes_cni'] != 'latest' %}-{{ version['kubernetes_cni'] }}{% endif %}
     state: present
-
-- name: Enable service kubelet
-  systemd:
-    name: kubelet
-    enabled: yes
+  notify: kubelet service restart
 
 - name: Install systemd-resolved
   when: systemd_resolved

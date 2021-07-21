@@ -1,0 +1,22 @@
+---
+- name: kubelet service restart
+  systemd:
+    daemon_reload: yes
+    name: kubelet
+    state: restarted
+    enabled: yes
+  ignore_errors: yes
+
+- name: Enable and restart systemd-resolved
+  systemd:
+    name: systemd-resolved
+    state: restarted
+    enabled: yes
+  ignore_errors: yes
+
+- name: restart NetworkManager
+  systemd:
+    name: NetworkManager
+    state: restarted
+    enabled: yes
+  failed_when: false
