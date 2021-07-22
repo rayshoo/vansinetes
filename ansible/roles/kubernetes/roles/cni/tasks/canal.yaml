@@ -1,9 +1,52 @@
 ---
-- name: install canal network plugin
-  become: yes
-  when: ansible_hostname == groups['ansible_master'][0]
-  shell: kubectl --kubeconfig=/etc/kubernetes/admin.conf create -f {{ item }}
-  with_items:
-    - https://docs.projectcalico.org/v{{ version.canal }}/getting-started/kubernetes/installation/hosted/canal/rbac.yaml
-    - https://docs.projectcalico.org/v{{ version.canal }}/getting-started/kubernetes/installation/hosted/canal/canal.yaml
-  ignore_errors: yes
+- name: allow required canal ports to firewalld
+  firewalld:
+    port: 8472/udp
+    permanent: true
+    immediate: yes
+    state: enabled
+  failed_when: false
+
+- when: ansible_hostname == groups['ansible_master'][0]
+  block:
+  - name: download canal rbac yaml file
+    when: version['canal'] is version('3.3','<=')
+    get_url:
+      url: https://docs.projectcalico.org/v{{ version['canal'] }}/getting-started/kubernetes/installation/hosted/canal/rbac.yaml
+      dest: "{{ local['home'] }}/downloads/cni/canal_v{{ version['canal'] }}_rbac.yaml"
+      owner: "{{ local['user'] }}"
+      group: "{{ local['user'] }}"
+      mode: 0644
+
+  - name: download canal plugin yaml file
+    get_url:
+      url: https://docs.projectcalico.org/v{{ version['canal'] }}/getting-started/kubernetes/installation/hosted/canal/canal.yaml
+      dest: "{{ local['home'] }}/downloads/cni/canal_v{{ version['canal'] }}.yaml"
+      owner: "{{ local['user'] }}"
+      group: "{{ local['user'] }}"
+      mode: 0644
+
+  - name: set pod subnet, interface in canal plugin yaml file
+    replace:
+      dest: "{{ local['home'] }}/downloads/cni/canal_v{{ version['canal'] }}.yaml"
+      regexp: "{{ item['regexp'] }}"
+      replace: "{{ item['replace'] }}"
+    with_items:
+      - { regexp: "10.244.0.0/16", replace: "{{ pod_subnet }}" }
+      - { regexp: "^(\\s*command:\\s*\\[\\s*\"\\/opt\\/bin\\/flanneld\"\\,(?:\\s*\"[^\"]{1,}\"\\,?)*)(\\s*\\])$", replace: "\\1, \"--iface={{ iface }}\"\\2" }
+
+  - name: check canal nework plugin already exists
+    shell: kubectl --kubeconfig=/etc/kubernetes/admin.conf get pods -n kube-system | grep canal
+    register: result
+    failed_when: false
+
+  - when: result.stdout_lines | length == 0
+    block:
+    - name: generate canal rbac
+      when: version['canal'] is version('3.3','<=')
+      shell: kubectl --kubeconfig=/etc/kubernetes/admin.conf create -f {{ local['home'] }}/downloads/cni/canal_v{{ version['canal'] }}_rbac.yaml
+      failed_when: false
+
+    - name: install canal network plugin
+      shell: kubectl --kubeconfig=/etc/kubernetes/admin.conf create -f {{ local['home'] }}/downloads/cni/canal_v{{ version['canal'] }}.yaml
+      failed_when: false
