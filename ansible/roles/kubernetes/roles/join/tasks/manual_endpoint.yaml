@@ -3,7 +3,7 @@
   shell: kubectl --kubeconfig=/etc/kubernetes/admin.conf get -n kube-system cm kubeadm-config -o yaml > {{ target['home'] }}/kubeadm-config.yaml
   register: generate_kube_config
   until: generate_kube_config.rc == 0
-  retries: 10
+  retries: 20
   delay: 3
 
 - name: Define control-plane-endpoint
