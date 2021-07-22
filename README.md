@@ -1,6 +1,6 @@
 # Vansinetes
 
-![vansinetes](assets/밴시네티스_디폴트_가로형.png)
+![vansinetes](assets/jpg/밴시네티스_디폴트_가로형.jpg)
 
 ## 소개, Introduce
 쉽고 빠른 Kubernetes 개발, 학습 및 강의 환경 구축을 위해 설계된<br/>
