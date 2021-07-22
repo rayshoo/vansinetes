@@ -1,7 +1,9 @@
 ---
-- name: Ensure docker directory exists
+- name: Ensure downloads/cni directory exists
   file:
     path: "{{ local['home'] }}/downloads/cni"
+    owner: "{{ local['user'] }}"
+    group: "{{ local['user'] }}"
     state: directory
     mode: 0755
 
