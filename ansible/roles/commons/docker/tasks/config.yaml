@@ -34,7 +34,7 @@
 
 - name: add docker group on user
   user:
-    name: "{{ target['user'] }}"
+    name: "{{ local['user'] }}"
     groups: docker
     append: yes
 
