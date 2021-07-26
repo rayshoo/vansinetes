@@ -14,11 +14,3 @@
 - name: play in ansible_master node
   when: ansible_hostname == groups['ansible_master'][0]
   include: init.yaml
-
-- name: Get certificate key
-  when: version['kubeadm'] is version('1.14','>=')
-  set_fact:
-    cert: "{{ cert.stdout_lines[-1] }}"
-    
-- set_fact:
-    join_command: "{{ join_command.stdout }}"

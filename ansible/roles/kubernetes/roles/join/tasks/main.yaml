@@ -54,5 +54,5 @@
   when:
     - node_state.rc != 0
     - ansible_hostname in groups['worker']
-  shell: "{{ join_command }}"
+  shell: "{{ hostvars[groups['ansible_master'][0]]['join_command'] }}"
   ignore_errors: yes
