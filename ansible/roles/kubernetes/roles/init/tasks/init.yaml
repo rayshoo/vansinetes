@@ -34,7 +34,7 @@
   register: cert
 
 - name: Get certificate key
-  when: cert is defined
+  when: version['kubeadm'] is version('1.14','>=')
   set_fact:
     cert: "{{ cert['stdout_lines'][-1] }}"
 

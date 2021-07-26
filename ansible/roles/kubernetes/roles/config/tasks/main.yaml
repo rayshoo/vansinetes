@@ -1,6 +1,5 @@
 ---
 - name: Register /var/lib/kubelet/config.yaml file text
-  when: systemd_cgroup == true
   shell: cat /var/lib/kubelet/config.yaml
   register: result
   changed_when: false
