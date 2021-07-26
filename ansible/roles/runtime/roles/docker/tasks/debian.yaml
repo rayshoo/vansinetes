@@ -61,13 +61,15 @@
     with_items: "{{ result.stdout_lines }}"
 
   - name: Install docker engine specific version
+    when: item['install']
     apt:
       update_cache: yes
       force: yes
-      name:
-        - docker-ce{{ '=' + apt_docker_ce_version if apt_docker_ce_version is defined else '' }}
-        - docker-ce-cli{{ '=' + apt_docker_ce_cli_version if apt_docker_ce_cli_version is defined else '' }}
-        - containerd.io
+      name: "{{ item['package'] }}"
       state: present
+    with_items:
+      - { install: "{{ apt_docker_ce_version is defined }}", package: "docker-ce={{ apt_docker_ce_version | default(omit) }}" }
+      - { install: "{{ apt_docker_ce_cli_version is defined }}", package: "docker-ce-cli={{ apt_docker_ce_cli_version | default(omit) }}" }
+      - { install: true, package: containerd.io }
     notify: docker service start
     failed_when: false

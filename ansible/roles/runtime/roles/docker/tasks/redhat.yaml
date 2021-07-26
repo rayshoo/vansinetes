@@ -77,13 +77,15 @@
     with_items: "{{ yum_docker_ce_cli_version }}"
 
   - name: Install docker engine specific version
+    when: item['install']
     yum:
       update_cache: yes
       allow_downgrade: yes
-      name:
-        - docker-ce{{ '-' + yum_docker_ce_version if yum_docker_ce_version is defined else '' }}
-        - docker-ce-cli{{ '-' + yum_docker_ce_cli_version if yum_docker_ce_cli_version is defined else '' }}
-        - containerd.io
+      name: "{{ item['package'] }}"
       state: present
+    with_items:
+      - { install: "{{ yum_docker_ce_version is defined }}", package: "docker-ce-{{ yum_docker_ce_version | default(omit) }}" }
+      - { install: "{{ yum_docker_ce_cli_version is defined }}", package: "docker-ce-cli-{{ yum_docker_ce_cli_version | default(omit) }}" }
+      - { install: true, package: containerd.io }
     notify: docker service start
     failed_when: false
