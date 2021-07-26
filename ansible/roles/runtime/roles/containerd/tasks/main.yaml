@@ -1,19 +1,21 @@
 ---
-- name: Download binaries
-  get_url:
-    url: https://github.com/containerd/containerd/releases/download/v{{ version['containerd'] }}/containerd-{{ version['containerd'] }}-linux-amd64.tar.gz
-    dest: "{{ local['home'] }}/downloads/containerd.tar"
-    owner: "{{ local['user'] }}"
-    group: "{{ local['user'] }}"
-    mode: 0644
+- when: ansible_hostname == groups['ansible_master'][0]
+  block:
+  - name: Download binaries
+    get_url:
+      url: https://github.com/containerd/containerd/releases/download/v{{ version['containerd'] }}/containerd-{{ version['containerd'] }}-linux-amd64.tar.gz
+      dest: "{{ local['home'] }}/downloads/containerd.tar"
+      owner: "{{ local['user'] }}"
+      group: "{{ local['user'] }}"
+      mode: 0644
 
-- name: Unarchive containerd binaries archive
-  unarchive:
-    src: "{{ local['home'] }}/downloads/containerd.tar"
-    dest: "{{ local['home'] }}/downloads"
-    owner: "{{ local['user'] }}"
-    group: "{{ local['user'] }}"
-    mode: 0755
+  - name: Unarchive containerd binaries archive
+    unarchive:
+      src: "{{ local['home'] }}/downloads/containerd.tar"
+      dest: "{{ local['home'] }}/downloads"
+      owner: "{{ local['user'] }}"
+      group: "{{ local['user'] }}"
+      mode: 0755
 
 - name: Copy containerd binaries in PATH
   copy:
@@ -45,4 +47,5 @@
     group: root
     mode: 0644
   notify: containerd_restart
+
 - meta: flush_handlers
