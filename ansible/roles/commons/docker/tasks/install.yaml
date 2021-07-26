@@ -3,15 +3,15 @@
   block:
   - name: Download docker binary files
     get_url:
-      url: https://download.docker.com/linux/static/stable/x86_64/docker-{{ version }}.tgz
-      dest: "{{ local['home'] }}/downloads/docker-{{ version }}.tgz"
+      url: https://download.docker.com/linux/static/stable/x86_64/docker-{{ version['docker'] }}.tgz
+      dest: "{{ local['home'] }}/downloads/docker-{{ version['docker'] }}.tgz"
       owner: "{{ local['user'] }}"
       group: "{{ local['user'] }}"
       mode: 0644
 
   - name: Unarchive docker binary files
     unarchive:
-      src: "{{ local['home'] }}/downloads/docker-{{ version }}.tgz"
+      src: "{{ local['home'] }}/downloads/docker-{{ version['docker'] }}.tgz"
       dest: "{{ local['home'] }}/downloads"
       owner: "{{ local['user'] }}"
       group: "{{ local['user'] }}"

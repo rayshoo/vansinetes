@@ -1,2 +1,2 @@
 ---
-root_login: yes
+root_login: yes  # PermitRootLogin

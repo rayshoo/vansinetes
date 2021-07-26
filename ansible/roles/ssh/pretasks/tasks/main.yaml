@@ -28,7 +28,7 @@
   notify: sshd restart
 
 - name: Register sshd config file text
-  when: root_login == true
+  when: root_login
   become: yes
   shell: cat /etc/ssh/sshd_config
   register: result
@@ -36,7 +36,7 @@
 
 - name: Change PermitRootLogin no to yes
   when:
-    - root_login == true
+    - root_login
     - result.stdout | regex_search('^#?\s?PermitRootLogin\s+(?:yes|no)', multiline=True)
   become: yes
   replace:
@@ -48,7 +48,7 @@
 
 - name: Add PermitRootLogin yes
   when:
-    - root_login == true
+    - root_login
     - not result.stdout | regex_search('^#?\s?PermitRootLogin\s+(?:yes|no)', multiline=True)
   become: yes
   lineinfile:

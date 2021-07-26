@@ -135,14 +135,14 @@ version = 2
       [plugins."io.containerd.grpc.v1.cri".registry.auths]
 
       [plugins."io.containerd.grpc.v1.cri".registry.configs]
-{% if docker_registry is defined and docker_registry == true %}
+{% if docker_registry is defined and docker_registry %}
         [plugins."io.containerd.grpc.v1.cri".registry.configs."{{ groups['ansible_master'][0] }}:5000".tls]
           insecure_skip_verify = true
 {% endif %}
       [plugins."io.containerd.grpc.v1.cri".registry.headers]
 
       [plugins."io.containerd.grpc.v1.cri".registry.mirrors]
-{% if docker_registry is defined and docker_registry == true %}
+{% if docker_registry is defined and docker_registry %}
         [plugins."io.containerd.grpc.v1.cri".registry.mirrors."{{ groups['ansible_master'][0] }}:5000"]
           endpoint = ["http://{{ hostvars[groups['ansible_master'][0]].ansible_host }}:5000"]
 {% endif %}

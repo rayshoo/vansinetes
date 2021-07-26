@@ -25,7 +25,7 @@
     mode: o-rx
 
 - name: export KUBECONFIG(root)
-  when: root_config == true
+  when: root_kubeconfig
   lineinfile:
     dest: /root/.bashrc
     line: export KUBECONFIG=/etc/kubernetes/admin.conf

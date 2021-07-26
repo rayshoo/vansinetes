@@ -8,5 +8,5 @@
   include: config.yaml
 
 - name: docker registry
-  when: docker_registry is defined and docker_registry == true
+  when: docker_registry is defined and docker_registry
   include: registry.yaml

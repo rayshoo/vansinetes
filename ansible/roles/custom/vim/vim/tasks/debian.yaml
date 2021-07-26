@@ -1,14 +1,14 @@
 ---
 - name: Install vim-enhanced latest
-  when: version == 'latest'
+  when: version['vim'] == 'latest'
   apt:
     update_cache: yes
     name: vim
     state: latest
 
 - name: Install vim-enhanced specific version
-  when: version != 'latest'
+  when: version['vim'] != 'latest'
   apt:
     update_cache: yes
-    name: vim={{ version }}
+    name: vim={{ version['vim'] }}
     state: present

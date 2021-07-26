@@ -1,12 +1,12 @@
 ---
 - name: Install git latest
-  when: version == 'latest'
+  when: version['git'] == 'latest'
   yum:
     name: git
     state: latest
 
 - name: Install git specific version
-  when: version != 'latest'
+  when: version['git'] != 'latest'
   yum:
-    name: git-{{ version }}
+    name: git-{{ version['git'] }}
     state: present

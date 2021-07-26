@@ -41,6 +41,6 @@
   register: join_command
 
 - name: docker install
-  when: docker_install == true
+  when: docker_install
   include_role:
     name: commons/docker

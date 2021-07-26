@@ -7,10 +7,41 @@ target:
   user: "{{ ansible_env['USER'] }}"
   home: "{{ ansible_env['HOME'] }}"
 
+root_login: yes  # PermitRootLogin
+
 systemd_cgroup: yes  # https://kubernetes.io/ko/docs/setup/production-environment/container-runtimes/
 systemd_resolved: yes
 nameservers:
   - 8.8.8.8
   - 8.8.4.4
 
+runtime: containerd
+network_plugin: calico
+pod_subnet: 192.168.0.0/16
+root_kubeconfig: yes
+
+docker_install: yes  # If the runtime is not docker, install docker
 docker_registry: yes
+
+version:
+  runc: 1.0.0-rc95
+  containerd: 1.5.2 # https://containerd.io/downloads/
+  docker: 20.10.7
+  # dependent
+  # kubeadm,kubectl (1.11.2 ~ 1.13.4) : kubernetes-cni (0.6.0)
+  # kubeadm,kubectl (1.13.5 ~ 1.13.6) : kubernetes-cni (0.7.5)
+  # kubeadm,kubectl (1.14.0 ~ 1.14.2) : kubernetes-cni (0.7.5)
+  kubelet: 1.20.2
+  kubeadm: 1.20.2
+  kubectl: 1.20.2
+  kubernetes_cni: 0.8.7
+
+  calico: 3.18
+  flannel: 0.14.0
+  canal: 3.14
+
+  registry: latest
+  apt_transport_https: latest
+  ca_certificates: latest
+  git: latest
+  vim: latest

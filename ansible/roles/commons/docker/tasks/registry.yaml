@@ -41,5 +41,5 @@
 - name: create docker registry container
   async: 150
   poll: 0
-  shell: docker run -d --name registry -p 5000:5000 --restart=always registry:{{ registry_version }}
+  shell: docker run -d --name registry -p 5000:5000 --restart=always registry:{{ version['registry'] }}
   ignore_errors: yes
