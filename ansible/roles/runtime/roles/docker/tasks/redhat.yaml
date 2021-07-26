@@ -10,86 +10,80 @@
 - name: Install docker engine latest
   when: version['docker'] == 'latest'
   yum:
+    update_cache: yes
     name:
       - docker-ce
       - docker-ce-cli
       - containerd.io
     state: latest
-    update_cache: yes
   notify: docker service start
 
-- name: List the docker-ce versions available in repo
-  when: version['docker'] != 'latest'
-  shell: yum list docker-ce --showduplicates | sort -r
-  register: result
+- when: version['docker'] != 'latest'
+  block:
+  - name: List the docker-ce versions available in repo
+    shell: yum list docker-ce --showduplicates | sort -r
+    register: result
 
-- name: Get the exact docker-ce version name in yum repo - 1-1
-  when:
-    - version['docker'] != 'latest'
-    - version['docker'] in item
-    - "':' in item"
-  set_fact:
-    yum_docker_ce_version: "{{ item.split(':')[1].split(' ') }}"
-  with_items: "{{ result.stdout_lines }}"
+  - name: Get the exact docker-ce version name in yum repo - 1-1
+    when:
+      - version['docker'] in item
+      - "':' in item"
+    set_fact:
+      yum_docker_ce_version: "{{ item.split(':')[1].split(' ') }}"
+    with_items: "{{ result.stdout_lines }}"
 
-- name: Get the exact docker-ce version name in yum repo - 1-2
-  when:
-    - version['docker'] != 'latest'
-    - version['docker'] in item
-    - "not ':' in item"
-  set_fact:
-    yum_docker_ce_version: "{{ item.split(' ') }}"
-  with_items: "{{ result.stdout_lines }}"
+  - name: Get the exact docker-ce version name in yum repo - 1-2
+    when:
+      - version['docker'] in item
+      - "not ':' in item"
+    set_fact:
+      yum_docker_ce_version: "{{ item.split(' ') }}"
+    with_items: "{{ result.stdout_lines }}"
 
-- name: Get the exact docker-ce version name in yum repo - 2
-  when:
-    - yum_docker_ce_version is defined
-    - version['docker'] in item
-  set_fact:
-    yum_docker_ce_version: "{{ item | trim }}"
-  with_items: "{{ yum_docker_ce_version }}"
+  - name: Get the exact docker-ce version name in yum repo - 2
+    when:
+      - yum_docker_ce_version is defined
+      - version['docker'] in item
+    set_fact:
+      yum_docker_ce_version: "{{ item | trim }}"
+    with_items: "{{ yum_docker_ce_version }}"
 
-- name: List the docker-ce-cli versions available in yum repo
-  when: version['docker'] != 'latest'
-  shell: yum list docker-ce-cli --showduplicates | sort -r
-  register: result
+  - name: List the docker-ce-cli versions available in yum repo
+    shell: yum list docker-ce-cli --showduplicates | sort -r
+    register: result
 
-- name: Get the exact docker-ce-cli version name in yum repo - 1-1
-  when:
-    - version['docker'] != 'latest'
-    - version['docker'] in item
-    - "':' in item"
-  set_fact:
-    yum_docker_ce_cli_version: "{{ item.split(':')[1].split(' ') }}"
-  with_items: "{{ result.stdout_lines }}"
+  - name: Get the exact docker-ce-cli version name in yum repo - 1-1
+    when:
+      - version['docker'] in item
+      - "':' in item"
+    set_fact:
+      yum_docker_ce_cli_version: "{{ item.split(':')[1].split(' ') }}"
+    with_items: "{{ result.stdout_lines }}"
 
-- name: Get the exact docker-ce-cli version name in yum repo - 1-2
-  when:
-    - version['docker'] != 'latest'
-    - version['docker'] in item
-    - "not ':' in item"
-  set_fact:
-    yum_docker_ce_cli_version: "{{ item.split(' ') }}"
-  with_items: "{{ result.stdout_lines }}"
+  - name: Get the exact docker-ce-cli version name in yum repo - 1-2
+    when:
+      - version['docker'] in item
+      - "not ':' in item"
+    set_fact:
+      yum_docker_ce_cli_version: "{{ item.split(' ') }}"
+    with_items: "{{ result.stdout_lines }}"
 
-- name: Get the exact docker-ce-cli version name in yum repo - 2
-  when:
-    - yum_docker_ce_cli_version is defined
-    - version['docker'] in item
-  set_fact:
-    yum_docker_ce_cli_version: "{{ item | trim }}"
-  with_items: "{{ yum_docker_ce_cli_version }}"
+  - name: Get the exact docker-ce-cli version name in yum repo - 2
+    when:
+      - yum_docker_ce_cli_version is defined
+      - version['docker'] in item
+    set_fact:
+      yum_docker_ce_cli_version: "{{ item | trim }}"
+    with_items: "{{ yum_docker_ce_cli_version }}"
 
-- name: Install docker engine specific version
-  when:
-    - version['docker'] != 'latest'
-    - item.install
-  yum:
-    name: "{{ item.package }}"
-    state: present
-    update_cache: yes
-  with_items:
-    - { install: "{{ yum_docker_ce_version is defined }}", package: "docker-ce-{{ yum_docker_ce_version | default(omit) }}" }
-    - { install: "{{ yum_docker_ce_cli_version is defined }}", package: "docker-ce-cli-{{ yum_docker_ce_cli_version | default(omit) }}" }
-    - { install: true, package: containerd.io }
-  notify: docker service start
+  - name: Install docker engine specific version
+    yum:
+      update_cache: yes
+      allow_downgrade: yes
+      name:
+        - docker-ce{{ '-' + yum_docker_ce_version if yum_docker_ce_version is defined else '' }}
+        - docker-ce-cli{{ '-' + yum_docker_ce_cli_version if yum_docker_ce_cli_version is defined else '' }}
+        - containerd.io
+      state: present
+    notify: docker service start
+    failed_when: false

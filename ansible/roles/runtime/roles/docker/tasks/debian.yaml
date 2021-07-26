@@ -1,6 +1,7 @@
 ---
 - name: Install packages to install docker
   apt:
+    update_cache: yes
     name:
       - apt-transport-https
       - ca-certificates
@@ -8,7 +9,6 @@
       - gnupg
       - lsb-release
     state: present
-    update_cache: yes
 
 - name: Add Docker APT GPG key
   apt_key:
@@ -30,51 +30,44 @@
 - name: Install docker engine latest
   when: version['docker'] == 'latest'
   apt:
+    update_cache: yes
     name:
       - docker-ce
       - docker-ce-cli
       - containerd.io
     state: latest
-    update_cache: yes
   notify: docker service start
 
-- name: List the docker-ce versions available in repo
-  when: version['docker'] != 'latest'
-  shell: apt-cache madison docker-ce
-  register: result
+- when: version['docker'] != 'latest'
+  block:
+  - name: List the docker-ce versions available in repo
+    shell: apt-cache madison docker-ce
+    register: result
 
-- name: Get the exact docker-ce version name in apt repo
-  when:
-    - version['docker'] != 'latest'
-    - version['docker'] in item
-  set_fact:
-    apt_docker_ce_version: "{{ item.split('|')[1] | trim }}"
-  with_items: "{{ result.stdout_lines }}"
+  - name: Get the exact docker-ce version name in apt repo
+    when: version['docker'] in item
+    set_fact:
+      apt_docker_ce_version: "{{ item.split('|')[1] | trim }}"
+    with_items: "{{ result.stdout_lines }}"
 
+  - name: List the docker-ce-cli versions available in repo
+    shell: apt-cache madison docker-ce-cli
+    register: result
 
-- name: List the docker-ce-cli versions available in repo
-  when: version['docker'] != 'latest'
-  shell: apt-cache madison docker-ce-cli
-  register: result
+  - name: Get the exact docker-ce-cli version name in apt repo
+    when: version['docker'] in item
+    set_fact:
+      apt_docker_ce_cli_version: "{{ item.split('|')[1] | trim }}"
+    with_items: "{{ result.stdout_lines }}"
 
-- name: Get the exact docker-ce-cli version name in apt repo
-  when:
-    - version['docker'] != 'latest'
-    - version['docker'] in item
-  set_fact:
-    apt_docker_ce_cli_version: "{{ item.split('|')[1] | trim }}"
-  with_items: "{{ result.stdout_lines }}"
-
-- name: Install docker engine specific version
-  when:
-    - version['docker'] != 'latest'
-    - item.install
-  apt:
-    name: "{{ item.package }}"
-    state: present
-    update_cache: yes
-  with_items:
-    - { install: "{{ apt_docker_ce_version is defined }}", package: "docker-ce={{ apt_docker_ce_version | default(omit) }}" }
-    - { install: "{{ apt_docker_ce_cli_version is defined }}", package: "docker-ce-cli={{ apt_docker_ce_cli_version | default(omit) }}" }
-    - { install: true, package: containerd.io }
-  notify: docker service start
+  - name: Install docker engine specific version
+    apt:
+      update_cache: yes
+      force: yes
+      name:
+        - docker-ce{{ '=' + apt_docker_ce_version if apt_docker_ce_version is defined else '' }}
+        - docker-ce-cli{{ '=' + apt_docker_ce_cli_version if apt_docker_ce_cli_version is defined else '' }}
+        - containerd.io
+      state: present
+    notify: docker service start
+    failed_when: false
