@@ -27,3 +27,4 @@
     - role: custom/motd
     - role: runtime
     - role: kubernetes
+    - role: builder

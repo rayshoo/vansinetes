@@ -11,7 +11,7 @@
     mode: 0755
 
 - name: generate docker config file to use systemd driver
-  when: systemd_cgroup == true
+  when: systemd_cgroup
   copy:
     src: daemon.json
     dest: /etc/docker/daemon.json

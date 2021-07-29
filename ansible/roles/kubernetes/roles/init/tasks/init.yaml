@@ -44,8 +44,3 @@
 
 - set_fact:
     join_command: "{{ join_command['stdout'] }}"
-
-- name: docker install
-  when: docker_install
-  include_role:
-    name: commons/docker

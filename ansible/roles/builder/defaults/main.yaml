@@ -1,4 +1,7 @@
 ---
+image_builder: docker
+docker_registry: yes
+
 version:
   docker: 20.10.7 # If the container runtime is docker, this will be ignored
   registry: latest

@@ -1,0 +1,15 @@
+---
+- when:
+  - ansible_hostname == groups['ansible_master'][0]
+  - docker_registry is defined and docker_registry
+  block:
+  - when: runtime != 'docker'
+    block:
+    - name: docker install
+      include: install.yaml
+
+    - name: docker config
+      include: config.yaml
+
+  - name: docker registry
+    include: registry.yaml

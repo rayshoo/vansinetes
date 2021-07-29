@@ -20,7 +20,7 @@ network_plugin: calico
 pod_subnet: 192.168.0.0/16
 root_kubeconfig: yes
 
-docker_install: yes  # If the runtime is not docker, install docker
+image_builder: docker
 docker_registry: yes
 
 version:
