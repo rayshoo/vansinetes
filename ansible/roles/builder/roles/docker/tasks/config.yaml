@@ -18,7 +18,7 @@
     owner: root
     group: root
     mode: 0644
-  notify: docker service start
+  notify: restart docker 
 
 - name: generate docker service and socket
   copy:
@@ -30,7 +30,7 @@
   with_items:
     - docker.service
     - docker.socket
-  notify: docker service start
+  notify: restart docker 
 
 - name: add docker group on user
   user:

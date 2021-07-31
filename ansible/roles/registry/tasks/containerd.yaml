@@ -19,7 +19,7 @@
     copy:
       content: "{{ containerd_config['stdout'] }}"
       dest: /etc/containerd/config.toml
-    notify: containerd restart
+    notify: restart containerd
 
 - when: result['stdout'] != 'null'
   block:
@@ -53,7 +53,7 @@
       copy:
         content: "{{ containerd_config['stdout'] }}"
         dest: /etc/containerd/config.toml
-      notify: containerd restart
+      notify: restart containerd
 
 - when: allow_insecure
   block:
@@ -77,4 +77,4 @@
       copy:
         content: "{{ containerd_config['stdout'] }}"
         dest: /etc/containerd/config.toml
-      notify: containerd restart
+      notify: restart containerd

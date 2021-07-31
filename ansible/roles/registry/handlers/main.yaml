@@ -1,11 +1,11 @@
 ---
-- name: docker service start
+- name: restart docker 
   systemd:
     name: docker
     state: restarted
     enabled: yes
 
-- name: containerd restart
+- name: restart containerd
   systemd:
     name: containerd
     state: restarted

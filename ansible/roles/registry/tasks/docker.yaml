@@ -27,4 +27,4 @@
     copy:
       dest: /etc/docker/daemon.json
       content: "{{ docker_config | to_nice_json }}"
-    notify: docker service start
+    notify: restart docker 

@@ -1,5 +1,5 @@
 ---
-- name: kubelet service restart
+- name: kubelet restart
   systemd:
     name: kubelet
     state: restarted

@@ -8,7 +8,7 @@
       regexp: '^(cgroupDriver:)\s*(cgroupfs)'
       replace: '\1 systemd'
       backup: yes
-    notify: kubelet service restart
+    notify: kubelet restart
 
   - name: add cgroup driver in kubelet config file
     when: not result.stdout | regex_search('^(cgroupDriver:\s*)(systemd|cgroupfs)', multiline=True)
@@ -17,7 +17,7 @@
       line: 'cgroupDriver: systemd'
       insertafter: EOF
       backup: yes
-    notify: kubelet service restart
+    notify: kubelet restart
 
 - when: not systemd_cgroup
   block:
@@ -28,7 +28,7 @@
       regexp: '^(cgroupDriver:)\s*(systemd)'
       replace: '\1 cgroupfs'
       backup: yes
-    notify: kubelet service restart
+    notify: kubelet restart
 
   - name: add cgroup driver in kubelet config file
     when: not result.stdout | regex_search('^(cgroupDriver:\s*)(systemd|cgroupfs)', multiline=True)
@@ -37,4 +37,4 @@
       line: 'cgroupDriver: cgroupfs'
       insertafter: EOF
       backup: yes
-    notify: kubelet service restart
+    notify: kubelet restart

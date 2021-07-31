@@ -1,5 +1,5 @@
 ---
-- name: containerd restart
+- name: restart containerd
   systemd:
     daemon_reload: yes
     name: containerd

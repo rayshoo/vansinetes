@@ -32,7 +32,7 @@
     owner: root
     group: root
     mode: 0644
-  notify: containerd restart
+  notify: restart containerd
 
 - name: Ensure containerd config folder exists
   file:
@@ -55,7 +55,7 @@
     copy:
       content: "{{ containerd_config['stdout'] }}"
       dest: /etc/containerd/config.toml
-    notify: containerd restart
+    notify: restart containerd
 
 - name: check SystemdCgroup config
   shell: cat /etc/containerd/config.toml | yj -tji | jq -r '.plugins."io.containerd.grpc.v1.cri".containerd.runtimes.runc.options.SystemdCgroup'
@@ -74,6 +74,6 @@
     copy:
       content: "{{ containerd_config['stdout'] }}"
       dest: /etc/containerd/config.toml
-    notify: containerd restart
+    notify: restart containerd
 
 - meta: flush_handlers

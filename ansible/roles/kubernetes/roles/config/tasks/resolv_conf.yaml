@@ -8,7 +8,7 @@
       regexp: '^(resolvConf:\s*)\S*'
       replace: '\1/run/systemd/resolve/resolv.conf'
       backup: yes
-    notify: kubelet service restart
+    notify: kubelet restart
 
   - name: add systemd resolvConf
     when: not result.stdout | regex_search('^(resolvConf:\s*)\S*', multiline=True)
@@ -17,7 +17,7 @@
       line: 'resolvConf: /run/systemd/resolve/resolv.conf'
       insertafter: EOF
       backup: yes
-    notify: kubelet service restart
+    notify: kubelet restart
 
 - when: not systemd_resolved
   block:
@@ -28,7 +28,7 @@
       regexp: '^(resolvConf:\s*)\S*'
       replace: '\1/etc/resolv.conf'
       backup: yes
-    notify: kubelet service restart
+    notify: kubelet restart
 
   - name: add default resolvConf
     when: not result.stdout | regex_search('^(resolvConf:\s*)\S*', multiline=True)
@@ -37,4 +37,4 @@
       line: 'resolvConf: /etc/resolv.conf'
       insertafter: EOF
       backup: yes
-    notify: kubelet service restart
+    notify: kubelet restart
