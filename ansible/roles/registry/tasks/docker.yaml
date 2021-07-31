@@ -1,0 +1,30 @@
+---
+- when: allow_insecure
+  block:
+  - name: Ensure docker directory exists
+    file:
+      path: /etc/docker
+      state: directory
+      mode: 0755
+
+  - name: Create daemon.json if no exists
+    file:
+      path: /etc/docker/daemon.json
+      state: touch
+      mode: 0644
+    register: touch_log
+    changed_when: touch_log.diff.before.state != "file"
+
+  - name: load object from file
+    include_vars:
+      file: /etc/docker/daemon.json
+      name: docker_config
+
+  - set_fact:
+      docker_config: "{{ docker_config | default([]) | combine({ 'insecure-registries' : '[\"{{ groups['ansible_master'][0] }}:5000\"]'})}}"
+
+  - name: add insecure registry option
+    copy:
+      dest: /etc/docker/daemon.json
+      content: "{{ docker_config | to_nice_json }}"
+    notify: docker service start

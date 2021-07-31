@@ -1,0 +1,8 @@
+---
+- name: Download jq binary files
+  get_url:
+    url: https://github.com/stedolan/jq/releases/download/jq-{{ version['jq'] }}/jq-linux64
+    dest: /usr/bin/jq
+    owner: root
+    group: root
+    mode: 0755

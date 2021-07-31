@@ -14,17 +14,21 @@
   gather_facts: no
   become: yes 
   roles:
-    - role: commons/target/default
-    - role: custom/alias
-    - role: custom/vim/vim
-    - role: custom/vim/vim-plugins
-    - role: custom/vim/vim-custom
-    - role: commons/target/root
-    - role: custom/alias
-    - role: custom/vim/vim-plugins
-    - role: custom/vim/vim-custom
-    - role: custom/git
+    - role: utils/git
+    - role: utils/vim
     - role: custom/motd
+
+    - role: commons/target/default
+    - role: custom/vim/vim-plugins
+    - role: custom/vim/vim-custom
+    - role: custom/alias
+
+    - role: commons/target/root
+    - role: custom/vim/vim-plugins
+    - role: custom/vim/vim-custom
+    - role: custom/alias
+
     - role: runtime
     - role: kubernetes
     - role: builder
+    - role: registry

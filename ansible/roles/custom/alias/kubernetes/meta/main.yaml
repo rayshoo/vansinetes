@@ -1,4 +1,4 @@
 ---
 allow_duplicates: yes
 dependencies:
-  - role: custom/bash_completion
+  - role: utils/bash_completion

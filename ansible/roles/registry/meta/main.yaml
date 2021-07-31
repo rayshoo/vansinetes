@@ -1,0 +1,5 @@
+---
+dependencies:
+  - role: commons/download
+  - role: utils/yj
+  - role: utils/jq

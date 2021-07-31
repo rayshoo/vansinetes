@@ -20,8 +20,11 @@ network_plugin: calico
 pod_subnet: 192.168.0.0/16
 root_kubeconfig: yes
 
-image_builder: docker
-docker_registry: yes
+builder:
+  - docker
+  - kaniko
+registry: yes
+allow_insecure: yes
 
 version:
   runc: 1.0.0-rc95
@@ -45,3 +48,5 @@ version:
   ca_certificates: latest
   git: latest
   vim: latest
+  yj: 5.0.0
+  jq: 1.6
