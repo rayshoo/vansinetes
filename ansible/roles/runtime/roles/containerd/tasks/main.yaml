@@ -32,6 +32,7 @@
     owner: root
     group: root
     mode: 0644
+  notify: restart containerd
 
 - name: Ensure containerd config folder exists
   file:
@@ -39,13 +40,40 @@
     state: directory
     mode: 0750
 
-- name: Generate default containerd config file
-  template:
-    src: config.j2
-    dest: /etc/containerd/config.toml
-    owner: root
-    group: root
-    mode: 0644
-  notify: containerd_restart
+- name: check containerd config file exists
+  stat:
+    path: /etc/containerd/config.toml
+  register: stat_result
+
+- when: not stat_result.stat.exists
+  block:
+  - name: register default containerd config text
+    shell: containerd config default
+    register: containerd_config
+
+  - name: generate default containerd config file
+    copy:
+      content: "{{ containerd_config['stdout'] }}"
+      dest: /etc/containerd/config.toml
+    notify: restart containerd
+
+- name: check SystemdCgroup config
+  shell: cat /etc/containerd/config.toml | yj -tji | jq -r '.plugins."io.containerd.grpc.v1.cri".containerd.runtimes.runc.options.SystemdCgroup'
+  register: result
+
+- when: result['stdout'] | bool != systemd_cgroup
+  block:
+  - name: create containerd config text with SystemdCgroup
+    shell: |
+      cat /etc/containerd/config.toml | yj -tji | \
+      jq -r '.plugins."io.containerd.grpc.v1.cri".containerd.runtimes.runc.options.SystemdCgroup = {{ "true" if systemd_cgroup else "false" }}' | \
+      yj -jt
+    register: containerd_config
+
+  - name: generate containerd config file with SystemdCgroup
+    copy:
+      content: "{{ containerd_config['stdout'] }}"
+      dest: /etc/containerd/config.toml
+    notify: restart containerd
 
 - meta: flush_handlers

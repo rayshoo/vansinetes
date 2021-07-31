@@ -27,3 +27,12 @@ IaC (Infra as Code) tool designed for easy and fast Kubernetes development, lear
 ### [Cri-o](https://cri-o.io/)
 
 ### [Kubernetes](https://kubernetes.io/ko/docs/home/)
+
+## 참조, Referenced
+### [junegunn/vim-plug](https://github.com/junegunn/vim-plug)
+### [pearofducks/ansible-vim](https://github.com/pearofducks/ansible-vim)
+### [tpope/vim-pathogen](https://github.com/tpope/vim-pathogen)
+### [chase/vim-ansible-yaml](https://github.com/chase/vim-ansible-yaml)
+### [telus/ansible-motd](https://github.com/telus/ansible-motd)
+### [sclevine/yj](https://github.com/sclevine/yj)
+### [stedolan/jq](https://github.com/stedolan/jq)

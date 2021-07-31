@@ -8,7 +8,7 @@
       owner: root
       group: root
       mode: 0644
-    notify: Enable and restart systemd-resolved
+    notify: restart systemd-resolved
 
   - name: add nameservers when using NetworkManager
     nmcli:
@@ -31,7 +31,7 @@
       - /etc/systemd/system
       - /lib/systemd/system
     failed_when: false
-    notify: kubelet service restart
+    notify: kubelet restart
 
   - name: set kubelet resolv-conf to systemd-resolved
     replace:
@@ -45,7 +45,7 @@
       - /etc/systemd/system
       - /lib/systemd/system
     failed_when: false
-    notify: kubelet service restart
+    notify: kubelet restart
 
 - when: not systemd_resolved
   block:
@@ -88,7 +88,7 @@
       - /etc/systemd/system
       - /lib/systemd/system
     failed_when: false
-    notify: kubelet service restart
+    notify: kubelet restart
 
   - name: set kubelet resolv-conf to default resolv
     replace:
@@ -102,4 +102,4 @@
       - /etc/systemd/system
       - /lib/systemd/system
     failed_when: false
-    notify: kubelet service restart
+    notify: kubelet restart

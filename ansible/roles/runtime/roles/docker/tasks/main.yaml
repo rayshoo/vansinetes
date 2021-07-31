@@ -26,7 +26,7 @@
     owner: root
     group: root
     mode: 0644
-  notify: docker service start
+  notify: restart docker 
 
 - name: add docker group on user
   user:

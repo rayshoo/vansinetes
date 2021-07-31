@@ -36,7 +36,7 @@
       - docker-ce-cli
       - containerd.io
     state: latest
-  notify: docker service start
+  notify: restart docker 
 
 - when: version['docker'] != 'latest'
   block:
@@ -71,5 +71,5 @@
       - { install: "{{ apt_docker_ce_version is defined }}", package: "docker-ce={{ apt_docker_ce_version | default(omit) }}" }
       - { install: "{{ apt_docker_ce_cli_version is defined }}", package: "docker-ce-cli={{ apt_docker_ce_cli_version | default(omit) }}" }
       - { install: true, package: containerd.io }
-    notify: docker service start
+    notify: restart docker 
     failed_when: false

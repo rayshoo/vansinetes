@@ -1,0 +1,11 @@
+- name: Install bash-completion (RHEL/CentOS)
+  when: ansible_os_family == "RedHat"
+  yum:
+    name: bash-completion
+    state: present
+
+- name: Install bash-completion (Debian/Ubuntu)
+  when: ansible_os_family == "Debian"
+  apt:
+    name: bash-completion
+    state: present

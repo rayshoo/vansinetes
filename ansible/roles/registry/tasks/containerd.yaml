@@ -1,0 +1,80 @@
+---
+- name: check registry config exists
+  shell: |
+    cat /etc/containerd/config.toml | yj -tji | \
+    jq -r '.plugins."io.containerd.grpc.v1.cri".registry.mirrors."{{ groups['ansible_master'][0] }}:5000".endpoint'
+  register: result
+  changed_when: false
+
+- when: result['stdout'] == 'null'
+  block:
+  - name: create registry config text
+    shell: |
+      cat /etc/containerd/config.toml | yj -tji | \
+      jq -r '.plugins."io.containerd.grpc.v1.cri".registry.mirrors."{{ groups['ansible_master'][0] }}:5000".endpoint = ["http://{{ hostvars[groups['ansible_master'][0]].ansible_host }}:5000"]' | \
+      yj -jt
+    register: containerd_config
+    
+  - name: generate registry config file
+    copy:
+      content: "{{ containerd_config['stdout'] }}"
+      dest: /etc/containerd/config.toml
+    notify: restart containerd
+
+- when: result['stdout'] != 'null'
+  block:
+  - set_fact:
+      already_exists: false
+
+  - name: check registry endpoint config exists
+    when: ansible_host + ':5000' in item
+    set_fact:
+      already_exists: true
+    with_items: "{{ result['stdout_lines'] }}"
+    changed_when: false
+
+  - when: not already_exists
+    block:
+    - name: register registry endpoint
+      shell: |
+        cat /etc/containerd/config.toml | yj -tji | \
+        jq -r '.plugins."io.containerd.grpc.v1.cri".registry.mirrors."{{ groups['ansible_master'][0] }}:5000".endpoint + ["http://{{ hostvars[groups['ansible_master'][0]].ansible_host }}:5000"]'
+      register: registry_endpoint
+      changed_when: false
+
+    - name: create registry added config text
+      shell: |
+        cat /etc/containerd/config.toml | yj -tji | \
+        jq -r '.plugins."io.containerd.grpc.v1.cri".registry.mirrors."{{ groups['ansible_master'][0] }}:5000".endpoint = {{ registry_endpoint["stdout"] }}' | \
+        yj -jt
+      register: containerd_config
+
+    - name: generate registry added config file
+      copy:
+        content: "{{ containerd_config['stdout'] }}"
+        dest: /etc/containerd/config.toml
+      notify: restart containerd
+
+- when: allow_insecure
+  block:
+  - name: check allow insecure registry config exists
+    shell: |
+      cat /etc/containerd/config.toml | yj -tji | \
+      jq -r '.plugins."io.containerd.grpc.v1.cri".registry.configs."{{ groups['ansible_master'][0] }}:5000".tls.insecure_skip_verify'
+    register: result
+    changed_when: false
+
+  - when: result['stdout'] == 'null' or result['stdout'] | bool == false
+    block:
+    - name: create added or changed registry config text
+      shell: |
+        cat /etc/containerd/config.toml | yj -tji | \
+        jq -r '.plugins."io.containerd.grpc.v1.cri".registry.configs."{{ groups['ansible_master'][0] }}:5000".tls.insecure_skip_verify = true' | \
+        yj -jt
+      register: containerd_config
+
+    - name: generate added or changed registry config file
+      copy:
+        content: "{{ containerd_config['stdout'] }}"
+        dest: /etc/containerd/config.toml
+      notify: restart containerd

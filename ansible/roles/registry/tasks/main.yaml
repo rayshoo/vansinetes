@@ -1,0 +1,62 @@
+---
+- when: registry
+  block:
+  - when: ansible_hostname == groups['ansible_master'][0]
+    block:
+    - name: Ensure registry directory exists
+      file:
+        path: "{{ local['home'] }}/downloads/registry"
+        state: directory
+        mode: 0775
+
+    - name: copy namespace yaml file
+      copy:
+        src: namespace.yaml
+        dest: "{{ local['home'] }}/downloads/registry/namespace.yaml"
+        owner: "{{ local['user'] }}"
+        group: "{{ local['user'] }}"
+        mode: 0664
+
+    - name: create registry namespace
+      shell: kubectl --kubeconfig=/etc/kubernetes/admin.conf create -f {{ local['home'] }}/downloads/registry/namespace.yaml
+      register: result
+      failed_when: false
+      changed_when: result['stderr'] is undefined or result['stderr'] | length == 0
+
+    - name: copy volume yaml file
+      copy:
+        src: volume.yaml
+        dest: "{{ local['home'] }}/downloads/registry/volume.yaml"
+        owner: "{{ local['user'] }}"
+        group: "{{ local['user'] }}"
+        mode: 0664
+
+    - name: create registry persistent volume, claim
+      shell: kubectl --kubeconfig=/etc/kubernetes/admin.conf create -f {{ local['home'] }}/downloads/registry/volume.yaml
+      register: result
+      failed_when: false
+      changed_when: result['stderr'] is undefined or result['stderr'] | length == 0
+
+    - name: generate deployment yaml file
+      template:
+        src: deployment.j2
+        dest: "{{ local['home'] }}/downloads/registry/deployment.yaml"
+        owner: "{{ local['user'] }}"
+        group: "{{ local['user'] }}"
+        mode: 0644
+
+    - name: create registry deployment
+      shell: kubectl --kubeconfig=/etc/kubernetes/admin.conf create -f {{ local['home'] }}/downloads/registry/deployment.yaml
+      register: result
+      failed_when: false
+      changed_when: result['stderr'] is undefined or result['stderr'] | length == 0
+
+  - name: set registry config on runtime - 1
+    when: runtime != 'docker'
+    include: "{{ runtime }}.yaml"
+
+  - name: set registry config on runtime - 2
+    when: runtime == 'docker' or 'docker' in builder
+    include: "{{ runtime }}.yaml"
+
+  - meta: flush_handlers

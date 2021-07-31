@@ -1,0 +1,8 @@
+---
+- name: Download yj binary files
+  get_url:
+    url: https://github.com/sclevine/yj/releases/download/v{{ version['yj'] }}/yj-linux
+    dest: /usr/bin/yj
+    owner: root
+    group: root
+    mode: 0755

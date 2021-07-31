@@ -1,5 +1,5 @@
 ---
-- name: kubelet service restart
+- name: kubelet restart
   systemd:
     daemon_reload: yes
     name: kubelet
@@ -7,7 +7,7 @@
     enabled: yes
   ignore_errors: yes
 
-- name: Enable and restart systemd-resolved
+- name: restart systemd-resolved
   systemd:
     name: systemd-resolved
     state: restarted

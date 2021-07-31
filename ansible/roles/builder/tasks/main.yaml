@@ -1,3 +1,4 @@
 ---
 - include_role:
-    name: builder/roles/{{ image_builder }}
+    name: builder/roles/{{ item }}
+  with_items: "{{ builder }}"

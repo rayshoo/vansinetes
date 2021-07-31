@@ -1,0 +1,12 @@
+---
+- name: restart docker 
+  systemd:
+    name: docker
+    state: restarted
+    enabled: yes
+
+- name: restart containerd
+  systemd:
+    name: containerd
+    state: restarted
+    enabled: yes
