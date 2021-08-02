@@ -1,5 +1,5 @@
 ---
-- when: registry
+- when: not not registry
   block:
   - when: ansible_hostname == groups['ansible_master'][0]
     block:
@@ -51,6 +51,14 @@
       register: result
       failed_when: false
       changed_when: result['stderr'] is undefined or result['stderr'] | length == 0
+
+    - name: allow required registry ports to firewalld
+      firewalld:
+        port: 5000/tcp
+        permanent: true
+        immediate: yes
+        state: enabled
+      failed_when: false
 
   - name: set registry config on runtime - 1
     when: runtime != 'docker'

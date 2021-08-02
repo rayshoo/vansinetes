@@ -11,7 +11,7 @@
   - name: create registry config text
     shell: |
       cat /etc/containerd/config.toml | yj -tji | \
-      jq -r '.plugins."io.containerd.grpc.v1.cri".registry.mirrors."{{ groups['ansible_master'][0] }}:5000".endpoint = ["http://{{ hostvars[groups['ansible_master'][0]].ansible_host }}:5000"]' | \
+      jq -r '.plugins."io.containerd.grpc.v1.cri".registry.mirrors."{{ groups['ansible_master'][0] }}:5000".endpoint = ["http://{{ hostvars[groups['ansible_master'][0]]['ansible_host'] }}:5000"]' | \
       yj -jt
     register: containerd_config
     changed_when: false
@@ -28,7 +28,7 @@
       already_exists: false
 
   - name: check registry endpoint config exists
-    when: ansible_host + ':5000' in item
+    when: hostvars[groups['ansible_master'][0]]['ansible_host'] + ':5000' in item
     set_fact:
       already_exists: true
     with_items: "{{ result['stdout_lines'] }}"
@@ -39,7 +39,7 @@
     - name: register registry endpoint
       shell: |
         cat /etc/containerd/config.toml | yj -tji | \
-        jq -r '.plugins."io.containerd.grpc.v1.cri".registry.mirrors."{{ groups['ansible_master'][0] }}:5000".endpoint + ["http://{{ hostvars[groups['ansible_master'][0]].ansible_host }}:5000"]'
+        jq -r '.plugins."io.containerd.grpc.v1.cri".registry.mirrors."{{ groups['ansible_master'][0] }}:5000".endpoint + ["http://{{ hostvars[groups['ansible_master'][0]]['ansible_host'] }}:5000"]'
       register: registry_endpoint
       changed_when: false
 
