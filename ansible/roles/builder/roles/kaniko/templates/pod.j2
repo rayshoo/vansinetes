@@ -1,0 +1,38 @@
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: kaniko
+  namespace: kaniko
+spec:
+  nodeName: {{ groups['ansible_master'][0] }}
+  restartPolicy: Never
+  containers:
+  - name: kaniko
+    image: gcr.io/kaniko-project/executor:{{ 'latest' if version['kaniko'] == 'latest' else 'v' + version['kaniko'] }}
+    args: ["--dockerfile=/workspace/{{ kaniko['build_entry'] }}",
+            "--context=dir://workspace",
+            "--destination={{ '{{ registry + \'/\' if not not registry else \'\' }}{{ username + \'/\' if not not username else \'\' }}{{ image }}{{ \':\' + version | string if not not version else \'\' }}' }}"]
+    volumeMounts:
+    - name: kaniko-storage
+      mountPath: /workspace
+{{ '{% if not not secret %}' }}
+{{ '{% if result[\'stderr\'] is undefined or result[\'stderr\'] | default(\'\') | length == 0 %}' }}
+    - name: kaniko-secret
+      mountPath: /kaniko/.docker
+{{ '{% endif %}' }}
+{{ '{% endif %}' }}
+  volumes:
+  - name: kaniko-storage
+    persistentVolumeClaim:
+      claimName: kaniko-pvc
+{{ '{% if not not secret %}' }}
+{{ '{% if result[\'stderr\'] is undefined or result[\'stderr\'] | default(\'\') | length == 0 %}' }}
+  - name: kaniko-secret
+    secret:
+      secretName: {{ '{{ secret }}' }}
+      items:
+      - key: .dockerconfigjson
+        path: config.json
+{{ '{% endif %}' }}
+{{ '{% endif %}' }}
