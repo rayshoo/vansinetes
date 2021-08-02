@@ -1,2 +1,10 @@
 ---
 allow_insecure: yes
+
+registry:
+  volume:
+    path: /data/registry
+    capacity: 5Gi
+    storageClassName: registry-volume
+    accessModes:
+      - ReadWriteOnce

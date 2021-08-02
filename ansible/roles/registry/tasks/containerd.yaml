@@ -14,6 +14,7 @@
       jq -r '.plugins."io.containerd.grpc.v1.cri".registry.mirrors."{{ groups['ansible_master'][0] }}:5000".endpoint = ["http://{{ hostvars[groups['ansible_master'][0]].ansible_host }}:5000"]' | \
       yj -jt
     register: containerd_config
+    changed_when: false
     
   - name: generate registry config file
     copy:
@@ -48,6 +49,7 @@
         jq -r '.plugins."io.containerd.grpc.v1.cri".registry.mirrors."{{ groups['ansible_master'][0] }}:5000".endpoint = {{ registry_endpoint["stdout"] }}' | \
         yj -jt
       register: containerd_config
+      changed_when: false
 
     - name: generate registry added config file
       copy:
@@ -72,6 +74,7 @@
         jq -r '.plugins."io.containerd.grpc.v1.cri".registry.configs."{{ groups['ansible_master'][0] }}:5000".tls.insecure_skip_verify = true' | \
         yj -jt
       register: containerd_config
+      changed_when: false
 
     - name: generate added or changed registry config file
       copy:

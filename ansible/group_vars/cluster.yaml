@@ -50,3 +50,21 @@ version:
   vim: latest
   yj: 5.0.0
   jq: 1.6
+  kaniko: 1.6.0
+
+kaniko:
+  build_entry: Dockerfile
+  volume:
+    path: "{{ local['home'] }}/kaniko/build"
+    capacity: 1Gi
+    storageClassName: kaniko-volume
+    accessModes:
+      - ReadWriteOnce
+
+registry:
+  volume:
+    path: /data/registry
+    capacity: 5Gi
+    storageClassName: registry-volume
+    accessModes:
+      - ReadWriteOnce

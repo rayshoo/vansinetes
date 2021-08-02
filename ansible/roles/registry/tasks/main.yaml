@@ -4,12 +4,13 @@
   - when: ansible_hostname == groups['ansible_master'][0]
     block:
     - name: Ensure registry directory exists
+      become: no
       file:
         path: "{{ local['home'] }}/downloads/registry"
         state: directory
         mode: 0775
 
-    - name: copy namespace yaml file
+    - name: copy registry namespace.yaml file
       copy:
         src: namespace.yaml
         dest: "{{ local['home'] }}/downloads/registry/namespace.yaml"
@@ -23,9 +24,9 @@
       failed_when: false
       changed_when: result['stderr'] is undefined or result['stderr'] | length == 0
 
-    - name: copy volume yaml file
-      copy:
-        src: volume.yaml
+    - name: generate registry volume.yaml file
+      template:
+        src: volume.j2
         dest: "{{ local['home'] }}/downloads/registry/volume.yaml"
         owner: "{{ local['user'] }}"
         group: "{{ local['user'] }}"
@@ -37,7 +38,7 @@
       failed_when: false
       changed_when: result['stderr'] is undefined or result['stderr'] | length == 0
 
-    - name: generate deployment yaml file
+    - name: generate registry deployment.yaml file
       template:
         src: deployment.j2
         dest: "{{ local['home'] }}/downloads/registry/deployment.yaml"

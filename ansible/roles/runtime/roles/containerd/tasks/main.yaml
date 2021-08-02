@@ -60,6 +60,7 @@
 - name: check SystemdCgroup config
   shell: cat /etc/containerd/config.toml | yj -tji | jq -r '.plugins."io.containerd.grpc.v1.cri".containerd.runtimes.runc.options.SystemdCgroup'
   register: result
+  changed_when: false
 
 - when: result['stdout'] | bool != systemd_cgroup
   block:
