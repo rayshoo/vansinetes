@@ -1,0 +1,40 @@
+---
+- hosts: localhost
+  gather_facts: no
+  vars:
+    registry: {{ hostvars[groups['ansible_master'][0]].ansible_host }}:5000
+    username: kaniko
+    image: hello-world
+    version: 
+    secret: 
+  tasks:
+  - name:	check secret exists
+    when: not not secret
+    become: yes
+    shell: kubectl --kubeconfig=/etc/kubernetes/admin.conf get secret -n kaniko {{ '{{ secret }}' }}
+    register: result
+    changed_when: false
+
+  - name: generate pod.yaml files
+    template:
+      src: "{{ '{{ playbook_dir }}' }}/templates/pod.j2"
+      dest: "{{ '{{ playbook_dir }}' }}/pod.yaml"
+      owner: "{{ '{{ lookup(\'env\',\'USER\') }}' }}"
+      group: "{{ '{{ lookup(\'env\',\'USER\') }}' }}"
+      mode: 0664
+
+  - name: check kaniko pod already exists
+    become: yes
+    shell: kubectl --kubeconfig=/etc/kubernetes/admin.conf -n kaniko get pod kaniko
+    register: result
+    failed_when: false
+    changed_when: false
+
+  - name: delete kaniko pod
+    when: result['stderr'] is defined and result['stderr'] | length == 0
+    become: yes
+    shell: kubectl --kubeconfig=/etc/kubernetes/admin.conf -n kaniko delete pod kaniko
+
+  - name: create kaniko pod
+    become: yes
+    shell: kubectl --kubeconfig=/etc/kubernetes/admin.conf apply -f {{ '{{ playbook_dir }}' }}/pod.yaml

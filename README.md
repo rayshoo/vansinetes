@@ -36,3 +36,4 @@ IaC (Infra as Code) tool designed for easy and fast Kubernetes development, lear
 ### [telus/ansible-motd](https://github.com/telus/ansible-motd)
 ### [sclevine/yj](https://github.com/sclevine/yj)
 ### [stedolan/jq](https://github.com/stedolan/jq)
+### [GoogleContainerTools/kaniko](https://github.com/GoogleContainerTools/kaniko)

@@ -1,0 +1,31 @@
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: kaniko-pv
+spec:
+  capacity:
+    storage: {{ kaniko['volume']['capacity'] }}
+  accessModes:
+{% for item in kaniko['volume']['accessModes'] %}
+    - {{ item }}
+{% endfor %}
+  storageClassName: {{ kaniko['volume']['storageClassName'] }}
+  hostPath:
+    path: {{ kaniko['volume']['path'] }}
+
+---
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: kaniko-pvc
+  namespace: kaniko
+spec:
+  accessModes:
+{% for item in kaniko['volume']['accessModes'] %}
+    - {{ item }}
+{% endfor %}
+  resources:
+    requests:
+      storage: {{ kaniko['volume']['capacity'] }}
+  storageClassName: {{ kaniko['volume']['storageClassName'] }}

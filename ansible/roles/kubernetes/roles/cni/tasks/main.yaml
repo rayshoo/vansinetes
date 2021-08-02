@@ -1,5 +1,6 @@
 ---
 - name: Ensure downloads/cni directory exists
+  become: no
   file:
     path: "{{ local['home'] }}/downloads/cni"
     owner: "{{ local['user'] }}"
