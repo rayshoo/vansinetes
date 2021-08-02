@@ -4,7 +4,7 @@ require 'erb'
 require 'fileutils'
 
 class Machine
-  def initialize(image, name, role, cpus, memory, network_ip, host_port, gui)
+  def initialize(image, name, role, cpus, memory, network_ip, host_port, gui, runtime, systemd_cgroup, systemd_resolved)
     @image = image
     @name = name
     @role = role
@@ -13,6 +13,9 @@ class Machine
     @network_ip = network_ip
     @host_port = host_port
     @gui = gui
+    @runtime = runtime
+    @systemd_cgroup = systemd_cgroup
+    @systemd_resolved = systemd_resolved
   end
 
   def get_image
@@ -38,6 +41,15 @@ class Machine
   end
   def get_gui
     return @gui
+  end
+  def get_runtime
+    return @runtime
+  end
+  def get_systemd_cgroup
+    return @systemd_cgroup
+  end
+  def get_systemd_resolved
+    return @systemd_resolved
   end
 end
 
@@ -102,7 +114,10 @@ Vagrant.configure("2") do |config|
     server_network_ip = ENV["#{i}_SERVER_NETWORK_IP"] != "" ? ENV["#{i}_SERVER_NETWORK_IP"] || "#{default_network}.#{default_ip + i - 1}" : "#{default_network}.#{default_ip + i - 1}"
     server_host_port = ENV["#{i}_SERVER_HOST_PORT"]  != "" ? ENV["#{i}_SERVER_HOST_PORT"] || ENV["DEFAULT_HOST_PORT"].to_i + i - 1 :  ENV["DEFAULT_HOST_PORT"].to_i + i - 1
     server_gui = ENV["#{i}_SERVER_GUI"] != "" ? str_to_bool(ENV["#{i}_SERVER_GUI"] || ENV["DEFAULT_GUI"]) : str_to_bool(ENV["DEFAULT_GUI"])
-    server_machine = Machine.new(server_image, server_name, server_role, server_cpus, server_memory, server_network_ip, server_host_port, server_gui)
+    server_runtime = ENV["#{i}_SERVER_RUNTIME"] != "" ? ENV["#{i}_SERVER_RUNTIME"] || ENV["DEFAULT_RUNTIME"] : ENV["DEFAULT_RUNTIME"]
+    server_systemd_cgroup = ENV["#{i}_SERVER_SYSTEMD_CGROUP"] != "" ? str_to_bool(ENV["#{i}_SERVER_SYSTEMD_CGROUP"] || ENV["DEFAULT_SYSTEMD_CGROUP"]) : str_to_bool(ENV["DEFAULT_SYSTEMD_CGROUP"])
+    server_systemd_resolved = ENV["#{i}_SERVER_SYSTEMD_RESOLVED"] != "" ? str_to_bool(ENV["#{i}_SERVER_SYSTEMD_RESOLVED"] || ENV["DEFAULT_SYSTEMD_RESOLVED"]) : str_to_bool(ENV["DEFAULT_SYSTEMD_RESOLVED"])
+    server_machine = Machine.new(server_image, server_name, server_role, server_cpus, server_memory, server_network_ip, server_host_port, server_gui, server_runtime, server_systemd_cgroup, server_systemd_resolved)
     machines.push(server_machine)
     
     if str_to_bool(ENV["DEBUG"] || ENV['debug'] || false)
@@ -115,6 +130,9 @@ Vagrant.configure("2") do |config|
       puts "server#{i}_network_ip: #{server_machine.get_network_ip}"
       puts "server#{i}_host_port: #{server_machine.get_host_port}"
       puts "server#{i}_gui: #{server_machine.get_gui}"
+      puts "server#{i}_runtime: #{server_machine.get_runtime}"
+      puts "server#{i}_systemd_cgroup: #{server_machine.get_systemd_cgroup}"
+      puts "server#{i}_systemd_resolved: #{server_machine.get_systemd_resolved}"
     end
   end
   if str_to_bool(ENV["DEBUG"] || ENV['debug'] || false)
@@ -130,8 +148,11 @@ Vagrant.configure("2") do |config|
         FileUtils.remove_dir("ansible/host_vars/#{entry}")
       end
     end
-    content = read_file("templates/host_vars.rb")
     for node in machines
+      content = read_file("templates/host_vars.rb")
+      content += "\n\nsystemd_cgroup: #{node.get_systemd_cgroup}"
+      content += "\nsystemd_resolved: #{node.get_systemd_resolved}"
+      content += "\n\nruntime: #{node.get_runtime}"
       write_file(content, "ansible/host_vars/#{node.get_name}.yaml")
     end
   end

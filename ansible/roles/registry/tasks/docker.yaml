@@ -15,16 +15,57 @@
     register: touch_log
     changed_when: touch_log.diff.before.state != "file"
 
-  - name: load object from file
-    include_vars:
-      file: /etc/docker/daemon.json
-      name: docker_config
-
-  - set_fact:
-      docker_config: "{{ docker_config | default([]) | combine({ 'insecure-registries' : '[\"{{ groups['ansible_master'][0] }}:5000\"]'})}}"
-
-  - name: add insecure registry option
-    copy:
+  - name: write json brace in empty daemon.json
+    when: touch_log.diff.before.state != "file"
+    lineinfile:
       dest: /etc/docker/daemon.json
-      content: "{{ docker_config | to_nice_json }}"
-    notify: restart docker 
+      line: "{}"
+
+  - name: check registry config exists
+    shell: cat /etc/docker/daemon.json | jq -r '."insecure-registries"'
+    register: result
+    changed_when: false
+
+  - when: result['stdout'] == 'null'
+    block:
+    - name: create registry config text
+      shell: |
+        cat /etc/docker/daemon.json | jq -r '."insecure-registries" = ["{{ hostvars[groups['ansible_master'][0]]['ansible_hostname'] }}:5000"]'
+      register: docker_config
+      changed_when: false
+      
+    - name: generate registry config file
+      copy:
+        content: "{{ docker_config['stdout'] }}"
+        dest: /etc/docker/daemon.json
+      notify: restart docker
+  
+  - when: result['stdout'] != 'null'
+    block:
+    - set_fact:
+        already_exists: false
+
+    - name: check registry endpoint config exists
+      when: hostvars[groups['ansible_master'][0]]['ansible_hostname'] + ':5000' in item
+      set_fact:
+        already_exists: true
+      with_items: "{{ result['stdout_lines'] }}"
+      changed_when: false
+
+    - when: not already_exists
+      block:
+      - name: register registry endpoint
+        shell: cat /etc/docker/daemon.json | jq -r '."insecure-registries" + ["{{ hostvars[groups['ansible_master'][0]]['ansible_hostname'] }}:5000"]'
+        register: registry_endpoint
+        changed_when: false
+
+      - name: create registry added config text
+        shell: cat /etc/docker/daemon.json | jq -r '."insecure-registries" = {{ registry_endpoint["stdout"] }}'
+        register: docker_config
+        changed_when: false
+
+      - name: generate registry added config file
+        copy:
+          content: "{{ docker_config['stdout'] }}"
+          dest: /etc/docker/daemon.json
+        notify: restart docker
