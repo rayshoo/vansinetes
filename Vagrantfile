@@ -95,6 +95,9 @@ Vagrant.configure("2") do |config|
   default_network_ip = ENV['DEFAULT_NETWORK_IP'].split(".")
   default_network = "#{default_network_ip[0]}.#{default_network_ip[1]}.#{default_network_ip[2]}"
   default_ip = default_network_ip.last.to_i
+  default_runrime = ENV['DEFAULT_RUNTIME']
+  default_systemd_cgroup = ENV['DEFAULT_SYSTEMD_CGROUP']
+  default_systemd_resolved = ENV['DEFAULT_SYSTEMD_RESOLVED']
   server_network_type = ENV["MANUAL_NETWORK_TYPE"] != "" ? ENV["MANUAL_NETWORK_TYPE"] || ENV["DEFAULT_NETWORK_TYPE"] :  ENV["DEFAULT_NETWORK_TYPE"]
   server_interface = server_network_type == "public" ? ENV["MANUAL_NETWORK_INTERFACE"] != "" ? ENV["MANUAL_NETWORK_INTERFACE"] || ENV["DEFAULT_NETWORK_INTERFACE"] : ENV["DEFAULT_NETWORK_INTERFACE"] || nil : nil
   server_netmask = ENV['MANUAL_NETWORK_NETMASK'] != "" ? ENV['MANUAL_NETWORK_NETMASK'] || ENV["DEFAULT_NETWORK_NETMASK"] : ENV["DEFAULT_NETWORK_NETMASK"]
@@ -114,9 +117,9 @@ Vagrant.configure("2") do |config|
     server_network_ip = ENV["#{i}_SERVER_NETWORK_IP"] != "" ? ENV["#{i}_SERVER_NETWORK_IP"] || "#{default_network}.#{default_ip + i - 1}" : "#{default_network}.#{default_ip + i - 1}"
     server_host_port = ENV["#{i}_SERVER_HOST_PORT"]  != "" ? ENV["#{i}_SERVER_HOST_PORT"] || ENV["DEFAULT_HOST_PORT"].to_i + i - 1 :  ENV["DEFAULT_HOST_PORT"].to_i + i - 1
     server_gui = ENV["#{i}_SERVER_GUI"] != "" ? str_to_bool(ENV["#{i}_SERVER_GUI"] || ENV["DEFAULT_GUI"]) : str_to_bool(ENV["DEFAULT_GUI"])
-    server_runtime = ENV["#{i}_SERVER_RUNTIME"] != "" ? ENV["#{i}_SERVER_RUNTIME"] || ENV["DEFAULT_RUNTIME"] : ENV["DEFAULT_RUNTIME"]
-    server_systemd_cgroup = ENV["#{i}_SERVER_SYSTEMD_CGROUP"] != "" ? str_to_bool(ENV["#{i}_SERVER_SYSTEMD_CGROUP"] || ENV["DEFAULT_SYSTEMD_CGROUP"]) : str_to_bool(ENV["DEFAULT_SYSTEMD_CGROUP"])
-    server_systemd_resolved = ENV["#{i}_SERVER_SYSTEMD_RESOLVED"] != "" ? str_to_bool(ENV["#{i}_SERVER_SYSTEMD_RESOLVED"] || ENV["DEFAULT_SYSTEMD_RESOLVED"]) : str_to_bool(ENV["DEFAULT_SYSTEMD_RESOLVED"])
+    server_runtime = ENV["#{i}_SERVER_RUNTIME"] != "" ? ENV["#{i}_SERVER_RUNTIME"] || default_runrime : default_runrime
+    server_systemd_cgroup = ENV["#{i}_SERVER_SYSTEMD_CGROUP"] != "" ? ENV["#{i}_SERVER_SYSTEMD_CGROUP"] || default_systemd_cgroup : default_systemd_cgroup
+    server_systemd_resolved = ENV["#{i}_SERVER_SYSTEMD_RESOLVED"] != "" ? ENV["#{i}_SERVER_SYSTEMD_RESOLVED"] || default_systemd_resolved : default_systemd_resolved
     server_machine = Machine.new(server_image, server_name, server_role, server_cpus, server_memory, server_network_ip, server_host_port, server_gui, server_runtime, server_systemd_cgroup, server_systemd_resolved)
     machines.push(server_machine)
     
@@ -140,20 +143,22 @@ Vagrant.configure("2") do |config|
   end
 
   if str_to_bool(ENV['FILE_CREATE'] || false)
-    template = ERB.new File.read('templates/hosts.erb')
-    write_file(template.result(binding), 'ansible/hosts.ini')
-
-    Dir.foreach("ansible/host_vars") do | entry |
-      if (entry != "." && entry != ".." && entry != ".gitkeep")
-        FileUtils.remove_dir("ansible/host_vars/#{entry}")
+    vars_dir_names = ["group_vars","host_vars"]
+    for vars_dir_name in vars_dir_names
+      Dir.foreach("ansible/#{vars_dir_name}") do | entry |
+        if (entry != "." && entry != ".." && entry != ".gitkeep")
+          FileUtils.remove_dir("ansible/#{vars_dir_name}/#{entry}")
+        end
       end
     end
+    template_items = [ { "src" => "hosts.erb", "dest" => "ansible/hosts.ini" }, { "src" => "cluster.erb", "dest" => "ansible/group_vars/cluster.yaml" } ]
+    for template_item in template_items
+      template = ERB.new File.read("templates/#{template_item['src']}")
+      write_file(template.result(binding), "#{template_item['dest']}")
+    end
     for node in machines
-      content = read_file("templates/host_vars.rb")
-      content += "\n\nsystemd_cgroup: #{node.get_systemd_cgroup}"
-      content += "\nsystemd_resolved: #{node.get_systemd_resolved}"
-      content += "\n\nruntime: #{node.get_runtime}"
-      write_file(content, "ansible/host_vars/#{node.get_name}.yaml")
+      template = ERB.new File.read("templates/host_vars.erb")
+      write_file(template.result(binding), "ansible/host_vars/#{node.get_name}.yaml")
     end
   end
 

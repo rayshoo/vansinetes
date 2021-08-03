@@ -9,13 +9,13 @@ target:
 
 root_login: yes  # PermitRootLogin
 
-systemd_cgroup: yes  # https://kubernetes.io/ko/docs/setup/production-environment/container-runtimes/
-systemd_resolved: yes
+systemd_cgroup: <%= default_systemd_cgroup %>  # https://kubernetes.io/ko/docs/setup/production-environment/container-runtimes/
+systemd_resolved: <%= default_systemd_resolved %>
 nameservers:
   - 8.8.8.8
   - 8.8.4.4
 
-runtime: containerd
+runtime: <%= default_runrime %>
 network_plugin: calico
 pod_subnet: 192.168.0.0/16
 root_kubeconfig: yes
@@ -31,6 +31,7 @@ version:
   runc: 1.0.0-rc95
   containerd: 1.5.2 # https://containerd.io/downloads/
   docker: 20.10.7
+  cri_o: "{{ kubernetes_ver | regex_replace('^([0-9]*)\\.([0-9]*).*', '\\1.\\2') }}"
   # dependent
   # kubeadm,kubectl (1.11.2 ~ 1.13.4) : kubernetes-cni (0.6.0)
   # kubeadm,kubectl (1.13.5 ~ 1.13.6) : kubernetes-cni (0.7.5)

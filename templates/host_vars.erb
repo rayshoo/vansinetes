@@ -1,0 +1,8 @@
+---
+ansible_user: vagrant
+ansible_pass: vagrant
+
+systemd_cgroup: <%= node.get_systemd_cgroup %>
+systemd_resolved: <%= node.get_systemd_resolved %>
+
+runtime: <%= node.get_runtime %>
