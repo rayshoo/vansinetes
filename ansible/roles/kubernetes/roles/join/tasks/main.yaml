@@ -2,7 +2,7 @@
 - name: chmod o+r certificate files
   when:
     - groups['master'] | length > 1
-    - version['kubeadm'] is version('1.14','<')
+    - version['kubeadm'] is version('1.14','<',strict=True)
     - ansible_hostname == groups['ansible_master'][0]
   file:
     path: /etc/kubernetes/pki/{{ item }}
@@ -20,7 +20,7 @@
 - name: include manual_endpoint.yaml
   when:
     - groups['master'] | length > 1
-    - version['kubeadm'] is version('1.16','<')
+    - version['kubeadm'] is version('1.16','<',strict=True)
     - ansible_hostname == groups['ansible_master'][0]
   include: manual_endpoint.yaml
 
@@ -35,7 +35,7 @@
 - name: chmod o-r certificate files
   when:
     - groups['master'] | length > 1
-    - version['kubeadm'] is version('1.14','<')
+    - version['kubeadm'] is version('1.14','<',strict=True)
     - ansible_hostname == groups['ansible_master'][0]
   file:
     path: /etc/kubernetes/pki/{{ item }}

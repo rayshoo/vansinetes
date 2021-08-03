@@ -10,7 +10,7 @@
 - when: ansible_hostname == groups['ansible_master'][0]
   block:
   - name: download canal rbac yaml file
-    when: version['canal'] is version('3.3','<=')
+    when: version['canal'] is version('3.3','<=',strict=True)
     get_url:
       url: https://docs.projectcalico.org/v{{ version['canal'] }}/getting-started/kubernetes/installation/hosted/canal/rbac.yaml
       dest: "{{ local['home'] }}/downloads/cni/canal_v{{ version['canal'] }}_rbac.yaml"
@@ -43,7 +43,7 @@
   - when: result.stdout_lines | length == 0
     block:
     - name: generate canal rbac
-      when: version['canal'] is version('3.3','<=')
+      when: version['canal'] is version('3.3','<=',strict=True)
       shell: kubectl --kubeconfig=/etc/kubernetes/admin.conf create -f {{ local['home'] }}/downloads/cni/canal_v{{ version['canal'] }}_rbac.yaml
       failed_when: false
 
