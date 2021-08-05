@@ -1,0 +1,3 @@
+---
+version:
+  cri_o: "{{ kubernetes_ver | regex_replace('^([0-9]+)\\.([0-9]+).*', '\\1.\\2') }}"

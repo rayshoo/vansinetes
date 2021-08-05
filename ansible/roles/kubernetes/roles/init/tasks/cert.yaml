@@ -1,0 +1,9 @@
+---
+- name: set count in loop
+  set_fact:
+    count: "{{ count | int + 1 }}"
+
+- name: Get certificate key index
+  when: "'[upload-certs] Using certificate key' in item | string"
+  set_fact:
+    index: "{{ count }}"

@@ -6,26 +6,49 @@
     group: "{{ ansible_env['USER'] }}"
     state: directory
 
-- name: chmod o+x admin.conf temporary
-  file:
-    path: /etc/kubernetes/admin.conf
-    mode: o+rx
+- name: check kubeconfig file exists
+  stat:
+    path: "{{ ansible_env['HOME'] }}/.kube/config"
+  register: stat_result
 
-- name: Make kubectl work for non-root user
-  copy:
-    src: /etc/kubernetes/admin.conf
-    dest: "{{ ansible_env['HOME'] }}/.kube/config"
-    owner: "{{ ansible_env['USER'] }}"
-    group: "{{ ansible_env['USER'] }}"
-    mode: 0600
+- when: not stat_result.stat.exists
+  block:
+  - name: chmod o+x admin.conf temporary
+    file:
+      path: /etc/kubernetes/admin.conf
+      mode: o+rx
 
-- name: chmod o-x admin.conf again
-  file:
-    path: /etc/kubernetes/admin.conf
-    mode: o-rx
+  - name: Make kubectl work for non-root user
+    copy:
+      src: /etc/kubernetes/admin.conf
+      dest: "{{ ansible_env['HOME'] }}/.kube/config"
+      owner: "{{ ansible_env['USER'] }}"
+      group: "{{ ansible_env['USER'] }}"
+      mode: 0600
 
-- name: export KUBECONFIG(root)
-  when: root_kubeconfig
+  - name: chmod o-x admin.conf again
+    file:
+      path: /etc/kubernetes/admin.conf
+      mode: o-rx
+
+- set_fact:
+    items:
+    - user: root
+      home: /root
+      lines:
+      - export KUBECONFIG=/etc/kubernetes/admin.conf
+      - source <(kubectl completion bash)
+      - complete -F __start_kubectl k
+    - user: "{{ target['user'] }}"
+      home: "{{ target['home'] }}"
+      lines:
+      - source <(kubectl completion bash)
+      - complete -F __start_kubectl k
+
+- name: Configure Bashrc - {{ item['user'] }}
   lineinfile:
-    dest: /root/.bashrc
-    line: export KUBECONFIG=/etc/kubernetes/admin.conf
+    dest: "{{ item[0]['home'] }}/.bashrc"
+    line: "{{ item[1] }}"
+  with_subelements:
+  - "{{ items }}"
+  - lines

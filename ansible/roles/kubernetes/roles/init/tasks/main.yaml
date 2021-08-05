@@ -11,6 +11,27 @@
   changed_when: false
   failed_when: false
 
+- set_fact:
+    node_state: "{{ node_state['rc'] }}"
+
+- when: force_cluster
+  block:
+  - name: kubeadm reset before set cluster
+    shell: |
+      kubeadm reset -f \
+      {% if runtime == 'containerd' %}
+      --cri-socket /run/containerd/containerd.sock
+      {% elif runtime == 'docker' %}
+      --cri-socket /var/run/dockershim.sock
+      {% elif runtime == 'cri-o' %}
+      --cri-socket /var/run/crio/crio.sock
+      {% endif %}
+    changed_when: node_state | int == 0
+  - set_fact:
+      node_state: 1
+
 - name: play in ansible_master node
-  when: ansible_hostname == groups['ansible_master'][0]
+  when:
+    - ansible_hostname == groups['ansible_master'][0]
+    - node_state | int  != 0
   include: init.yaml

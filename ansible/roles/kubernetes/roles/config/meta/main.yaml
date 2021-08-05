@@ -1,0 +1,3 @@
+---
+dependencies:
+- role: utils/bash_completion

@@ -6,37 +6,64 @@
 
 - name: kubeadm init (version < 1.16)
   when:
-    - node_state.rc != 0
+    - version['kubeadm'] is version('1.15','<',strict=True)
+    - version['kubeadm'] is version('1.14','>=',strict=True)
+  shell: |
+    kubeadm init {{ pod_network_cidr | default('') }} \
+    --apiserver-advertise-address={{ ansible_host }} \
+    --experimental-upload-certs \
+    {% if runtime == 'containerd' %}
+    --cri-socket /run/containerd/containerd.sock
+    {% elif runtime == 'docker' %}
+    --cri-socket /var/run/dockershim.sock
+    {% elif runtime == 'cri-o' %}
+    --cri-socket /var/run/crio/crio.sock
+    {% endif %}
+  register: result
+
+- name: kubeadm init (version < 1.16)
+  when:
+    - version['kubeadm'] is version('1.15','>=',strict=True)
     - version['kubeadm'] is version('1.16','<',strict=True)
   shell: |
     kubeadm init {{ pod_network_cidr | default('') }} \
     --apiserver-advertise-address={{ ansible_host }} \
+    --upload-certs \
+    {% if runtime == 'containerd' %}
+    --cri-socket /run/containerd/containerd.sock
+    {% elif runtime == 'docker' %}
+    --cri-socket /var/run/dockershim.sock
+    {% elif runtime == 'cri-o' %}
+    --cri-socket /var/run/crio/crio.sock
+    {% endif %}
+  register: result
     
 - name: kubeadm init (version >= 1.16)
-  when:
-    - node_state.rc != 0
-    - version['kubeadm'] is version('1.16','>=',strict=True)
+  when: version['kubeadm'] is version('1.16','>=',strict=True)
   shell: |
     kubeadm init {{ pod_network_cidr | default('') }} \
     --control-plane-endpoint="{{ ansible_host }}:6443" \
-    --apiserver-advertise-address={{ ansible_host }}
+    --apiserver-advertise-address={{ ansible_host }} \
+    --upload-certs \
+    {% if runtime == 'containerd' %}
+    --cri-socket /run/containerd/containerd.sock
+    {% elif runtime == 'docker' %}
+    --cri-socket /var/run/dockershim.sock
+    {% elif runtime == 'cri-o' %}
+    --cri-socket /var/run/crio/crio.sock
+    {% endif %}
+  register: result
 
-- name: generate a new certificate key
-  when:
-    - version['kubeadm'] is version('1.15','<',strict=True)
-    - version['kubeadm'] is version('1.14','>=',strict=True)
-  shell: kubeadm init phase upload-certs --experimental-upload-certs
-  register: cert
+- set_fact:
+    count: -1
 
-- name: generate a new certificate key
-  when: version['kubeadm'] is version('1.15','>=',strict=True)
-  shell: kubeadm init phase upload-certs --upload-certs
-  register: cert
+- name: include cert.yaml for get certificate
+  include: cert.yaml
+  with_items: "{{ result['stdout_lines'] }}"
 
 - name: Get certificate key
-  when: version['kubeadm'] is version('1.14','>=',strict=True)
   set_fact:
-    cert: "{{ cert['stdout_lines'][-1] }}"
+    cert: "{{ result['stdout_lines'][index|int] }}"
 
 - name: generate a new join command with token
   shell: kubeadm token create --print-join-command

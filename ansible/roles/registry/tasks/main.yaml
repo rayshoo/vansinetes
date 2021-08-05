@@ -59,13 +59,17 @@
         immediate: yes
         state: enabled
       failed_when: false
+    
+    - name: set registry config on runtime - 1-1
+      when: runtime == 'docker' or 'docker' in builder
+      include: docker.yaml
 
-  - name: set registry config on runtime - 1
-    when: runtime != 'docker'
-    include: "{{ runtime }}.yaml"
+    - name: set registry config on runtime - 1-2
+      when: runtime != 'docker'
+      include: "{{ runtime }}.yaml"
 
   - name: set registry config on runtime - 2
-    when: runtime == 'docker' or 'docker' in builder
+    when: not ansible_hostname == groups['ansible_master'][0]
     include: "{{ runtime }}.yaml"
 
   - meta: flush_handlers
