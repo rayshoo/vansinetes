@@ -1,5 +1,5 @@
 ---
-- when: not not registry
+- when: registry['enable']
   block:
   - when: ansible_hostname == groups['ansible_master'][0]
     block:

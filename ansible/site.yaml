@@ -4,31 +4,31 @@
   gather_facts: yes
   serial: 1
   roles:
-    - role: commons/target/default
-    - role: ssh
-    - role: commons/target/root
-    - role: ssh
+  - role: commons/target/default
+  - role: ssh
+  - role: commons/target/root
+  - role: ssh
 
 - name: kubernetes install, custom settings
   hosts: cluster
   gather_facts: no
   become: yes 
   roles:
-    - role: utils/git
-    - role: utils/vim
-    - role: custom/motd
+  - role: utils/git
+  - role: utils/vim
+  - role: custom/motd
 
-    - role: commons/target/default
-    - role: custom/vim/vim-plugins
-    - role: custom/vim/vim-custom
-    - role: custom/alias
+  - role: commons/target/root
+  - role: custom/vim/vim-plugins
+  - role: custom/vim/vim-custom
+  - role: custom/alias
 
-    - role: commons/target/root
-    - role: custom/vim/vim-plugins
-    - role: custom/vim/vim-custom
-    - role: custom/alias
+  - role: commons/target/default
+  - role: custom/vim/vim-plugins
+  - role: custom/vim/vim-custom
+  - role: custom/alias
 
-    - role: runtime
-    - role: kubernetes
-    - role: builder
-    - role: registry
+  - role: runtime
+  - role: kubernetes
+  - role: builder
+  - role: registry

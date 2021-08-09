@@ -25,7 +25,6 @@ root_kubeconfig: yes
 builder:
   - docker
   - kaniko
-registry: yes
 allow_insecure: yes
 
 kubernetes_ver: 1.20.2
@@ -66,6 +65,7 @@ kaniko:
       - ReadWriteOnce
 
 registry:
+  enable: yes
   volume:
     path: /data/registry
     capacity: 5Gi

@@ -10,3 +10,9 @@
     name: containerd
     state: restarted
     enabled: yes
+
+- name: restart cri-o
+  systemd:
+    name: crio
+    state: restarted
+    enabled: yes

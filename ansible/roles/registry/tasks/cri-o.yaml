@@ -1,1 +1,110 @@
 ---
+- name: check registry config exists
+  shell: cat /etc/crio/crio.conf | yj -tji | jq -r '.crio.image.registries'
+  register: result
+  changed_when: false
+
+- when: result['stdout'] == 'null'
+  block:
+  - name: Register /etc/crio/crio.conf file text
+    shell: cat /etc/crio/crio.conf
+    register: crio_conf
+    changed_when: false
+  - name: remove comment and add registries on crio.conf
+    when: crio_conf['stdout'] | regex_search('^#[ ]*registries[ ]*=[ ]*"?\[[\s\#]*\]"?', multiline=True)
+    replace:
+      dest: /etc/crio/crio.conf
+      regexp: ^#[ ]*registries[ ]*=[ ]*"?\[[\s\#]*\]"?
+      replace: registries = ["{{ groups['ansible_master'][0] }}:5000"]
+      backup: yes
+    notify: restart cri-o
+  - name: add registries on crio.conf
+    when: not crio_conf['stdout'] | regex_search('^#[ ]*registries[ ]*=[ ]*"?\[[\s\#]*\]"?', multiline=True)
+    lineinfile:
+      path: /etc/crio/crio.conf
+      insertafter: '[ ]*\[crio\.image\][ ]*'
+      line: registries = ["{{ groups['ansible_master'][0] }}:5000"]
+      backup: yes
+    notify: restart cri-o
+
+- when: result['stdout'] != 'null'
+  block:
+  - set_fact:
+      already_exists: false
+  - name: check registry endpoint config exists
+    when: groups['ansible_master'][0] + ':5000' in item
+    set_fact:
+      already_exists: true
+    with_items: "{{ result['stdout_lines'] }}"
+    changed_when: false
+  - when: not already_exists
+    block:
+    - name: register registry endpoint
+      shell: |
+        cat /etc/crio/crio.conf | yj -tji | \
+        jq -r '.crio.image.registries + ["{{ groups['ansible_master'][0] }}:5000"]'
+      register: registry_endpoint
+      changed_when: false
+    - name: add registries on crio.conf
+      replace:
+        dest: /etc/crio/crio.conf
+        regexp: (^[ ]*registries[ ]*=[ ]*)"?\[[^\#\]]*\]"?
+        replace: \1{{ registry_endpoint['stdout'] }}
+        backup: yes
+      notify: restart cri-o
+
+- when: allow_insecure
+  block:
+  - name: check insecure_registries config exists
+    shell: cat /etc/crio/crio.conf | yj -tji | jq -r '.crio.image.insecure_registries'
+    register: result
+    changed_when: false
+
+  - when: result['stdout'] == 'null'
+    block:
+    - name: Register /etc/crio/crio.conf file text
+      shell: cat /etc/crio/crio.conf
+      register: crio_conf
+      changed_when: false
+    - name: remove comment and add insecure_registries on crio.conf
+      when: crio_conf['stdout'] | regex_search('^#[ ]*insecure_registries[ ]*=[ ]*"?\[[\s\#]*\]"?', multiline=True)
+      replace:
+        dest: /etc/crio/crio.conf
+        regexp: ^#[ ]*insecure_registries[ ]*=[ ]*"?\[[\s\#]*\]"?
+        replace: insecure_registries = ["{{ groups['ansible_master'][0] }}:5000"]
+        backup: yes
+      notify: restart cri-o
+    - name: add insecure_registries on crio.conf
+      when: not crio_conf['stdout'] | regex_search('^#[ ]*insecure_registries[ ]*=[ ]*"?\[[\s\#]*\]"?', multiline=True)
+      lineinfile:
+        path: /etc/crio/crio.conf
+        insertafter: '[ ]*\[crio\.image\][ ]*'
+        line: insecure_registries = ["{{ groups['ansible_master'][0] }}:5000"]
+        backup: yes
+      notify: restart cri-o
+
+  - when: result['stdout'] != 'null'
+    block:
+    - set_fact:
+        already_exists: false
+    - name: check insecure_registries endpoint config exists
+      when: groups['ansible_master'][0] + ':5000' in item
+      set_fact:
+        already_exists: true
+      with_items: "{{ result['stdout_lines'] }}"
+      changed_when: false
+    - when: not already_exists
+      block:
+      - name: register insecure_registries endpoint
+        shell: |
+          cat /etc/crio/crio.conf | yj -tji | \
+          jq -r '.crio.image.insecure_registries + ["{{ groups['ansible_master'][0] }}:5000"]'
+        register: insecure_registry_endpoint
+        changed_when: false
+      - name: add insecure_registries on crio.conf
+        replace:
+          dest: /etc/crio/crio.conf
+          regexp: (^[ ]*insecure_registries[ ]*=[ ]*)"?\[[^\#\]]*\]"?
+          replace: \1{{ insecure_registry_endpoint['stdout'] }}
+          backup: yes
+        notify: restart cri-o
