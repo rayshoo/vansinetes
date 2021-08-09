@@ -1,0 +1,73 @@
+---
+- name: Play RedHat os family tasks
+  when: ansible_os_family == "RedHat"
+  include_tasks: redhat.yaml
+
+- name: Play Debian os family tasks
+  when: ansible_os_family == "Debian"
+  include_tasks: debian.yaml
+  
+- when: not systemd_cgroup
+  block:
+  - name: Ensure docker directory exists
+    file:
+      path: /etc/crio/crio.conf.d/
+      state: directory
+      mode: 0755
+  - name: Create cgroup manager file if no exists
+    file:
+      path: /etc/crio/crio.conf.d/02-cgroup-manager.conf
+      state: touch
+      mode: 0644
+    register: touch_log
+    changed_when: touch_log.diff.before.state != "file"
+  - name: Configure cgroup manager file
+    blockinfile: 
+      dest: /etc/crio/crio.conf.d/02-cgroup-manager.conf
+      block: |
+        [crio.runtime]
+        conmon_cgroup = "pod"
+        cgroup_manager = "cgroupfs"
+      backup: yes
+    notify: restart cri-o
+
+- name: check crio default capabilities config exists
+  shell: cat /etc/crio/crio.conf | yj -tj | jq ."crio"."runtime"."default_capabilities"
+  register: result
+  changed_when: false
+
+- name: create default capabilities config
+  when: result['stdout'] == 'null'
+  lineinfile:
+    dest: /etc/crio/crio.conf
+    line: default_capabilities = ["NET_RAW"]
+    insertafter: \[\s*crio\.runtime\s*\]
+    backup: yes
+  notify: restart cri-o
+
+- when: result['stdout'] != 'null'
+  block:
+  - set_fact:
+      already_exists: false
+  - name: check net_raw config exists
+    when: "'\"NET_RAW\"' in item"
+    set_fact:
+      already_exists: true
+    with_items: "{{ result['stdout_lines'] }}"
+    changed_when: false
+
+  - when: not already_exists
+    block:
+    - name: create default capabilities config text
+      shell: cat /etc/crio/crio.conf | yj -tj | jq -r '."crio"."runtime"."default_capabilities" + ["NET_RAW"]'
+      register: default_capabilities
+      changed_when: false
+    - name: replace default capabilities config in crio.conf
+      replace:
+        dest: /etc/crio/crio.conf
+        regexp: (default_capabilities\s*\=\s*)\[(?:[^\]]*\n)*\]
+        replace: \1{{ default_capabilities['stdout'] }}
+        backup: yes
+      notify: restart cri-o
+
+- meta: flush_handlers

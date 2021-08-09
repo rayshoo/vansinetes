@@ -18,7 +18,7 @@
   - name: write json brace in empty daemon.json
     when: touch_log.diff.before.state != "file"
     lineinfile:
-      dest: /etc/docker/daemon.json
+      path: /etc/docker/daemon.json
       line: "{}"
 
   - name: check registry config exists

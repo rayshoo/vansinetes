@@ -6,4 +6,4 @@
   with_items:
     - { name: runtime/roles/containerd, install: "{{ runtime == 'containerd' }}" }
     - { name: runtime/roles/docker, install: "{{ runtime == 'docker' }}" }
-    # - { name: runtime/roles/cri-o, install: "{{ runtime == 'cri-o' }}" } # incomplete
+    - { name: runtime/roles/cri-o, install: "{{ runtime == 'cri-o' }}" }

@@ -4,5 +4,6 @@
     line: "{{ item }}"
   with_items:
     - alias k='kubectl'
-    - source <(kubectl completion bash)
-    - complete -F __start_kubectl k
+    - alias kg='kubectl get'
+    - alias kd='kubectl describe'
+    - alias ke='kubectl edit'

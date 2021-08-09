@@ -8,3 +8,5 @@
 
   - name: docker config
     include: config.yaml
+
+  - meta: flush_handlers

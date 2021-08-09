@@ -2,4 +2,5 @@
 .vagrant
 
 ansible/hosts.ini
+ansible/group_vars/
 ansible/host_vars/

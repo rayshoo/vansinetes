@@ -16,6 +16,11 @@
       owner: "{{ local['user'] }}"
       group: "{{ local['user'] }}"
       mode: 0775
+  
+- name: containerd install
+  when: runtime != 'containerd'
+  include_role:
+    name: runtime/roles/containerd
 
 - name: copy docker binary files in path
   copy:
@@ -30,3 +35,4 @@
     - docker-init
     - docker-proxy
   failed_when: false
+  notify: restart docker

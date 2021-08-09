@@ -5,3 +5,5 @@
   with_items:
     - "alias ans='ansible'"
     - "alias anp='ansible-playbook'"
+    - "alias ang='ansible-galaxy'"
+    - "alias anv='ansible-vault'"

@@ -16,6 +16,8 @@ nameservers:
   - 8.8.4.4
 
 runtime: <%= default_runrime %>
+
+force_cluster: yes
 network_plugin: calico
 pod_subnet: 192.168.0.0/16
 root_kubeconfig: yes
@@ -23,7 +25,6 @@ root_kubeconfig: yes
 builder:
   - docker
   - kaniko
-registry: yes
 allow_insecure: yes
 
 kubernetes_ver: 1.20.2
@@ -31,7 +32,7 @@ version:
   runc: 1.0.0-rc95
   containerd: 1.5.2 # https://containerd.io/downloads/
   docker: 20.10.7
-  cri_o: "{{ kubernetes_ver | regex_replace('^([0-9]*)\\.([0-9]*).*', '\\1.\\2') }}"
+  cri_o: "{{ kubernetes_ver | regex_replace('^([0-9]+)\\.([0-9]+).*', '\\1.\\2') }}"
   # dependent
   # kubeadm,kubectl (1.11.2 ~ 1.13.4) : kubernetes-cni (0.6.0)
   # kubeadm,kubectl (1.13.5 ~ 1.13.6) : kubernetes-cni (0.7.5)
@@ -64,6 +65,7 @@ kaniko:
       - ReadWriteOnce
 
 registry:
+  enable: yes
   volume:
     path: /data/registry
     capacity: 5Gi
