@@ -1,0 +1,15 @@
+---
+- name: download the repo file that requires buildah
+  get_url:
+    url: https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/{{ ansible_distribution + '_' + os_version }}/devel:kubic:libcontainers:stable.repo
+    dest: /etc/yum.repos.d/devel:kubic:libcontainers:stable.repo
+    owner: root
+    group: root
+    mode: 0644
+
+- name: Install buildah
+  yum:
+    update_cache: yes
+    allow_downgrade: yes
+    name: buildah{{ '-' + version['buildah'] if version['buildah'] != 'latest' else '' }}
+    state: present

@@ -2,11 +2,12 @@
 builder:
   - docker
   - kaniko
+  - buildah
 
 version:
   docker: 20.10.7 # If the container runtime is docker, this will be ignored
-  registry: latest
   kaniko: 1.6.0
+  buildah: latest
 
 kaniko:
   volume:

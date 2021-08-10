@@ -22,8 +22,8 @@
     apt_key:
       url: "{{ item }}"
     with_items:
-    - https://download.opensuse.org/repositories/devel:kubic:libcontainers:stable:cri-o:{{ cri_o_ver }}/{{ 'xUbuntu_' + os_version }}/Release.key
     - https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/{{ 'xUbuntu_' + os_version }}/Release.key
+    - https://download.opensuse.org/repositories/devel:kubic:libcontainers:stable:cri-o:{{ cri_o_ver }}/{{ 'xUbuntu_' + os_version }}/Release.key
 
 - name: Install cri-o
   apt:

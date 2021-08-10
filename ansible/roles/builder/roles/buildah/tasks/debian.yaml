@@ -1,0 +1,20 @@
+---
+- name: generate buildah apt repo files
+  when: ansible_distribution == 'Ubuntu'
+  copy:
+    content: deb https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/{{ 'xUbuntu_' + os_version }}/ /
+    dest: /etc/apt/sources.list.d/devel:kubic:libcontainers:stable.list
+    owner: root
+    group: root
+    mode: 0644
+
+- name: add buildah APT GPG key
+  apt_key:
+    url: https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/{{ 'xUbuntu_' + os_version }}/Release.key
+
+- name: Install buildah
+  apt:
+    update_cache: yes
+    force: yes
+    name: buildah{{ '=' + version['buildah'] if version['buildah'] != 'latest' else '' }}
+    state: present

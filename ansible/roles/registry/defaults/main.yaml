@@ -1,4 +1,7 @@
 ---
+version:
+  registry: latest
+
 allow_insecure: yes
 
 registry:
