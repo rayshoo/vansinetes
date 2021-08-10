@@ -16,6 +16,7 @@
 
 - name: Get lsb_release
   command: lsb_release -cs
+  changed_when: false
   register: lsb_release
 
 - set_fact:
@@ -42,6 +43,7 @@
   block:
   - name: List the docker-ce versions available in repo
     shell: apt-cache madison docker-ce
+    changed_when: false
     register: result
 
   - name: Get the exact docker-ce version name in apt repo
@@ -53,6 +55,7 @@
   - name: List the docker-ce-cli versions available in repo
     shell: apt-cache madison docker-ce-cli
     register: result
+    changed_when: false
 
   - name: Get the exact docker-ce-cli version name in apt repo
     when: version['docker'] in item

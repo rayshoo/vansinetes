@@ -1,7 +1,5 @@
 ---
-- when:
-  - ansible_hostname == groups['ansible_master'][0]
-  - runtime != 'docker'
+- when: runtime != 'docker'
   block:
   - name: docker install
     include: install.yaml

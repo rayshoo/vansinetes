@@ -1,10 +1,22 @@
 ---
-- when: node_state | int != 0
+- when: ansible_hostname == groups['ansible_master'][0]
+  block:
+  - set_fact:
+      master_join_completed: true
+  - name: check master node join completed
+    when: item | int != 0
+    set_fact:
+      master_join_completed: false
+    with_items: >
+      [{% for node in groups['master'] %}
+      "{{ hostvars[node]['node_state'] }}",
+      {% endfor %}]
+
+- when: not hostvars[groups['ansible_master'][0]]['master_join_completed']
   block:
   - name: chmod o+r certificate files
     when:
-      - groups['master'] | length > 1
-      - version['kubeadm'] is version('1.14','<',strict=True)
+      - hostvars[groups['ansible_master'][0]]['cert'] is undefined
       - ansible_hostname == groups['ansible_master'][0]
     file:
       path: /etc/kubernetes/pki/{{ item }}
@@ -21,22 +33,20 @@
 
   - name: include manual_endpoint.yaml
     when:
-      - groups['master'] | length > 1
       - version['kubeadm'] is version('1.16','<',strict=True)
       - ansible_hostname == groups['ansible_master'][0]
     include: manual_endpoint.yaml
 
   - name: include master.yaml
     when:
-      - groups['master'] | length > 1
+      - node_state | int != 0
       - ansible_hostname in groups['master']
       - ansible_hostname != groups['ansible_master'][0]
     include: multi_master.yaml
 
   - name: chmod o-r certificate files
     when:
-      - groups['master'] | length > 1
-      - version['kubeadm'] is version('1.14','<',strict=True)
+      - hostvars[groups['ansible_master'][0]]['cert'] is undefined
       - ansible_hostname == groups['ansible_master'][0]
     file:
       path: /etc/kubernetes/pki/{{ item }}
@@ -51,7 +61,9 @@
       - ca.crt
       - ca.key
 
-  - name: kubeadm worker node join
-    when: ansible_hostname in groups['worker']
-    shell: "{{ hostvars[groups['ansible_master'][0]]['join_command'] }}"
-    ignore_errors: yes
+- name: kubeadm worker node join
+  when:
+  - node_state | int != 0
+  - ansible_hostname in groups['worker']
+  shell: "{{ hostvars[groups['ansible_master'][0]]['join_command'] }}"
+  ignore_errors: yes

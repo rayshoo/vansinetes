@@ -42,19 +42,22 @@ version:
   kubeadm: "{{ kubernetes_ver }}"
   kubectl: "{{ kubernetes_ver }}"
   kubernetes_cni: 0.8.7
-
+  
   calico: 3.18
   flannel: 0.14.0
   canal: 3.14
-
+  
   registry: latest
+  
+  kaniko: 1.6.0
+  buildah: latest
+
   apt_transport_https: latest
   ca_certificates: latest
   git: latest
   vim: latest
   yj: 5.0.0
   jq: 1.6
-  kaniko: 1.6.0
 
 kaniko:
   build_entry: Dockerfile

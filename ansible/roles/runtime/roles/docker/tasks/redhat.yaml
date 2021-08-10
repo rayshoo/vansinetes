@@ -22,6 +22,7 @@
   block:
   - name: List the docker-ce versions available in repo
     shell: yum list docker-ce --showduplicates | sort -r
+    changed_when: false
     register: result
 
   - name: Get the exact docker-ce version name in yum repo - 1-1
@@ -50,6 +51,7 @@
 
   - name: List the docker-ce-cli versions available in yum repo
     shell: yum list docker-ce-cli --showduplicates | sort -r
+    changed_when: false
     register: result
 
   - name: Get the exact docker-ce-cli version name in yum repo - 1-1

@@ -16,7 +16,7 @@
     - 2379-2380/tcp # etcd server client api
     - 10250-10252/tcp  # kubelet api, scheduler, controller-manager
     - 30000-32767/tcp # nodeport services
-  ignore_errors: yes
+  failed_when: false
 
 - name: allow worker node required ports to firewalld
   when: ansible_hostname in groups['worker']
@@ -28,7 +28,7 @@
   with_items:
     - 10250/tcp # kubelet api
     - 30000-32767/tcp # nodeport services
-  ignore_errors: yes
+  failed_when: false
 
 - name: enable masquerade to firewalld
   firewalld:
@@ -36,4 +36,4 @@
     permanent: true
     immediate: yes
     state: enabled
-  ignore_errors: yes
+  failed_when: false

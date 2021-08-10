@@ -29,6 +29,7 @@
   - name: check calico nework plugin already exists
     shell: kubectl --kubeconfig=/etc/kubernetes/admin.conf get pods -n kube-system | grep calico
     register: result
+    changed_when: false
     failed_when: false
 
   - name: install calico network plugin

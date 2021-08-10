@@ -1,91 +1,89 @@
 ---
-- when: ansible_hostname == groups['ansible_master'][0]
-  block:
-  - name: Ensure {{ local['home'] }}/downloads/kaniko directory exists
-    become: no
-    file:
-      path: "{{ local['home'] }}/downloads/kaniko"
-      state: directory
-      mode: 0775
+- name: Ensure {{ local['home'] }}/downloads/kaniko directory exists
+  become: no
+  file:
+    path: "{{ local['home'] }}/downloads/kaniko"
+    state: directory
+    mode: 0775
 
-  - name: copy kaniko namespace.yaml file
-    copy:
-      src: namespace.yaml
-      dest: "{{ local['home'] }}/downloads/kaniko/namespace.yaml"
-      owner: "{{ local['user'] }}"
-      group: "{{ local['user'] }}"
-      mode: 0664
+- name: copy kaniko namespace.yaml file
+  copy:
+    src: namespace.yaml
+    dest: "{{ local['home'] }}/downloads/kaniko/namespace.yaml"
+    owner: "{{ local['user'] }}"
+    group: "{{ local['user'] }}"
+    mode: 0664
 
-  - name: create kaniko namespace
-    shell: kubectl --kubeconfig=/etc/kubernetes/admin.conf create -f {{ local['home'] }}/downloads/kaniko/namespace.yaml
-    register: result
-    failed_when: false
-    changed_when: result['stderr'] is undefined or result['stderr'] | length == 0
+- name: create kaniko namespace
+  shell: kubectl --kubeconfig=/etc/kubernetes/admin.conf create -f {{ local['home'] }}/downloads/kaniko/namespace.yaml
+  register: result
+  failed_when: false
+  changed_when: result['stderr'] is undefined or result['stderr'] | length == 0
 
-  - name: generate kaniko volume.yaml file
-    template:
-      src: volume.j2
-      dest: "{{ local['home'] }}/downloads/kaniko/volume.yaml"
-      owner: "{{ local['user'] }}"
-      group: "{{ local['user'] }}"
-      mode: 0664
+- name: generate kaniko volume.yaml file
+  template:
+    src: volume.j2
+    dest: "{{ local['home'] }}/downloads/kaniko/volume.yaml"
+    owner: "{{ local['user'] }}"
+    group: "{{ local['user'] }}"
+    mode: 0664
 
-  - name: create kaniko persistent volume, claim
-    shell: kubectl --kubeconfig=/etc/kubernetes/admin.conf create -f {{ local['home'] }}/downloads/kaniko/volume.yaml
-    register: result
-    failed_when: false
-    changed_when: result['stderr'] is undefined or result['stderr'] | length == 0
+- name: create kaniko persistent volume, claim
+  shell: kubectl --kubeconfig=/etc/kubernetes/admin.conf create -f {{ local['home'] }}/downloads/kaniko/volume.yaml
+  register: result
+  failed_when: false
+  changed_when: result['stderr'] is undefined or result['stderr'] | length == 0
 
-  - name: Ensure kaniko directory exists
-    become: no
-    file:
-      path: "{{ item }}"
-      state: directory
-      mode: 0775
-    with_items:
-      - "{{ local['home'] }}/kaniko/build"
-      - "{{ local['home'] }}/kaniko/templates"
+- name: Ensure kaniko directory exists
+  become: no
+  file:
+    path: "{{ item }}"
+    state: directory
+    mode: 0775
+  with_items:
+    - "{{ local['home'] }}/kaniko/build"
+    - "{{ local['home'] }}/kaniko/templates"
 
-  - name: generate site.yaml, pod.j2 files
-    template:
-      src: "{{ item['src'] }}"
-      dest: "{{ item['dest'] }}"
-      owner: "{{ local['user'] }}"
-      group: "{{ local['user'] }}"
-      mode: 0664
-    with_items:
-    - { src: site.j2, dest: "{{ local['home'] }}/kaniko/site.yaml" }
-    - { src: pod.j2, dest: "{{ local['home'] }}/kaniko/templates/pod.j2" }
+- name: generate site.yaml, pod.j2 files
+  template:
+    src: "{{ item['src'] }}"
+    dest: "{{ item['dest'] }}"
+    owner: "{{ local['user'] }}"
+    group: "{{ local['user'] }}"
+    mode: 0664
+  with_items:
+  - { src: site.j2, dest: "{{ local['home'] }}/kaniko/site.yaml" }
+  - { src: pod.j2, dest: "{{ local['home'] }}/kaniko/templates/pod.j2" }
 
-  - name: Create {{ kaniko['build_entry'] }} if not exists
-    file:
-      path: "{{ local['home'] }}/kaniko/build/{{ kaniko['build_entry'] }}"
-      state: touch
-      owner: "{{ local['user'] }}"
-      group: "{{ local['user'] }}"
-      mode: 0644
-    register: touch_log
-    changed_when: touch_log.diff.before.state != "file"
+- name: Create {{ kaniko['build_entry'] }} if not exists
+  file:
+    path: "{{ local['home'] }}/kaniko/build/{{ kaniko['build_entry'] }}"
+    state: touch
+    owner: "{{ local['user'] }}"
+    group: "{{ local['user'] }}"
+    mode: 0644
+  register: touch_log
+  changed_when: touch_log.diff.before.state != "file"
 
-  - name: write hello world in {{ kaniko['build_entry'] }}
-    when: touch_log.diff.before.state != "file"
-    lineinfile:
-      dest: "{{ local['home'] }}/kaniko/build/{{ kaniko['build_entry'] }}"
-      line: FROM docker.io/hello-world
+- name: write hello world in {{ kaniko['build_entry'] }}
+  when: touch_log.diff.before.state != "file"
+  lineinfile:
+    dest: "{{ local['home'] }}/kaniko/build/{{ kaniko['build_entry'] }}"
+    line: FROM docker.io/hello-world
 
-  - name: copy secret.yaml file
-    copy:
-      src: "{{ playbook_dir }}/playbooks/secret.yaml"
-      dest: "{{ local['home'] }}/kaniko/secret.yaml"
-      owner: "{{ local['user'] }}"
-      group: "{{ local['user'] }}"
-      mode: 0664
+- name: copy secret.yaml file
+  copy:
+    src: "{{ playbook_dir }}/playbooks/secret.yaml"
+    dest: "{{ local['home'] }}/kaniko/secret.yaml"
+    owner: "{{ local['user'] }}"
+    group: "{{ local['user'] }}"
+    mode: 0664
 
-  - name: set namespace in secret.yaml file
-    replace:
-      dest: "{{ local['home'] }}/kaniko/secret.yaml"
-      regexp: "{{ item }}"
-      replace: \1 kaniko
-    with_items:
-      - (\s+namespace:)\s?(?:kaniko)?
-      - (\s+namespace_to:)\s?(?:kaniko)?
+- name: set namespace in secret.yaml file
+  replace:
+    dest: "{{ local['home'] }}/kaniko/secret.yaml"
+    regexp: "{{ item }}"
+    replace: \1 kaniko
+  with_items:
+    - (\s+namespace:)\s?(?:kaniko)?
+    - (\s+namespace_to:)\s?(?:kaniko)?

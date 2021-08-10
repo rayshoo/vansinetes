@@ -27,11 +27,17 @@
       --cri-socket /var/run/crio/crio.sock
       {% endif %}
     changed_when: node_state | int == 0
+  - name: remove {{ ansible_env['USER'] }} user kubeconfig file
+    file:
+      path: "{{ ansible_env['HOME'] }}/.kube/config"
+      state: absent
+  - name: remove cni configuration
+    file:
+      path: /etc/cni/net.d
+      state: absent
   - set_fact:
       node_state: 1
 
 - name: play in ansible_master node
-  when:
-    - ansible_hostname == groups['ansible_master'][0]
-    - node_state | int  != 0
+  when: ansible_hostname == groups['ansible_master'][0]
   include: init.yaml
