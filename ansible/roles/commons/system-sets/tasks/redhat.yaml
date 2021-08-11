@@ -4,6 +4,16 @@
     policy: targeted
     state: permissive
 
+- name: change firewalld backend to iptables
+  replace:
+    dest: /etc/firewalld/firewalld.conf
+    regexp: ^[ ]*(FirewallBackend=).*
+    replace: \1iptables
+  notify: restart firewalld
+  failed_when: false
+
+- meta: flush_handlers
+
 - name: allow control node required ports to firewalld
   when: ansible_hostname in groups['master']
   firewalld:
