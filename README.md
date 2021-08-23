@@ -10,8 +10,10 @@ IaC (Infra as Code) tool designed for easy and fast Kubernetes development, lear
 ### [한국어](https://github.com/rayshoo/vansible_with_kubeadm/wiki/Korean)
 ### [English](https://github.com/rayshoo/vansible_with_kubeadm/wiki/English)
 
-## 라이센스, License
+## 튜토리얼, Tutorial
+### [Video](https://youtu.be/SkQ-OE3Ra1U)
 
+## 라이센스, License
 ### [Apache License 2.0](LICENSE)
 
 ## 공식 문서, Official Documents
