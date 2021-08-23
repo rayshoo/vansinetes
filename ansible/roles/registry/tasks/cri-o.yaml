@@ -53,7 +53,7 @@
         backup: yes
       notify: restart cri-o
 
-- when: allow_insecure
+- when: registry['allow_insecure']
   block:
   - name: check insecure_registries config exists
     shell: cat /etc/crio/crio.conf | yj -tji | jq -r '.crio.image.insecure_registries'

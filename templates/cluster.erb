@@ -26,7 +26,6 @@ builder:
   - docker
   - kaniko
   - buildah
-allow_insecure: yes
 
 kubernetes_ver: 1.20.2
 version:
@@ -69,6 +68,8 @@ kaniko:
       - ReadWriteOnce
 
 registry:
+  allow_insecure: yes
+  allow_delete: yes
   enable: yes
   volume:
     path: /data/registry

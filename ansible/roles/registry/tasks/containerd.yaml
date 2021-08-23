@@ -57,7 +57,7 @@
         dest: /etc/containerd/config.toml
       notify: restart containerd
 
-- when: allow_insecure
+- when: registry['allow_insecure']
   block:
   - name: check allow insecure registry config exists
     shell: |

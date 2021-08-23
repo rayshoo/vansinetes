@@ -2,9 +2,9 @@
 version:
   registry: latest
 
-allow_insecure: yes
-
 registry:
+  allow_insecure: yes
+  allow_delete: yes
   volume:
     path: /data/registry
     capacity: 5Gi

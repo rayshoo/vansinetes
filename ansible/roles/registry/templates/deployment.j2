@@ -35,6 +35,11 @@ spec:
       - image: registry:latest
         imagePullPolicy: Always
         name: registry
+{% if registry['allow_delete'] %}
+        env:
+        - name: REGISTRY_STORAGE_DELETE_ENABLED
+          value: "true"
+{% endif %}
         ports:
         - containerPort: 5000
         resources: {}

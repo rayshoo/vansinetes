@@ -1,5 +1,5 @@
 ---
-- when: allow_insecure
+- when: registry['allow_insecure']
   block:
   - name: Ensure docker directory exists
     file:
