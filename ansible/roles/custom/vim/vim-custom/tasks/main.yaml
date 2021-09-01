@@ -12,4 +12,7 @@
 - name: Configure Vimrc
   lineinfile:
     dest: "{{ target['home'] }}/.vimrc"
-    line: set ai et ts=2 sw=2 sts=2
+    line: "{{ item }}"
+  with_items:
+  - set ai et ts=2 sw=2 sts=2
+  - autocmd FileType * set formatoptions-=o
