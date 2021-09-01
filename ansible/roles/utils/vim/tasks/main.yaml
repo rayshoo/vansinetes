@@ -1,8 +1,15 @@
 ---
-- name: Play RedHat os family tasks
-  when: ansible_os_family == "RedHat"
-  include_tasks: redhat.yaml
-
-- name: Play Debian os family tasks
+- name: Install vim(Debian)
   when: ansible_os_family == "Debian"
-  include_tasks: debian.yaml
+  apt:
+    update_cache: yes
+    name: vim{{ '=' + version['vim'] if version['vim'] != 'latest' else '' }}
+    state: "{{ 'present' if version['vim'] != 'latest' else 'latest' }}"
+
+- name: Install vim(RedHat)
+  when: ansible_os_family == "RedHat"
+  yum:
+    update_cache: yes
+    allow_downgrade: yes
+    name: vim{{ '-' + version['vim'] if version['vim'] != 'latest' else '' }}
+    state: "{{ 'present' if version['vim'] != 'latest' else 'latest' }}"
