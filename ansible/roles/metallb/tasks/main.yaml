@@ -1,36 +1,38 @@
 ---
-- name: Ensure {{ local['home'] }}/downloads/metallb directory exists
-  become: no
-  file:
-    path: "{{ local['home'] }}/downloads/metallb"
-    state: directory
-    mode: 0775
+- when: ansible_hostname == groups['ansible_master'][0]
+  block:
+  - name: Ensure {{ local['home'] }}/downloads/metallb directory exists
+    become: no
+    file:
+      path: "{{ local['home'] }}/downloads/metallb"
+      state: directory
+      mode: 0775
 
-- name: Download metallb manifests
-  get_url:
-    url: "{{ item }}"
-    dest: "{{ local['home'] }}/downloads/metallb"
-    owner: "{{ local['user'] }}"
-    group: "{{ local['user'] }}"
-    mode: 0644
-  with_items:
-  - https://raw.githubusercontent.com/metallb/metallb/v{{ version['metallb'] }}/manifests/namespace.yaml
-  - https://raw.githubusercontent.com/metallb/metallb/v{{ version['metallb'] }}/manifests/metallb.yaml
+  - name: Download metallb manifests
+    get_url:
+      url: "{{ item }}"
+      dest: "{{ local['home'] }}/downloads/metallb"
+      owner: "{{ local['user'] }}"
+      group: "{{ local['user'] }}"
+      mode: 0644
+    with_items:
+    - https://raw.githubusercontent.com/metallb/metallb/v{{ version['metallb'] }}/manifests/namespace.yaml
+    - https://raw.githubusercontent.com/metallb/metallb/v{{ version['metallb'] }}/manifests/metallb.yaml
 
-- name: generate metallb config.yaml file
-  template:
-    src: config.j2
-    dest: "{{ local['home'] }}/downloads/metallb/config.yaml"
-    owner: "{{ local['user'] }}"
-    group: "{{ local['user'] }}"
-    mode: 0664
+  - name: generate metallb config.yaml file
+    template:
+      src: config.j2
+      dest: "{{ local['home'] }}/downloads/metallb/config.yaml"
+      owner: "{{ local['user'] }}"
+      group: "{{ local['user'] }}"
+      mode: 0664
 
-- name: Create metallb manifests
-  shell: kubectl apply -f {{ local['home'] }}/downloads/metallb/{{ item }}
-  with_items:
-  - namespace.yaml
-  - metallb.yaml
-  - config.yaml
-  register: result
-  failed_when: false
-  changed_when: "' created' in result['stdout']"
+  - name: Create metallb manifests
+    shell: kubectl --kubeconfig=/etc/kubernetes/admin.conf apply -f {{ local['home'] }}/downloads/metallb/{{ item }}
+    with_items:
+    - namespace.yaml
+    - metallb.yaml
+    - config.yaml
+    register: result
+    failed_when: false
+    changed_when: "' created' in result['stdout']"

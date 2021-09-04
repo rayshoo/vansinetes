@@ -32,3 +32,4 @@
   - role: kubernetes
   - role: builder
   - role: registry
+  - role: metallb
