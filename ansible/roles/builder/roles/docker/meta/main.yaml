@@ -1,4 +1,4 @@
 ---
 dependencies:
   - role: runtime
-  - role: commons/download
+  - role: common/download

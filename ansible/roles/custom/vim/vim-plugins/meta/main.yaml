@@ -1,6 +1,6 @@
 ---
 allow_duplicates: yes
 dependencies:
-  - role: commons/os-check
+  - role: common/os-check
   - role: utils/git
-  - role: commons/download
+  - role: common/download

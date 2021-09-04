@@ -4,9 +4,9 @@
   gather_facts: yes
   serial: 1
   roles:
-  - role: commons/target/default
+  - role: common/target/default
   - role: ssh
-  - role: commons/target/root
+  - role: common/target/root
   - role: ssh
 
 - name: kubernetes install, custom settings
@@ -18,12 +18,12 @@
   - role: utils/vim
   - role: custom/motd
 
-  - role: commons/target/root
+  - role: common/target/root
   - role: custom/vim/vim-plugins
   - role: custom/vim/vim-custom
   - role: custom/alias
 
-  - role: commons/target/default
+  - role: common/target/default
   - role: custom/vim/vim-plugins
   - role: custom/vim/vim-custom
   - role: custom/alias
