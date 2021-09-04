@@ -15,10 +15,14 @@ nameservers:
   - 8.8.8.8
   - 8.8.4.4
 
+<% if metallb_ip_range.length() == 0 %>metallb_ip_range: []
+<% else %>metallb_ip_range:
+<% for range in metallb_ip_range %>  - <%= range %>
+<% end %><% end %>
 runtime: <%= default_runrime %>
 
 force_cluster: yes
-network_plugin: calico  # calico flannel canal available
+network_plugin: <%= cni_plugin %> 
 pod_subnet: 192.168.0.0/16
 root_kubeconfig: yes
 
@@ -34,13 +38,13 @@ version:
   containerd: 1.5.2 # https://containerd.io/downloads/
   docker: 20.10.7
   cri_o: "{{ kubernetes_ver | regex_replace('^([0-9]+)\\.([0-9]+).*', '\\1.\\2') }}"
+  kubelet: "{{ kubernetes_ver }}"
+  kubeadm: "{{ kubernetes_ver }}"
+  kubectl: "{{ kubernetes_ver }}"
   # dependent
   # kubeadm,kubectl (1.11.2 ~ 1.13.4) : kubernetes-cni (0.6.0)
   # kubeadm,kubectl (1.13.5 ~ 1.13.6) : kubernetes-cni (0.7.5)
   # kubeadm,kubectl (1.14.0 ~ 1.14.2) : kubernetes-cni (0.7.5)
-  kubelet: "{{ kubernetes_ver }}"
-  kubeadm: "{{ kubernetes_ver }}"
-  kubectl: "{{ kubernetes_ver }}"
   kubernetes_cni: 0.8.7
   
   calico: 3.18
@@ -52,6 +56,8 @@ version:
   kaniko: 1.6.0
   buildah: latest
   podman: latest
+
+  metallb: 0.10.2
 
   apt_transport_https: latest
   ca_certificates: latest
