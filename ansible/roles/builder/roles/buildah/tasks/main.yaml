@@ -1,12 +1,12 @@
 ---
-- name: Install buildah
+- name: Install buildah(Debian)
   when: ansible_os_family == "Debian"
   apt:
     update_cache: yes
     name: buildah{{ '=' + version['buildah'] if version['buildah'] != 'latest' else '' }}
     state: "{{ 'present' if version['buildah'] != 'latest' else 'latest' }}"
 
-- name: Install buildah
+- name: Install buildah(RedHat)
   when: ansible_os_family == "RedHat"
   yum:
     update_cache: yes

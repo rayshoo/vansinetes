@@ -1,5 +1,5 @@
 ---
-- name: Install podman
+- name: Install podman(Debian)
   when: ansible_os_family == "Debian"
   apt:
     update_cache: yes
@@ -10,7 +10,7 @@
   retries: 5
   delay: 3
 
-- name: Install podman
+- name: Install podman(RedHat)
   when: ansible_os_family == "RedHat"
   yum:
     update_cache: yes
