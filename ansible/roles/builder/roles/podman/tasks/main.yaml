@@ -5,6 +5,10 @@
     update_cache: yes
     name: podman{{ '=' + version['podman'] if version['podman'] != 'latest' else '' }}
     state: "{{ 'present' if version['podman'] != 'latest' else 'latest' }}"
+  register: result
+  until: result['changed'] == true
+  retries: 5
+  delay: 3
 
 - name: Install podman
   when: ansible_os_family == "RedHat"
