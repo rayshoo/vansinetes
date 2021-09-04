@@ -8,7 +8,7 @@ Vagrant.configure("2") do |config|
   config.vm.provider "virtualbox"
   config.vm.synced_folder ".", "/vagrant", disabled: true
   config.env.enable
-
+  
   master = ENV['MASTER'].to_i
   worker = ENV['WORKER'].to_i
   master_initial = ENV['MASTER_INITIAL']
@@ -22,9 +22,11 @@ Vagrant.configure("2") do |config|
   default_runrime = ENV['DEFAULT_RUNTIME']
   default_systemd_cgroup = ENV['DEFAULT_SYSTEMD_CGROUP']
   default_systemd_resolved = ENV['DEFAULT_SYSTEMD_RESOLVED']
-  server_network_type = ENV["MANUAL_NETWORK_TYPE"] != "" ? ENV["MANUAL_NETWORK_TYPE"] || ENV["DEFAULT_NETWORK_TYPE"] :  ENV["DEFAULT_NETWORK_TYPE"]
-  server_interface = server_network_type == "public" ? ENV["MANUAL_NETWORK_INTERFACE"] != "" ? ENV["MANUAL_NETWORK_INTERFACE"] || ENV["DEFAULT_NETWORK_INTERFACE"] : ENV["DEFAULT_NETWORK_INTERFACE"] || nil : nil
-  server_netmask = ENV['MANUAL_NETWORK_NETMASK'] != "" ? ENV['MANUAL_NETWORK_NETMASK'] || ENV["DEFAULT_NETWORK_NETMASK"] : ENV["DEFAULT_NETWORK_NETMASK"]
+  server_network_type = ENV['MANUAL_NETWORK_TYPE'] != "" ? ENV['MANUAL_NETWORK_TYPE'] || ENV['DEFAULT_NETWORK_TYPE'] :  ENV['DEFAULT_NETWORK_TYPE']
+  server_interface = server_network_type == "public" ? ENV['MANUAL_NETWORK_INTERFACE'] != "" ? ENV['MANUAL_NETWORK_INTERFACE'] || ENV['DEFAULT_NETWORK_INTERFACE'] : ENV['DEFAULT_NETWORK_INTERFACE'] || nil : nil
+  server_netmask = ENV['MANUAL_NETWORK_NETMASK'] != "" ? ENV['MANUAL_NETWORK_NETMASK'] || ENV['DEFAULT_NETWORK_NETMASK'] : ENV['DEFAULT_NETWORK_NETMASK']
+  cni_plugin = ENV['CNI_PLUGINS'] != "" ? ENV['CNI_PLUGINS'] || "calico" : "calico"
+  metallb_ip_range = eval(ENV['METALLB_IP_RANGE'] != "" ? ENV['METALLB_IP_RANGE'] || "[]" : "[]")
   root_pass_script = nil
 
   machines = Array.new

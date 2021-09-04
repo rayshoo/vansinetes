@@ -1,0 +1,5 @@
+---
+version:
+  metallb: 0.10.2
+
+metallb_ip_range: []
