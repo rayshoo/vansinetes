@@ -1,0 +1,15 @@
+---
+- name: Install podman
+  when: ansible_os_family == "Debian"
+  apt:
+    update_cache: yes
+    name: podman{{ '=' + version['podman'] if version['podman'] != 'latest' else '' }}
+    state: "{{ 'present' if version['podman'] != 'latest' else 'latest' }}"
+
+- name: Install podman
+  when: ansible_os_family == "RedHat"
+  yum:
+    update_cache: yes
+    allow_downgrade: yes
+    name: podman{{ '-' + version['podman'] if version['podman'] != 'latest' else '' }}
+    state: "{{ 'present' if version['podman'] != 'latest' else 'latest' }}"

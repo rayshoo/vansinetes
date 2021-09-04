@@ -1,0 +1,23 @@
+---
+- when: ansible_os_family == "Debian"
+  block:
+  - name: generate kubic apt repo file
+    when: ansible_distribution == 'Ubuntu'
+    copy:
+      content: deb https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/{{ 'xUbuntu_' + os_version }}/ /
+      dest: /etc/apt/sources.list.d/devel:kubic:libcontainers:stable.list
+      owner: root
+      group: root
+      mode: 0644
+  - name: add kubic APT GPG key
+    apt_key:
+      url: https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/{{ 'xUbuntu_' + os_version }}/Release.key
+
+- name: download kubic yum repo file
+  when: ansible_os_family == "RedHat"
+  get_url:
+    url: https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/{{ ansible_distribution + '_' + os_version }}/devel:kubic:libcontainers:stable.repo
+    dest: /etc/yum.repos.d/devel:kubic:libcontainers:stable.repo
+    owner: root
+    group: root
+    mode: 0644

@@ -5,25 +5,16 @@
 
 - when: ansible_distribution == 'Ubuntu'
   block:
-  - name: generate cri-o apt repo files
+  - name: generate cri-o apt repo file
     copy:
-      content: "{{ item['content'] }}"
-      dest: "{{ item['dest'] }}"
+      content: deb http://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable:/cri-o:/{{ cri_o_ver }}/{{ 'xUbuntu_' + os_version }}/ /
+      dest: /etc/apt/sources.list.d/devel:kubic:libcontainers:stable:cri-o:{{ cri_o_ver }}.list
       owner: root
       group: root
       mode: 0644
-    with_items:
-      - content: deb https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/{{ 'xUbuntu_' + os_version }}/ /
-        dest: /etc/apt/sources.list.d/devel:kubic:libcontainers:stable.list
-      - content: deb http://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable:/cri-o:/{{ cri_o_ver }}/{{ 'xUbuntu_' + os_version }}/ /
-        dest: /etc/apt/sources.list.d/devel:kubic:libcontainers:stable:cri-o:{{ cri_o_ver }}.list
-
   - name: add cri-o APT GPG key
     apt_key:
-      url: "{{ item }}"
-    with_items:
-    - https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/{{ 'xUbuntu_' + os_version }}/Release.key
-    - https://download.opensuse.org/repositories/devel:kubic:libcontainers:stable:cri-o:{{ cri_o_ver }}/{{ 'xUbuntu_' + os_version }}/Release.key
+      url: https://download.opensuse.org/repositories/devel:kubic:libcontainers:stable:cri-o:{{ cri_o_ver }}/{{ 'xUbuntu_' + os_version }}/Release.key
 
 - name: Install cri-o
   apt:

@@ -1,5 +1,6 @@
 ---
 dependencies:
   - role: commons/os-check
+  - role: commons/kubic
   - role: utils/yj
   - role: utils/jq

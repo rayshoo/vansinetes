@@ -1,16 +1,11 @@
 ---
 - name: download the repo file that requires cri-o
   get_url:
-    url: "{{ item['url'] }}"
-    dest: "{{ item['dest'] }}"
+    url: https://download.opensuse.org/repositories/devel:kubic:libcontainers:stable:cri-o:{{ version['cri_o'] }}/{{ ansible_distribution + '_' + os_version }}/devel:kubic:libcontainers:stable:cri-o:{{ version['cri_o'] }}.repo
+    dest: /etc/yum.repos.d/devel:kubic:libcontainers:stable:cri-o:{{ version['cri_o'] }}.repo
     owner: root
     group: root
     mode: 0644
-  with_items:
-    - url: https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/{{ ansible_distribution + '_' + os_version }}/devel:kubic:libcontainers:stable.repo
-      dest: /etc/yum.repos.d/devel:kubic:libcontainers:stable.repo
-    - url: https://download.opensuse.org/repositories/devel:kubic:libcontainers:stable:cri-o:{{ version['cri_o'] }}/{{ ansible_distribution + '_' + os_version }}/devel:kubic:libcontainers:stable:cri-o:{{ version['cri_o'] }}.repo
-      dest: /etc/yum.repos.d/devel:kubic:libcontainers:stable:cri-o:{{ version['cri_o'] }}.repo
 
 - name: Install cri-o
   yum:
