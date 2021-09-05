@@ -1,0 +1,6 @@
+---
+- name: Install {{ item }} compose
+  when: ansible_hostname == groups['ansible_master'][0]
+  include_role:
+    name: utils/compose/roles/{{ item }}
+  with_items: "{{ compose_util }}"

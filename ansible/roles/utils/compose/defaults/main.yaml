@@ -1,0 +1,11 @@
+---
+compose_util:
+- docker
+- podman
+- kubernetes
+
+version:
+  compose_util:
+    docker: 1.29.2
+    podman: latest
+    kubernetes: 0.6.3

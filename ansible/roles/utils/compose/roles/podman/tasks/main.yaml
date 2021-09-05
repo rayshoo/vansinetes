@@ -1,0 +1,10 @@
+---
+- name: Download podman-compose.py
+  get_url:
+    url: "https://raw.githubusercontent.com/containers/podman-compose/\
+      {{ 'devel' if version['compose_util']['podman'] == 'latest' or version['compose_util']['podman'] == 'devel' else 'v' + version['compose_util']['podman'] }}/\
+      podman_compose.py"
+    dest: /usr/local/bin/podman-compose
+    owner: root
+    group: root
+    mode: 0755

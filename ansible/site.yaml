@@ -33,6 +33,7 @@
   - role: runtime
   - role: kubernetes
   - role: builder
+  - role: utils/compose
   - role: registry
   - role: metallb
   - role: ingress-controller

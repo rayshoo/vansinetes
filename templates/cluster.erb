@@ -28,6 +28,11 @@ builder:
   - buildah
   - podman
 
+compose_util:
+  - docker
+  - podman
+  - kubernetes
+
 <% if metallb_ip_range.length() == 0 %>metallb_ip_range: []
 <% else %>metallb_ip_range:
 <% for range in metallb_ip_range %>  - <%= range %>
@@ -60,6 +65,11 @@ version:
   kaniko: 1.6.0
   buildah: latest
   podman: latest
+
+  compose_util:
+    docker: 1.29.2
+    podman: latest
+    kubernetes: 0.6.3
 
   metallb: 0.10.2
   ingress_controller:
