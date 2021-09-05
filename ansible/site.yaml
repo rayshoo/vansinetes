@@ -18,11 +18,12 @@
   - role: utils/vim
   - role: custom/motd
 
-  - role: common/target/root
-  - role: custom/vim/vim-plugins
-  - role: custom/vim/vim-custom
-  - role: custom/git
-  - role: custom/alias
+  # root user custom settings
+  # - role: common/target/root
+  # - role: custom/vim/vim-plugins
+  # - role: custom/vim/vim-custom
+  # - role: custom/git
+  # - role: custom/alias
 
   - role: common/target/default
   - role: custom/vim/vim-plugins
