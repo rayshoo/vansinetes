@@ -1,5 +1,6 @@
 ---
 - name: Ensure downloads directory exists
+  when: ansible_hostname == groups['ansible_master'][0]
   file:
     path: "{{ local['home'] }}/downloads"
     owner: "{{ local['user'] }}"
