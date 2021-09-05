@@ -1,0 +1,4 @@
+---
+dependencies:
+  - role: common/os-check
+  - role: common/kubic

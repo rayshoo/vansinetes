@@ -1,0 +1,15 @@
+---
+- name: Install skopeo(Debian)
+  when: ansible_os_family == "Debian"
+  apt:
+    update_cache: yes
+    name: skopeo{{ '=' + version['skopeo'] if version['skopeo'] != 'latest' else '' }}
+    state: "{{ 'present' if version['skopeo'] != 'latest' else 'latest' }}"
+
+- name: Install skopeo(RedHat)
+  when: ansible_os_family == "RedHat"
+  yum:
+    update_cache: yes
+    allow_downgrade: yes
+    name: skopeo{{ '-' + version['skopeo'] if version['skopeo'] != 'latest' else '' }}
+    state: "{{ 'present' if version['skopeo'] != 'latest' else 'latest' }}"
