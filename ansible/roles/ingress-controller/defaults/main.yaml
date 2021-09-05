@@ -1,0 +1,8 @@
+---
+ingress_controller:
+- name: nginx
+  service_type: LoadBalancer
+
+version:
+  ingress_controller:
+    nginx: 1.0.0

@@ -15,10 +15,6 @@ nameservers:
   - 8.8.8.8
   - 8.8.4.4
 
-<% if metallb_ip_range.length() == 0 %>metallb_ip_range: []
-<% else %>metallb_ip_range:
-<% for range in metallb_ip_range %>  - <%= range %>
-<% end %><% end %>
 runtime: <%= default_runrime %>
 
 force_cluster: yes
@@ -32,6 +28,14 @@ builder:
   - buildah
   - podman
 
+<% if metallb_ip_range.length() == 0 %>metallb_ip_range: []
+<% else %>metallb_ip_range:
+<% for range in metallb_ip_range %>  - <%= range %>
+<% end %><% end %>
+ingress_controller:
+- name: nginx
+  service_type: LoadBalancer
+  
 kubernetes_ver: 1.20.2
 version:
   runc: 1.0.0-rc95
@@ -58,6 +62,8 @@ version:
   podman: latest
 
   metallb: 0.10.2
+  ingress_controller:
+    nginx: 1.0.0
 
   apt_transport_https: latest
   ca_certificates: latest

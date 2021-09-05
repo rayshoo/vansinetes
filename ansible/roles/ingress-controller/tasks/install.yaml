@@ -1,0 +1,6 @@
+---
+- set_fact:
+    service_type: "{{ item['service_type'] }}"
+
+- include_role:
+    name: ingress-controller/roles/{{ item['name'] }}

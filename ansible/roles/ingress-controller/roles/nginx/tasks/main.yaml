@@ -1,0 +1,38 @@
+- when: ansible_hostname == groups['ansible_master'][0]
+  block:
+  - name: Ensure {{ local['home'] }}/downloads/ingress-controller/nginx directory exists
+    become: no
+    file:
+      path: "{{ local['home'] }}/downloads/ingress-controller/nginx"
+      state: directory
+      mode: 0775
+
+  - name: Download nginx ingress controller manifests
+    get_url:
+      url: https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v{{ version['ingress_controller']['nginx'] }}/deploy/static/provider/baremetal/deploy.yaml
+      dest: "{{ local['home'] }}/downloads/ingress-controller/nginx"
+      owner: "{{ local['user'] }}"
+      group: "{{ local['user'] }}"
+      mode: 0644
+
+  - name: Create nginx ingress controller manifests
+    shell: kubectl --kubeconfig=/etc/kubernetes/admin.conf apply -f {{ local['home'] }}/downloads/ingress-controller/nginx
+    register: result
+    failed_when: false
+    changed_when: "' created' in result['stdout']"
+
+  - name: Get ingress-nginx-controller service type
+    shell: |
+      kubectl --kubeconfig=/etc/kubernetes/admin.conf \
+      get svc -n ingress-nginx ingress-nginx-controller -o json | jq -r '.spec.type'
+    register: result
+    changed_when: false
+
+  - name: Change ingress-nginx-controller service type to {{ service_type }}
+    when: result['stdout'] is defined and result['stdout'] != service_type
+    shell: |
+      kubectl --kubeconfig=/etc/kubernetes/admin.conf \
+      get svc -n ingress-nginx ingress-nginx-controller -o json | jq -r '.spec.type="{{ service_type }}"' | yj -jy | \
+      kubectl --kubeconfig=/etc/kubernetes/admin.conf apply -f -
+
+# https://kubernetes.github.io/ingress-nginx/deploy/#bare-metal

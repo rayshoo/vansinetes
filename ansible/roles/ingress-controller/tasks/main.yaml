@@ -1,0 +1,5 @@
+---
+- name: Install {{ item['name'] }} ingress controller
+  when: ansible_hostname == groups['ansible_master'][0]
+  include: install.yaml
+  with_items: "{{ ingress_controller }}"

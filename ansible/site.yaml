@@ -33,3 +33,4 @@
   - role: builder
   - role: registry
   - role: metallb
+  - role: ingress-controller
