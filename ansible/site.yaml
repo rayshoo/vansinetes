@@ -32,7 +32,7 @@
 
   - role: runtime
   - role: kubernetes
-  - role: builder
+  - role: utils/builder
   - role: utils/skopeo
   - role: utils/compose
   - role: registry

@@ -1,5 +1,5 @@
 ---
 - when: ansible_hostname == groups['ansible_master'][0]
   include_role:
-    name: builder/roles/{{ item }}
+    name: utils/builder/roles/{{ item }}
   with_items: "{{ builder }}"
