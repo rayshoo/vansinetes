@@ -1,0 +1,46 @@
+---
+- when: target['user'] == 'root'
+  block:
+  - name: Check current authentication store state - root
+    become: yes
+    shell: git config --global --list | grep credential.helper
+    register: result
+    changed_when: false
+    failed_when: false
+  - name: authentication store - root
+    become: yes
+    when:
+    - result['stdout'] is defined
+    - result['stdout'] != 'credential.helper=store'
+    - git['auth_store']
+    shell: git config --global credential.helper store
+  - name: unset authentication store - root
+    become: yes
+    when:
+    - result['stdout'] is defined
+    - result['stdout'] != ''
+    - not git['auth_store']
+    shell: git config --global --unset credential.helper
+
+- when: target['user'] != 'root'
+  block:
+  - name: Check current authentication store state - {{ target['user'] }}
+    become: no
+    shell: git config --global --list | grep credential.helper
+    register: result
+    changed_when: false
+    failed_when: false
+  - name: authentication store - {{ target['user'] }}
+    become: no
+    when:
+    - result['stdout'] is defined
+    - result['stdout'] != 'credential.helper=store'
+    - git['auth_store']
+    shell: git config --global credential.helper store
+  - name: unset authentication store - {{ target['user'] }}
+    become: no
+    when:
+    - result['stdout'] is defined
+    - result['stdout'] != ''
+    - not git['auth_store']
+    shell: git config --global --unset credential.helper
