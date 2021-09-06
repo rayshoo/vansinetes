@@ -1,7 +1,6 @@
 ---
 dependencies:
   - role: common/os-check
-  - role: common/download
   - role: runtime/roles/runc
   - role: utils/yj
   - role: utils/jq

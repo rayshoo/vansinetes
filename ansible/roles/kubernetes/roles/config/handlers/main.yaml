@@ -1,8 +1,38 @@
 ---
-- name: kubelet restart
+- name: restart containerd
+  when: runtime == 'containerd'
+  systemd:
+    daemon_reload: yes
+    name: containerd
+    state: restarted
+    enabled: yes
+  ignore_errors: yes
+  listen: restart runtime, kubelet
+
+- name: restart docker
+  when: runtime == 'docker'
+  systemd:
+    daemon_reload: yes
+    name: docker
+    state: restarted
+    enabled: yes
+  ignore_errors: yes
+  listen: restart runtime, kubelet
+
+- name: restart cri-o
+  when: runtime == 'cri-o'
+  systemd:
+    daemon_reload: yes
+    name: crio
+    state: restarted
+    enabled: yes
+  listen: restart runtime, kubelet
+
+- name: restart kubelet
   systemd:
     daemon_reload: yes
     name: kubelet
     state: restarted
     enabled: yes
   ignore_errors: yes
+  listen: restart runtime, kubelet

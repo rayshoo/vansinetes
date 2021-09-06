@@ -2,5 +2,6 @@
 allow_duplicates: yes
 dependencies:
   - role: common/os-check
-  - role: utils/git
   - role: common/download
+  - role: utils/vim
+  - role: utils/git

@@ -1,2 +1,4 @@
 ---
 allow_duplicates: yes
+dependencies:
+  - role: utils/vim

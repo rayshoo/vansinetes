@@ -13,7 +13,7 @@
       - /etc/systemd/system
       - /lib/systemd/system
     failed_when: false
-    notify: kubelet restart
+    notify: restart kubelet
 
   - name: add systemd cgroup driver
     replace:
@@ -27,7 +27,7 @@
       - /etc/systemd/system
       - /lib/systemd/system
     failed_when: false
-    notify: kubelet restart
+    notify: restart kubelet
 
 - when: not systemd_cgroup
   block:
@@ -43,7 +43,7 @@
       - /etc/systemd/system
       - /lib/systemd/system
     failed_when: false
-    notify: kubelet restart
+    notify: restart kubelet
 
   - name: add cgroupfs cgroup driver
     replace:
@@ -57,4 +57,4 @@
       - /etc/systemd/system
       - /lib/systemd/system
     failed_when: false
-    notify: kubelet restart
+    notify: restart kubelet

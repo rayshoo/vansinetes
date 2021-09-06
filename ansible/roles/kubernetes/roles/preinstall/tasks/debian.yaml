@@ -39,7 +39,7 @@
       - kubectl{{ '=' + version['kubectl'] + '-00' if version['kubectl'] is defined and version['kubectl'] != 'latest' else '' }}
       - kubernetes-cni{{ '=' + version['kubernetes_cni'] + '-00' if version['kubernetes_cni'] is defined and version['kubernetes_cni'] != 'latest' else '' }}
     state: present
-  notify: kubelet restart
+  notify: restart kubelet
 
 - name: Hold kubelet, kubeadm, kubectl, kubernetes-cni
   dpkg_selections:

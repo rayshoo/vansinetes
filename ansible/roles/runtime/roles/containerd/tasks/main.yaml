@@ -1,4 +1,14 @@
 ---
+- name: Ensure downloads directory exists
+  file:
+    path: "{{ local['home'] }}/downloads"
+    owner: "{{ local['user'] }}"
+    group: "{{ local['user'] }}"
+    state: directory
+    mode: 0750
+  delegate_to: "{{ groups['ansible_master'][0] }}"
+  run_once: yes
+
 - name: Download binaries
   get_url:
     url: https://github.com/containerd/containerd/releases/download/v{{ version['containerd'] }}/containerd-{{ version['containerd'] }}-linux-amd64.tar.gz

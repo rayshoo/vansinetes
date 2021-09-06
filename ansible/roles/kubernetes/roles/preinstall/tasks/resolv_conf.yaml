@@ -52,7 +52,7 @@
       - /etc/systemd/system
       - /lib/systemd/system
     failed_when: false
-    notify: kubelet restart
+    notify: restart kubelet
 
   - name: set kubelet resolv-conf to systemd-resolved
     replace:
@@ -66,7 +66,7 @@
       - /etc/systemd/system
       - /lib/systemd/system
     failed_when: false
-    notify: kubelet restart
+    notify: restart kubelet
 
 - when: not systemd_resolved
   block:
@@ -120,7 +120,7 @@
       - /etc/systemd/system
       - /lib/systemd/system
     failed_when: false
-    notify: kubelet restart
+    notify: restart kubelet
 
   - name: set kubelet resolv-conf to default resolv
     replace:
@@ -134,4 +134,4 @@
       - /etc/systemd/system
       - /lib/systemd/system
     failed_when: false
-    notify: kubelet restart
+    notify: restart kubelet
