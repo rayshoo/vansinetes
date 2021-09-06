@@ -40,6 +40,8 @@ IaC (Infra as Code) tool designed for easy and fast Kubernetes development, lear
 ### [sclevine/yj](https://github.com/sclevine/yj)
 ### [stedolan/jq](https://github.com/stedolan/jq)
 ### [GoogleContainerTools/kaniko](https://github.com/GoogleContainerTools/kaniko)
+### [derailed/k9s](https://github.com/derailed/k9s)
+### [stern/stern](https://github.com/stern/stern)
 ### [containers/buildah](https://github.com/containers/buildah)
 ### [containers/podman](https://github.com/containers/podman)
 ### [containers/skopeo](https://github.com/containers/skopeo)
