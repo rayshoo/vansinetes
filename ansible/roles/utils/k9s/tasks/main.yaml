@@ -14,7 +14,7 @@
       dest: "{{ local['home'] }}/downloads/k9s"
       owner: "{{ local['user'] }}"
       group: "{{ local['user'] }}"
-      mode: 0755
+      mode: 0664
   - name: Unarchive k9s_{{ ansible_system }}_{{ ansible_architecture }}.tar.gz
     unarchive:
       src: "{{ local['home'] }}/downloads/k9s/k9s_{{ ansible_system }}_{{ ansible_architecture }}.tar.gz"
