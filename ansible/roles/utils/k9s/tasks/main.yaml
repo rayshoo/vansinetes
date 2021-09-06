@@ -1,0 +1,32 @@
+---
+- when: ansible_hostname == groups['ansible_master'][0]
+  block:
+  - name: Ensure downloads/k9s directory exists
+    file:
+      path: "{{ local['home'] }}/downloads/k9s"
+      owner: "{{ local['user'] }}"
+      group: "{{ local['user'] }}"
+      state: directory
+      mode: 0750
+  - name: Download k9s_{{ ansible_system }}_{{ ansible_architecture }}.tar.gz
+    get_url:
+      url: https://github.com/derailed/k9s/releases/download/v{{ version['k9s'] }}/k9s_{{ ansible_system }}_{{ ansible_architecture }}.tar.gz
+      dest: "{{ local['home'] }}/downloads/k9s"
+      owner: "{{ local['user'] }}"
+      group: "{{ local['user'] }}"
+      mode: 0755
+  - name: Unarchive k9s_{{ ansible_system }}_{{ ansible_architecture }}.tar.gz
+    unarchive:
+      src: "{{ local['home'] }}/downloads/k9s/k9s_{{ ansible_system }}_{{ ansible_architecture }}.tar.gz"
+      dest: "{{ local['home'] }}/downloads/k9s"
+      owner: "{{ local['user'] }}"
+      group: "{{ local['user'] }}"
+
+- name: Copy k9s binary in path
+  when: ansible_hostname in groups['master']
+  copy:
+    src: "{{ local['home'] }}/downloads/k9s/k9s"
+    dest: /usr/local/bin/k9s
+    owner: root
+    group: root
+    mode: 0755

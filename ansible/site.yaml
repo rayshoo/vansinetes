@@ -1,38 +1,46 @@
 ---
 - name: ansible ssh settings
   hosts: cluster
-  gather_facts: yes
   serial: 1
   roles:
   - role: common/target/default
   - role: ssh
-  - role: common/target/root
-  - role: ssh
+  ### root user ssh key trade ###
+  # - role: common/target/root
+  # - role: ssh
 
-- name: kubernetes install, custom settings
+- name: custom settings
   hosts: cluster
   gather_facts: no
-  become: yes 
+  become: yes
   roles:
-  - role: utils/git
-  - role: utils/vim
   - role: custom/motd
-
-  # root user custom settings
+  - role: common/target/default
+  - role: custom/vim/vim-plugins
+  - role: custom/vim/vim-custom
+  - role: custom/git
+  - role: custom/alias
+  ### root user custom settings ###
   # - role: common/target/root
   # - role: custom/vim/vim-plugins
   # - role: custom/vim/vim-custom
   # - role: custom/git
   # - role: custom/alias
 
-  - role: common/target/default
-  - role: custom/vim/vim-plugins
-  - role: custom/vim/vim-custom
-  - role: custom/git
-  - role: custom/alias
-
+- name: kubernetes install
+  hosts: cluster
+  gather_facts: no
+  become: yes
+  roles:
   - role: runtime
   - role: kubernetes
+
+- name: utils, components install
+  hosts: cluster
+  gather_facts: no
+  become: yes
+  roles:
+  - role: utils/k9s
   - role: utils/builder
   - role: utils/skopeo
   - role: utils/compose
