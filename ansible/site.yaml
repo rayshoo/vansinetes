@@ -41,6 +41,7 @@
   become: yes
   roles:
   - role: utils/k9s
+  - role: utils/stern
   - role: utils/builder
   - role: utils/skopeo
   - role: utils/compose

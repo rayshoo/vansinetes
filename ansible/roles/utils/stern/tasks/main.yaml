@@ -1,0 +1,32 @@
+---
+- when: ansible_hostname == groups['ansible_master'][0]
+  block:
+  - name: Ensure downloads/stern directory exists
+    file:
+      path: "{{ local['home'] }}/downloads/stern"
+      owner: "{{ local['user'] }}"
+      group: "{{ local['user'] }}"
+      state: directory
+      mode: 0750
+  - name: Download stern_{{ version['stern'] }}_linux_amd64.tar.gz
+    get_url:
+      url: https://github.com/stern/stern/releases/download/v{{ version['stern'] }}/stern_{{ version['stern'] }}_linux_amd64.tar.gz
+      dest: "{{ local['home'] }}/downloads/stern/stern_{{ version['stern'] }}_linux_amd64.tar.gz"
+      owner: "{{ local['user'] }}"
+      group: "{{ local['user'] }}"
+      mode: 0664
+  - name: Unarchive stern_{{ version['stern'] }}_linux_amd64.tar.gz
+    unarchive:
+      src: "{{ local['home'] }}/downloads/stern/stern_{{ version['stern'] }}_linux_amd64.tar.gz"
+      dest: "{{ local['home'] }}/downloads/stern"
+      owner: "{{ local['user'] }}"
+      group: "{{ local['user'] }}"
+
+- name: Copy stern binary in path
+  when: ansible_hostname in groups['master']
+  copy:
+    src: "{{ local['home'] }}/downloads/stern/stern_{{ version['stern'] }}_linux_amd64/stern"
+    dest: /usr/local/bin/stern
+    owner: root
+    group: root
+    mode: 0755
