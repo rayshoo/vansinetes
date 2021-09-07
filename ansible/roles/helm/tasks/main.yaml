@@ -1,0 +1,46 @@
+---
+- when: ansible_hostname == groups['ansible_master'][0]
+  block:
+  - name: Ensure downloads/helm directory exists
+    file:
+      path: "{{ local['home'] }}/downloads/helm"
+      owner: "{{ local['user'] }}"
+      group: "{{ local['user'] }}"
+      state: directory
+      mode: 0750
+  - name: Download helm-v{{ version['helm'] }}-linux-amd64.tar.gz
+    get_url:
+      url: https://get.helm.sh/helm-v{{ version['helm'] }}-linux-amd64.tar.gz
+      dest: "{{ local['home'] }}/downloads/helm"
+      owner: "{{ local['user'] }}"
+      group: "{{ local['user'] }}"
+      mode: 0664
+  - name: Unarchive helm-v{{ version['helm'] }}-linux-amd64.tar.gz
+    unarchive:
+      src: "{{ local['home'] }}/downloads/helm/helm-v{{ version['helm'] }}-linux-amd64.tar.gz"
+      dest: "{{ local['home'] }}/downloads/helm"
+      owner: "{{ local['user'] }}"
+      group: "{{ local['user'] }}"
+  - name: Copy helm binary in path
+    copy:
+      src: "{{ local['home'] }}/downloads/helm/linux-amd64/helm"
+      dest: /usr/local/bin/helm
+      owner: root
+      group: root
+      mode: 0755
+  - when: version['helm'] is version('3.0','<',strict=True)
+    block:
+    - name: Copy rbac-config.yaml in downloads/helm
+      copy:
+        src: rbac-config.yaml
+        dest: "{{ local['home'] }}/downloads/helm/rbac-config.yaml"
+        owner: "{{ local['user'] }}"
+        group: "{{ local['user'] }}"
+        mode: 0644
+    - name: Create service account
+      shell: |
+        kubectl --kubeconfig=/etc/kubernetes/admin.conf \
+        apply -f {{ local['home'] }}/downloads/helm/rbac-config.yaml
+      register: result
+      failed_when: false
+      changed_when: "' created' in result['stdout']"

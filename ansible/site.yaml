@@ -20,12 +20,12 @@
   - role: custom/vim/vim-custom
   - role: custom/git
   - role: custom/alias
-  ### root user custom settings ###
-  # - role: common/target/root
-  # - role: custom/vim/vim-plugins
-  # - role: custom/vim/vim-custom
-  # - role: custom/git
-  # - role: custom/alias
+
+  - role: common/target/root
+  - role: custom/vim/vim-plugins
+  - role: custom/vim/vim-custom
+  - role: custom/git
+  - role: custom/alias
 
 - name: kubernetes install
   hosts: cluster
@@ -47,6 +47,7 @@
   - role: utils/skopeo
   - role: utils/compose
   - role: registry
+  - role: helm
   - role: metallb
   - role: ingress-controller
   tasks:
