@@ -1,3 +1,4 @@
 ---
 dependencies:
 - role: utils/bash_completion
+- role: common/target/default
