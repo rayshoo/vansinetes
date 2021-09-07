@@ -1,0 +1,73 @@
+---
+- when: ansible_hostname == groups['ansible_master'][0]
+  block:
+  - name: Ensure downloads/dashboard directory exists
+    file:
+      path: "{{ local['home'] }}/downloads/dashboard/{{ version['dashboard'] }}"
+      owner: "{{ local['user'] }}"
+      group: "{{ local['user'] }}"
+      state: directory
+      mode: 0750
+
+  - name: Download kubernetes dashboard install yaml file(version < 2.0)
+    when: version['dashboard'] is version('2.0','<',strict=True)
+    get_url:
+      url: https://raw.githubusercontent.com/kubernetes/dashboard/v{{ version['dashboard'] }}/src/deploy/recommended/kubernetes-dashboard.yaml
+      dest: "{{ local['home'] }}/downloads/dashboard/{{ version['dashboard'] }}/install.yaml"
+      owner: "{{ local['user'] }}"
+      group: "{{ local['user'] }}"
+      mode: 0664   
+  - name: Download kubernetes dashboard install yaml file(version >= 2.0)
+    when: version['dashboard'] is version('2.0','>=',strict=True)
+    get_url:
+      url: https://raw.githubusercontent.com/kubernetes/dashboard/v{{ version['dashboard'] }}/aio/deploy/recommended.yaml
+      dest: "{{ local['home'] }}/downloads/dashboard/{{ version['dashboard'] }}/install.yaml"
+      owner: "{{ local['user'] }}"
+      group: "{{ local['user'] }}"
+      mode: 0664
+
+  - name: Copy {{ item }} in downloads/dashboard/{{ version ['dashboard'] }}
+    copy:
+      src: "{{ item }}"
+      dest: "{{ local['home'] }}/downloads/dashboard/{{ version['dashboard'] }}/{{ item }}"
+      owner: "{{ local['user'] }}"
+      group: "{{ local['user'] }}"
+      mode: 0664
+    with_items:
+    - dashboard-service-account.yaml
+    - dashboard-clusterrolebinding.yaml
+
+  - name: Install kubernetes dashboard
+    shell: kubectl --kubeconfig=/etc/kubernetes/admin.conf apply -f {{ local['home'] }}/downloads/dashboard/{{ version['dashboard'] }}/{{ item }}
+    with_items:
+    - install.yaml
+    - dashboard-service-account.yaml
+    - dashboard-clusterrolebinding.yaml
+    register: result
+    failed_when: false
+    changed_when: "' created' in result['stdout']"
+
+  - name: Install kubernetes dashboard
+    shell: |
+      kubectl --kubeconfig=/etc/kubernetes/admin.conf \
+      patch svc -n kubernetes-dashboard kubernetes-dashboard \
+      --type='json' -p '[{"op":"replace","path":"/spec/type","value":"{{ dashboard['service_type'] }}"}]'
+    register: result
+    failed_when: false
+    changed_when: "not '(no change)' in result['stdout']"
+  
+  - name: Get dashboard service account token
+    shell: |
+      kubectl --kubeconfig=/etc/kubernetes/admin.conf \
+      get -n kube-system secret \
+        $(kubectl --kubeconfig=/etc/kubernetes/admin.conf \
+        get sa -n kube-system -l service=dashboard -o jsonpath={.items[0].secrets[0].name}) \
+      -o jsonpath={.data.token} | base64 -d
+    register: result
+    changed_when: false
+
+  - set_fact:
+      alert: "Dashboard token: {{ result['stdout'] }}"
+
+# kubectl patch svc -n kubernetes-dashboard kubernetes-dashboard --type='json' -p '[{"op":"replace","path":"/spec/type","value":"NodePort"}]'
+# kubectl get -n kube-system secret $(kubectl get sa -n kube-system -l service=dashboard -o jsonpath={.items[0].secrets[0].name}) -o jsonpath={.data.token} | base64 -d

@@ -1,0 +1,6 @@
+---
+dashboard:
+  service_type: LoadBalancer
+
+version:
+  dashboard: 2.3.1

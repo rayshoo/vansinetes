@@ -42,9 +42,15 @@
   roles:
   - role: utils/k9s
   - role: utils/stern
+  - role: utils/dashboard
   - role: utils/builder
   - role: utils/skopeo
   - role: utils/compose
   - role: registry
   - role: metallb
   - role: ingress-controller
+  tasks:
+  - when: alert is defined and alert != ''
+    name: alert
+    debug:
+      msg: "{{ alert }}"

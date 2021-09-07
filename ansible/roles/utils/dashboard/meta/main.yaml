@@ -1,0 +1,4 @@
+---
+dependencies:
+  - role: metallb
+    when: dashboard['service_type'] == 'LoadBalancer'
