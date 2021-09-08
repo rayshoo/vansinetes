@@ -40,12 +40,12 @@
   gather_facts: no
   become: yes
   roles:
-  - role: utils/k9s
-  - role: utils/stern
-  - role: utils/dashboard
-  - role: utils/builder
-  - role: utils/skopeo
-  - role: utils/compose
+  # - role: utils/k9s
+  # - role: utils/stern
+  # - role: utils/dashboard
+  # - role: utils/builder
+  # - role: utils/skopeo
+  # - role: utils/compose
   - role: registry
   - role: helm
   - role: metallb
