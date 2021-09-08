@@ -32,7 +32,7 @@ spec:
                 values:
                 - registry
       containers:
-      - image: registry:latest
+      - image: registry:{{ version['registry'] }}
         imagePullPolicy: Always
         name: registry
 {% if registry['allow_delete'] %}

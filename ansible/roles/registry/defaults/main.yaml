@@ -1,6 +1,6 @@
 ---
 version:
-  registry: latest
+  registry: 2.7.1
 
 registry:
   allow_insecure: yes
