@@ -1,0 +1,51 @@
+---
+- name: check registry config exists
+  shell: cat /etc/containers/registries.conf | yj -tji | jq -r '.registry'
+  register: result
+  changed_when: false
+  
+- when: result['stdout'] == 'null'
+  block:
+  - name: Register /etc/containers/registries.conf
+    shell: cat /etc/containers/registries.conf
+    register: registries_conf
+    changed_when: false
+  - name: remove comment and add {{ groups['ansible_master'][0] }}:5000 registry config
+    when: registries_conf['stdout'] | regex_search('^#[ ]*\[\[registry\]\]', multiline=True)
+    replace:
+      dest: /etc/containers/registries.conf
+      regexp: ^#[ ]*\[\[registry\]\]
+      replace: "[[registry]]\\nlocation = \"m1:5000\"\\ninsecure = true"
+      backup: yes 
+    notify: restart podman.socket
+  - name: add {{ groups['ansible_master'][0] }}:5000 registry config
+    when: not registries_conf['stdout'] | regex_search('^#[ ]*\[\[registry\]\]', multiline=True)
+    blockinfile:
+      dest: /etc/containers/registries.conf
+      block: |
+        [[registry]]
+        location = "{{ groups['ansible_master'][0] }}:5000"
+        insecure = true
+      backup: yes
+      insertafter: unqualified-search-registries[ ]*=[ ]*\[(?:.*\n?)*?\]
+    notify: restart podman.socket
+
+- when: result['stdout'] != 'null'
+  block:
+  - set_fact:
+      already_exists: false
+  - set_fact:
+      count: -1
+  - include: containers-loop.yaml 
+    with_items: "{{ result['stdout'] | from_json }}"
+  - name: add {{ groups['ansible_master'][0] }}:5000 registry config
+    when: not already_exists
+    blockinfile:
+      dest: /etc/containers/registries.conf
+      block: |
+        [[registry]]
+        location = "{{ groups['ansible_master'][0] }}:5000"
+        insecure = true
+      backup: yes
+      insertbefore: ^[ ]*\[\[registry\]\]
+    notify: restart podman.socket

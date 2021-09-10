@@ -9,6 +9,7 @@
   until: result['changed'] == true
   retries: 5
   delay: 3
+  notify: restart podman.socket
 
 - name: Install podman(RedHat)
   when: ansible_os_family == "RedHat"
@@ -17,3 +18,4 @@
     allow_downgrade: yes
     name: podman{{ '-' + version['podman'] if version['podman'] != 'latest' else '' }}
     state: "{{ 'present' if version['podman'] != 'latest' else 'latest' }}"
+  notify: restart podman.socket
