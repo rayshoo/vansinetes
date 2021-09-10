@@ -1,0 +1,6 @@
+---
+- name: restart podman.socket
+  systemd:
+    name: podman.socket
+    state: restarted
+    enabled: yes

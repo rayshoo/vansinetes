@@ -59,17 +59,31 @@
         immediate: yes
         state: enabled
       failed_when: false
-    
-    - name: set registry config on runtime - 1-1
-      when: runtime == 'docker' or 'docker' in builder
-      include: docker.yaml
 
-    - name: set registry config on runtime - 1-2
-      when: runtime != 'docker'
-      include: "{{ runtime }}.yaml"
+  - set_fact:
+      units:
+      - { unit_name: containerd, unit_type: service, task_name: containerd }
+      - { unit_name: docker, unit_type: service, task_name: docker }
+      - { unit_name: crio, unit_type: service, task_name: cri-o }
+      - { unit_name: podman, unit_type: socket, task_name: containers }
 
-  - name: set registry config on runtime - 2
-    when: not ansible_hostname == groups['ansible_master'][0]
-    include: "{{ runtime }}.yaml"
+  - name: check service installed
+    shell: systemctl list-units | grep {{ item['unit_name'] }}.{{ item['unit_type'] }}
+    register: unit_result
+    changed_when: false
+    failed_when: false
+    with_items: "{{ units }}"
+
+  - when: unit[1]['stdout'] != ''
+    include: "{{ units[unit[0]]['task_name'] }}.yaml"
+    with_indexed_items: "{{ unit_result['results'] }}"
+    loop_control:
+      loop_var: unit
+
+  - name: check buildah installed
+    package_facts:
+      manager: auto
+  - when: "'buildah' in ansible_facts['packages']"
+    include: containers.yaml
 
   - meta: flush_handlers

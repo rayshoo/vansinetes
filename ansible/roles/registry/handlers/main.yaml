@@ -16,3 +16,10 @@
     name: crio
     state: restarted
     enabled: yes
+
+- name: restart podman.socket
+  systemd:
+    name: podman.socket
+    state: restarted
+    enabled: yes
+  failed_when: false
