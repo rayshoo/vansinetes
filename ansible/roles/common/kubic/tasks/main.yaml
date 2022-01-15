@@ -4,7 +4,7 @@
   - name: generate kubic apt repo file
     when: ansible_distribution == 'Ubuntu'
     copy:
-      content: deb https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/{{ 'xUbuntu_' + os_version }}/ /
+      content: deb http://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/{{ 'xUbuntu_' + os_version }}/ /
       dest: /etc/apt/sources.list.d/devel:kubic:libcontainers:stable.list
       owner: root
       group: root
