@@ -1,0 +1,198 @@
+---
+- name : Configure hosts file
+  lineinfile:
+    dest: /etc/hosts
+    line: "{{ hostvars[groups['ansible_master'][0]]['ansible_host'] + ' ' + ssl['common_name'] }}"
+    insertbefore: BOF
+
+- when: ansible_hostname == groups['ansible_master'][0]
+  block:
+  - name: Ensure openssl directory exists
+    file:
+      path: "{{ local['home'] }}/downloads/openssl"
+      state: directory
+
+  - when: ssl['force']
+    name: Delete openssl files already generated 
+    file:
+      path: "{{ item }}"
+      state: absent
+    with_items:
+    - "{{ local['home'] }}/downloads/openssl/RootCA.key"
+    - "{{ local['home'] }}/downloads/openssl/RootCA.pub"
+    - "{{ local['home'] }}/downloads/openssl/RootCA.csr"
+    - "{{ local['home'] }}/downloads/openssl/RootCA.crt"
+    - "{{ local['home'] }}/downloads/openssl/{{ ssl['common_name'] }}.key"
+    - "{{ local['home'] }}/downloads/openssl/{{ ssl['common_name'] }}.pub"
+    - "{{ local['home'] }}/downloads/openssl/{{ ssl['common_name'] }}.csr"
+    - "{{ local['home'] }}/downloads/openssl/{{ ssl['common_name'] }}.crt"
+    - "{{ local['home'] }}/downloads/openssl/{{ ssl['common_name'] }}.p12"
+
+  - when: ansible_version['full'] is version('2.9','<')
+    name: "Generate RootCA private key(backend: pyopenssl)"
+    openssl_privatekey:
+      path: "{{ local['home'] }}/downloads/openssl/RootCA.key"
+      passphrase: "{{ ssl['ca_cert_pass'] }}"
+      select_crypto_backend: pyopenssl
+      cipher: aes256
+      size: 2048
+    become: yes
+  - when: ansible_version['full'] is version('2.9','>=')
+    name: "Generate RootCA private key(backend: auto)"
+    openssl_privatekey:
+      path: "{{ local['home'] }}/downloads/openssl/RootCA.key"
+      passphrase: "{{ ssl['ca_cert_pass'] }}"
+      cipher: auto
+      size: 2048
+    become: yes
+
+  - when: ssl['public_key']
+    name: Generate RootCA public key
+    openssl_publickey:
+      path: "{{ local['home'] }}/downloads/openssl/RootCA.pub"
+      privatekey_path: "{{ local['home'] }}/downloads/openssl/RootCA.key"
+      privatekey_passphrase: "{{ ssl['ca_cert_pass'] }}"
+
+  - name: Generate RootCA csr
+    openssl_csr:
+      path: "{{ local['home'] }}/downloads/openssl/RootCA.csr"
+      privatekey_path: "{{ local['home'] }}/downloads/openssl/RootCA.key"
+      privatekey_passphrase: "{{ ssl['ca_cert_pass'] }}"
+      country_name: KO
+      organization_name: vansinetes
+      email_address: fire@dragonz.dev
+      common_name: vansinetes
+      basic_constraints:
+      - CA:TRUE
+
+  - name: Generate RootCA cert
+    openssl_certificate:
+      path: "{{ local['home'] }}/downloads/openssl/RootCA.crt"
+      privatekey_path: "{{ local['home'] }}/downloads/openssl/RootCA.key"
+      privatekey_passphrase: "{{ ssl['ca_cert_pass'] }}"
+      csr_path: "{{ local['home'] }}/downloads/openssl/RootCA.csr"
+      provider: selfsigned
+
+  - when: ansible_version['full'] is version('2.9','<')
+    name: "Generate {{ ssl['common_name'] }} private key(backend: pyopenssl)"
+    openssl_privatekey:
+      path: "{{ local['home'] }}/downloads/openssl/{{ ssl['common_name'] }}.key"
+      passphrase: "{{ ssl['sub_cert_pass'] }}"
+      select_crypto_backend: pyopenssl
+      cipher: aes256
+      size: 2048 
+  - when: ansible_version['full'] is version('2.9','>=')
+    name: "Generate {{ ssl['common_name'] }} private key(backend: auto)"
+    openssl_privatekey:
+      path: "{{ local['home'] }}/downloads/openssl/{{ ssl['common_name'] }}.key"
+      passphrase: "{{ ssl['sub_cert_pass'] }}"
+      select_crypto_backend: auto
+      cipher: auto
+      size: 2048 
+
+  - when: ssl['public_key']
+    name: Generate {{ ssl['common_name'] }} public key
+    openssl_publickey:
+      path: "{{ local['home'] }}/downloads/openssl/{{ ssl['common_name'] }}.pub"
+      privatekey_path: "{{ local['home'] }}/downloads/openssl/{{ ssl['common_name'] }}.key"
+      privatekey_passphrase: "{{ ssl['sub_cert_pass'] }}"
+
+  - name: Generate {{ ssl['common_name'] }} csr
+    openssl_csr:
+      path: "{{ local['home'] }}/downloads/openssl/{{ ssl['common_name'] }}.csr"
+      privatekey_path: "{{ local['home'] }}/downloads/openssl/{{ ssl['common_name'] }}.key"
+      privatekey_passphrase: "{{ ssl['sub_cert_pass'] }}"
+      country_name: KO
+      organization_name: "{{ ssl['common_name'] }}"
+      email_address: admin@{{ ssl['common_name'] }}
+      common_name: "{{ ssl['common_name'] }}"
+      subject_alt_name:
+      - DNS:www.{{ ssl['common_name'] }}
+      - DNS:{{ ssl['common_name'] }}
+      key_usage:
+      - digitalSignature
+      - nonRepudiation
+      - keyEncipherment
+      - dataEncipherment
+
+  - name: Generate {{ ssl['common_name'] }} cert
+    openssl_certificate:
+      path: "{{ local['home'] }}/downloads/openssl/{{ ssl['common_name'] }}.crt"
+      csr_path: "{{ local['home'] }}/downloads/openssl/{{ ssl['common_name'] }}.csr"
+      ownca_path: "{{ local['home'] }}/downloads/openssl/RootCA.crt"
+      ownca_privatekey_path: "{{ local['home'] }}/downloads/openssl/RootCA.key"
+      ownca_privatekey_passphrase: "{{ ssl['ca_cert_pass'] }}"
+      provider: ownca
+
+  - when: ansible_version['full'] is version('2.9','<')
+    name: Ensure that the existing certificate has a certain domain in its subjectAltName and keyUsage
+    openssl_certificate:
+      path: "{{ local['home'] }}/downloads/openssl/{{ ssl['common_name'] }}.crt"
+      provider: assertonly
+      subject_alt_name:
+      - DNS:www.{{ ssl['common_name'] }}
+      - DNS:{{ ssl['common_name'] }}
+      key_usage:
+      - digitalSignature
+      - nonRepudiation
+      - keyEncipherment
+      - dataEncipherment
+
+  - when: ssl['pkcs12']
+    name: Build PKCS12 file containing key and cert
+    openssl_pkcs12:
+      action: export
+      path: "{{ local['home'] }}/downloads/openssl/{{ ssl['common_name'] }}.p12"
+      friendly_name: "{{ ssl['common_name'] }}"
+      passphrase: "{{ ssl['sub_cert_pass'] }}"
+      privatekey_path: "{{ local['home'] }}/downloads/openssl/{{ ssl['common_name'] }}.key"
+      privatekey_passphrase: "{{ ssl['sub_cert_pass'] }}"
+      certificate_path: "{{ local['home'] }}/downloads/openssl/{{ ssl['common_name'] }}.crt"
+      other_certificates: "{{ local['home'] }}/downloads/openssl/RootCA.crt"
+      state: present
+      mode: 0644
+
+- when: ansible_os_family == "Debian"
+  block:
+  - name: Copy RootCA cert to all hosts(Debian)
+    copy:
+      src: "{{ local['home'] }}/downloads/openssl/RootCA.crt"
+      dest: /usr/share/ca-certificates/RootCA.crt
+      owner: "{{ local['user'] }}"
+      group: "{{ local['user'] }}"
+      mode: 0644
+  - name: Add RootCA in /etc/ca-certificates.conf
+    lineinfile:
+      dest: /etc/ca-certificates.conf
+      line: RootCA.crt
+      insertafter: EOF
+      backup: yes
+  - name: Update ca-certificates list
+    shell: update-ca-certificates
+    register: result
+    changed_when:
+    - "' added' in result['stdout_lines'][1]"
+    - result['stdout_lines'][1].split(' added')[0] != '0'
+
+- when: ansible_os_family == "RedHat"
+  block:
+  - name: Copy RootCA cert to all hosts(RedHat)
+    copy:
+      src: "{{ local['home'] }}/downloads/openssl/RootCA.crt"
+      dest: /etc/pki/ca-trust/source/anchors/RootCA.crt
+      owner: "{{ local['user'] }}"
+      group: "{{ local['user'] }}"
+      mode: 0644
+  - name: Get cert text
+    shell: "{{ item }}"
+    with_items:
+    - cat RootCA.crt
+    - cat /etc/pki/tls/cert.pem
+    register: result
+    changed_when: false
+  - name: Update ca-trust list
+    shell: "{{ item }}"
+    with_items:
+    - update-ca-trust enable
+    - update-ca-trust extract
+    changed_when: not result['results'][0]['stdout'] in result['results'][1]['stdout']

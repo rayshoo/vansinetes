@@ -1,13 +1,23 @@
 ---
 version:
+  nginx: latest
   registry: 2.7.1
 
 registry:
-  allow_insecure: yes
+  name: m1.dev
+  ssl:
+    enable: yes
+    cert_pass: vansinetes
   allow_delete: yes
+  auth:
+    enable: yes
+    file_name: .registry
+    account:
+    - name: admin
+      password: admin
   volume:
     path: /data/registry
     capacity: 5Gi
     storageClassName: registry-volume
     accessModes:
-      - ReadWriteOnce
+    - ReadWriteOnce

@@ -1,0 +1,83 @@
+#jinja2:lstrip_blocks: True
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: nginx
+  name: nginx
+  namespace: registry
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nginx
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: nginx
+    spec:
+      nodeName: {{ groups['ansible_master'][0] }}
+      hostNetwork: true
+      dnsPolicy: ClusterFirstWithHostNet
+      restartPolicy: Always
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - topologyKey: kubernetes.io/hostname
+            labelSelector:
+              matchExpressions:
+              - key: app
+                operator: In
+                values:
+                - nginx
+      containers:
+      - image: nginx:{{ version['nginx'] }}
+        imagePullPolicy: Always
+        name: nginx
+        env:
+        - name: REGISTRY_ADDRESS
+          valueFrom:
+            configMapKeyRef:
+              name: registry
+              key: REGISTRY_ADDRESS
+        ports:
+        - containerPort: 80
+        {% if registry['ssl']['enable'] %}
+        - containerPort: 443
+        {% endif %}
+        resources: {}
+        volumeMounts:
+        - name: registry-config
+          mountPath: /etc/nginx/nginx.conf
+          subPath: nginx.conf
+          readOnly: true
+        - name: registry-ssl
+          mountPath: /etc/nginx/conf.d/ssl
+          readOnly: true
+        - name: registry-htpasswd
+          mountPath: /etc/nginx/conf.d/htpasswd
+          readOnly: true
+      volumes:
+      - name: registry-config
+        configMap:
+          name: registry
+          defaultMode: 400 
+      - name: registry-ssl
+        secret:
+          secretName: registry
+          items:
+          - key: {{ registry['name'] }}.crt
+            path: {{ registry['name'] }}.crt
+          - key: {{ registry['name'] }}.key
+            path: {{ registry['name'] }}.key
+          - key: ssl_password
+            path: password
+      - name: registry-htpasswd
+        secret:
+          secretName: registry
+          items:
+          - key: htpasswd
+            path: .registry

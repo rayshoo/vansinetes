@@ -12,13 +12,13 @@ root_login: yes  # PermitRootLogin
 systemd_cgroup: <%= default_systemd_cgroup %>  # https://kubernetes.io/ko/docs/setup/production-environment/container-runtimes/
 systemd_resolved: <%= default_systemd_resolved %>
 nameservers:
-  - 8.8.8.8
-  - 8.8.4.4
+- 8.8.8.8
+- 8.8.4.4
 
 runtime: <%= default_runrime %>
 
 force_cluster: yes
-network_plugin: <%= cni_plugin %> 
+network_plugin: <%= cni_plugin %>
 pod_subnet: 192.168.0.0/16
 root_kubeconfig: yes
 
@@ -55,9 +55,10 @@ version:
     podman: latest
     kubernetes: 0.6.3
 
-  registry: 2.7.1
-
   helm: 3.6.3
+
+  nginx: latest
+  registry: 2.7.1
 
   metallb: 0.10.2
   
@@ -106,12 +107,32 @@ kaniko:
       - ReadWriteOnce
 
 registry:
-  allow_insecure: yes
+  name: m1.dev
+  ssl:
+    enable: yes
+    cert_pass: vansinetes
   allow_delete: yes
-  enable: yes
+  auth:
+    enable: yes
+    file_name: .registry
+    account:
+    - name: admin
+      password: admin
   volume:
     path: /data/registry
     capacity: 5Gi
     storageClassName: registry-volume
     accessModes:
-      - ReadWriteOnce
+    - ReadWriteOnce
+
+ssl:
+  force: no
+  common_name: {}
+  ca_cert_pass: vansinetes
+  sub_cert_pass: {}
+  public_key: no
+  pkcs12: no
+
+auth:
+  file_name: {}
+  account: {}

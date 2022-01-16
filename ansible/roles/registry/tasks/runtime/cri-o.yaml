@@ -15,7 +15,7 @@
     replace:
       dest: /etc/crio/crio.conf
       regexp: ^#[ ]*registries[ ]*=[ ]*"?\[[\s\#]*\]"?
-      replace: registries = ["{{ groups['ansible_master'][0] }}:5000"]
+      replace: registries = ["{{ registry['name'] }}"]
       backup: yes
     notify: restart cri-o
   - name: add registries on crio.conf
@@ -23,7 +23,7 @@
     lineinfile:
       path: /etc/crio/crio.conf
       insertafter: '[ ]*\[crio\.image\][ ]*'
-      line: registries = ["{{ groups['ansible_master'][0] }}:5000"]
+      line: registries = ["{{ registry['name'] }}"]
       backup: yes
     notify: restart cri-o
 
@@ -32,7 +32,7 @@
   - set_fact:
       already_exists: false
   - name: check registry endpoint config exists
-    when: groups['ansible_master'][0] + ':5000' in item
+    when: registry['name'] in item
     set_fact:
       already_exists: true
     with_items: "{{ result['stdout_lines'] }}"
@@ -42,7 +42,7 @@
     - name: register registry endpoint
       shell: |
         cat /etc/crio/crio.conf | yj -tji | \
-        jq -r '.crio.image.registries + ["{{ groups['ansible_master'][0] }}:5000"]'
+        jq -r '.crio.image.registries + ["{{ registry['name'] }}"]'
       register: registry_endpoint
       changed_when: false
     - name: add registries on crio.conf
@@ -53,7 +53,7 @@
         backup: yes
       notify: restart cri-o
 
-- when: registry['allow_insecure']
+- when: not registry['ssl']['enable']
   block:
   - name: check insecure_registries config exists
     shell: cat /etc/crio/crio.conf | yj -tji | jq -r '.crio.image.insecure_registries'
@@ -71,7 +71,7 @@
       replace:
         dest: /etc/crio/crio.conf
         regexp: ^#[ ]*insecure_registries[ ]*=[ ]*"?\[[\s\#]*\]"?
-        replace: insecure_registries = ["{{ groups['ansible_master'][0] }}:5000"]
+        replace: insecure_registries = ["{{ registry['name'] }}"]
         backup: yes
       notify: restart cri-o
     - name: add insecure_registries on crio.conf
@@ -79,7 +79,7 @@
       lineinfile:
         path: /etc/crio/crio.conf
         insertafter: '[ ]*\[crio\.image\][ ]*'
-        line: insecure_registries = ["{{ groups['ansible_master'][0] }}:5000"]
+        line: insecure_registries = ["{{ registry['name'] }}"]
         backup: yes
       notify: restart cri-o
 
@@ -88,7 +88,7 @@
     - set_fact:
         already_exists: false
     - name: check insecure_registries endpoint config exists
-      when: groups['ansible_master'][0] + ':5000' in item
+      when: registry['name'] in item
       set_fact:
         already_exists: true
       with_items: "{{ result['stdout_lines'] }}"
@@ -98,7 +98,7 @@
       - name: register insecure_registries endpoint
         shell: |
           cat /etc/crio/crio.conf | yj -tji | \
-          jq -r '.crio.image.insecure_registries + ["{{ groups['ansible_master'][0] }}:5000"]'
+          jq -r '.crio.image.insecure_registries + ["{{ registry['name'] }}"]'
         register: insecure_registry_endpoint
         changed_when: false
       - name: add insecure_registries on crio.conf
@@ -108,3 +108,18 @@
           replace: \1{{ insecure_registry_endpoint['stdout'] }}
           backup: yes
         notify: restart cri-o
+
+- when: registry['ssl']['enable']
+  block:
+  - name: Ensure containers cert directory exists
+    file:
+      path: /etc/containers/certs.d/{{ registry['name'] }}
+      state: directory
+      mode: 0755
+  - name: Copy RootCA cert in containers cert directory
+    copy:
+      src: "{{ local['home'] }}/downloads/openssl/RootCA.crt"
+      dest: /etc/containers/certs.d/{{ registry['name'] }}
+      owner: root
+      group: root
+      mode: 0644

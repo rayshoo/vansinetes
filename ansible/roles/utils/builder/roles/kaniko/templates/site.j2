@@ -2,7 +2,7 @@
 - hosts: localhost
   gather_facts: no
   vars:
-    registry: {{ hostvars[groups['ansible_master'][0]].ansible_host }}:5000
+    registry: {{ registry['name'] }}
     username: kaniko
     image: hello-world
     version: 

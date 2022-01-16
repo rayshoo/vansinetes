@@ -1,0 +1,58 @@
+---
+- when: ansible_hostname == groups['ansible_master'][0]
+  block:      
+  - set_fact:
+      passlib: "{{ ansible_python['executable'].split('/')[-1] + '-passlib' }}"
+
+  - when: ansible_os_family == "Debian"
+    name: install {{ passlib }}(Debian)
+    apt:
+      name: "{{ passlib }}"
+      state: present
+
+  - when: ansible_os_family == "RedHat"
+    name: install {{ passlib }}(RedHat)
+    yum:
+      name: "{{ passlib }}"
+      state: present
+
+  - name: Ensure htpasswd directory exists
+    file:
+      path: "{{ local['home'] }}/downloads/htpasswd"
+      state: directory
+
+  - name: Check {{ auth['file_name'] }} file exists
+    stat:
+      path: "{{ local['home'] }}/downloads/htpasswd/{{ auth['file_name'] }}"
+    register: stat_result
+
+  - when: stat_result['stat']['exists']
+    block:
+    - name: Get {{ auth['file_name'] }} file text
+      shell: cat {{ local['home'] }}/downloads/htpasswd/{{ auth['file_name'] }}
+      register: result
+      changed_when: false
+    - set_fact:
+        as_is_account: "{{ as_is_account | default([]) + [item.split(':')[0]] }}"
+      with_items: "{{ result['stdout_lines'] }}"
+    - set_fact:
+        to_be_account: "{{ to_be_account | default([]) + [item['name']] }}"
+      with_items: "{{ auth['account'] }}"
+    - when: not item in to_be_account
+      name: Delete account in {{ auth['file_name'] }} file
+      htpasswd:
+        path: "{{ local['home'] }}/downloads/htpasswd/{{ auth['file_name'] }}"
+        name: "{{ item }}"
+        state: absent
+      with_items: "{{ as_is_account }}"
+
+  - name: Create account in {{ auth['file_name'] }} file
+    htpasswd:
+      path: "{{ local['home'] }}/downloads/htpasswd/{{ auth['file_name'] }}"
+      name: "{{ item['name'] }}"
+      password: "{{ item['password'] }}"
+      crypt_scheme: md5_crypt
+      owner: "{{ local['user'] }}"
+      group: "{{ local['user'] }}"
+      mode: 0644
+    with_items: "{{ auth['account'] }}"

@@ -1,0 +1,106 @@
+- name: Ensure registry directory exists
+  become: no
+  file:
+    path: "{{ local['home'] }}/downloads/registry/manifests"
+    state: directory
+    mode: 0775
+
+- name: copy registry namespace.yaml file
+  copy:
+    src: namespace.yaml
+    dest: "{{ local['home'] }}/downloads/registry/manifests/namespace.yaml"
+    owner: "{{ local['user'] }}"
+    group: "{{ local['user'] }}"
+    mode: 0664
+
+- name: generate nginx.conf file
+  template:
+    src: nginx.conf.j2
+    dest: "{{ local['home'] }}/downloads/registry/nginx.conf"
+    owner: "{{ local['user'] }}"
+    group: "{{ local['user'] }}"
+    mode: 0664
+
+- name: check configmap, secret manifest file exists
+  stat:
+    path: "{{ local['home'] }}/downloads/registry/manifests/{{ item }}"
+  with_items:
+  - configmap.yaml
+  - secret.yaml
+  register: stat_result
+
+- name: get already generated configmap, secret manifest file text
+  when: stat_result['results'][item[0]]['stat']['exists']
+  shell: cat {{ local['home'] }}/downloads/registry/manifests/{{ item[1] }}
+  changed_when: false
+  with_indexed_items:
+  - configmap.yaml
+  - secret.yaml
+  register: result
+
+- name: get configmap, secret manifest file text
+  shell: "{{ item['command'] }}"    
+  changed_when: false
+  with_items:
+  - filename: configmap.yaml
+    command: |
+      kubectl --kubeconfig=/etc/kubernetes/admin.conf -n registry \
+      create configmap registry --from-file {{ local['home'] }}/downloads/registry/nginx.conf \
+      --from-literal REGISTRY_ADDRESS=registry \
+      --dry-run=client -o yaml
+  - filename: secret.yaml
+    command: |
+      kubectl --kubeconfig=/etc/kubernetes/admin.conf -n registry \
+      create secret generic registry{{ ' --from-file htpasswd=' + local['home'] + '/downloads/htpasswd/.registry' if registry['auth']['account'] | length != 0 else '' }} \
+      --from-file {{ local['home'] }}/downloads/openssl/{{ registry['name'] }}.key \
+      --from-file {{ local['home'] }}/downloads/openssl/{{ registry['name'] }}.crt \
+      --from-literal ssl_password={{ registry['ssl']['cert_pass'] }} \
+      --dry-run=client -o yaml
+  register: manifest_result
+
+- name: generate configmap, secret manifest file
+  when: not stat_result['results'][item[0]]['stat']['exists'] or result['results'][item[0]]['stdout'] != manifest_result['results'][item[0]]['stdout']
+  copy:
+    content: "{{ manifest_result['results'][item[0]]['stdout'] }}"
+    dest: "{{ local['home'] }}/downloads/registry/manifests/{{ item[1] }}"
+    owner: "{{ local['user'] }}"
+    group: "{{ local['user'] }}"
+    mode: 0644
+  with_indexed_items:
+  - configmap.yaml
+  - secret.yaml
+
+- name: generate registry manifest file
+  template:
+    src: "{{ item }}.j2"
+    dest: "{{ local['home'] }}/downloads/registry/manifests/{{ item }}"
+    owner: "{{ local['user'] }}"
+    group: "{{ local['user'] }}"
+    mode: 0664
+  with_items:
+  - registry.yaml
+  - nginx.yaml
+
+- name: create registry manifests
+  shell: kubectl --kubeconfig=/etc/kubernetes/admin.conf apply -f {{ local['home'] }}/downloads/registry/manifests/{{ item }}
+  register: result
+  failed_when: false
+  changed_when: "' created' in result['stdout']"
+  with_items:
+  - namespace.yaml
+  - registry.yaml
+  - configmap.yaml
+  - secret.yaml
+  - nginx.yaml
+
+- name: allow required registry ports to firewalld
+  when: ansible_os_family == "RedHat"
+  firewalld:
+    service: "{{ item }}"
+    permanent: true
+    immediate: yes
+    state: enabled
+  with_items:
+  - http
+  - https
+  failed_when: false

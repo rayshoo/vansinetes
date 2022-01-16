@@ -1,0 +1,100 @@
+---
+- name: check registry config exists
+  shell: |
+    cat /etc/containerd/config.toml | yj -tji | \
+    jq -r '.plugins."io.containerd.grpc.v1.cri".registry.mirrors."{{ registry['name'] }}".endpoint'
+  register: result
+  changed_when: false
+
+- when: result['stdout'] == 'null'
+  block:
+  - name: create registry config text
+    shell: |
+      cat /etc/containerd/config.toml | yj -tji | \
+      jq -r '.plugins."io.containerd.grpc.v1.cri".registry.mirrors."{{ registry['name'] }}".endpoint = ["http://{{ hostvars[groups['ansible_master'][0]]['ansible_host'] }}"]' | \
+      yj -jt
+    register: containerd_config
+    changed_when: false
+  - name: generate registry config file
+    copy:
+      content: "{{ containerd_config['stdout'] }}"
+      dest: /etc/containerd/config.toml
+    notify: restart containerd
+
+- when: result['stdout'] != 'null'
+  block:
+  - set_fact:
+      already_exists: false
+  - name: check registry endpoint config exists
+    when: hostvars[groups['ansible_master'][0]]['ansible_host'] in item
+    set_fact:
+      already_exists: true
+    with_items: "{{ result['stdout_lines'] }}"
+    changed_when: false
+  - when: not already_exists
+    block:
+    - name: register registry endpoint
+      shell: |
+        cat /etc/containerd/config.toml | yj -tji | \
+        jq -r '.plugins."io.containerd.grpc.v1.cri".registry.mirrors."{{ registry['name'] }}".endpoint + ["http://{{ hostvars[groups['ansible_master'][0]]['ansible_host'] }}"]'
+      register: registry_endpoint
+      changed_when: false
+    - name: create registry added config text
+      shell: |
+        cat /etc/containerd/config.toml | yj -tji | \
+        jq -r '.plugins."io.containerd.grpc.v1.cri".registry.mirrors."{{ registry['name'] }}".endpoint = {{ registry_endpoint["stdout"] }}' | \
+        yj -jt
+      register: containerd_config
+      changed_when: false
+    - name: generate registry added config file
+      copy:
+        content: "{{ containerd_config['stdout'] }}"
+        dest: /etc/containerd/config.toml
+      notify: restart containerd
+
+- when: not registry['ssl']['enable']
+  block:
+  - name: check allow insecure registry config exists
+    shell: |
+      cat /etc/containerd/config.toml | yj -tji | \
+      jq -r '.plugins."io.containerd.grpc.v1.cri".registry.configs."{{ registry['name'] }}".tls.insecure_skip_verify'
+    register: result
+    changed_when: false
+  - when: result['stdout'] == 'null' or result['stdout'] | bool == false
+    block:
+    - name: create added or changed registry config text
+      shell: |
+        cat /etc/containerd/config.toml | yj -tji | \
+        jq -r '.plugins."io.containerd.grpc.v1.cri".registry.configs."{{ registry['name'] }}".tls.insecure_skip_verify = true' | \
+        yj -jt
+      register: containerd_config
+      changed_when: false
+    - name: generate added or changed registry config file
+      copy:
+        content: "{{ containerd_config['stdout'] }}"
+        dest: /etc/containerd/config.toml
+      notify: restart containerd
+
+- when: registry['ssl']['enable']
+  block:
+  - name: check ca_file config exists
+    shell: |
+      cat /etc/containerd/config.toml | yj -tji | \
+      jq -r '.plugins."io.containerd.grpc.v1.cri".registry.configs."{{ registry['name'] }}".tls.ca_file'
+    register: result
+    changed_when: false
+  - when: result['stdout'] == 'null' or result['stdout'] | bool == false
+    block:
+    - name: create added or changed ca_file config text
+      shell: |
+        cat /etc/containerd/config.toml | yj -tji | \
+        jq -r '.plugins."io.containerd.grpc.v1.cri".registry.configs."{{ registry['name'] }}".tls.ca_file = 
+        "{{ '/usr/share/ca-certificates/RootCA.crt' if ansible_os_family == 'Debian' else '/etc/pki/ca-trust/source/anchors/RootCA.crt' if ansible_os_family == 'RedHat' else '' }}"' | \
+        yj -jt
+      register: containerd_config
+      changed_when: false
+    - name: generate added or changed ca_file config file
+      copy:
+        content: "{{ containerd_config['stdout'] }}"
+        dest: /etc/containerd/config.toml
+      notify: restart containerd
