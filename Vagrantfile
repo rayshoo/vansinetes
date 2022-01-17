@@ -99,8 +99,6 @@ Vagrant.configure("2") do |config|
     end
   end
 
-  provision = (ENV['PROVISION'] || ENV['provision']) == nil ? true : str_to_bool(ENV['PROVISION'] || ENV['provision'])
-
   (0..machines.length - 1).each do |i|
     machine = machines.at(i)
     
@@ -122,30 +120,28 @@ Vagrant.configure("2") do |config|
       end
       j.vm.boot_timeout = 600
 
-      if provision
-        if root_pass != nil
-          j.vm.provision "shell", inline: root_pass_script
-        end
-        if i < machines.length - 1
-          if str_to_bool(ENV["MIRROR_CHANGE"] || false)
-              j.vm.provision "file", source: "files", destination: "files"
-              j.vm.provision "shell", path: "scripts/bash_ssh_conf.sh", args: "mirror"
-            else
-              j.vm.provision "shell", path: "scripts/bash_ssh_conf.sh"
-          end
-        else
-          j.vm.provision "file", source: "files", destination: "files"
-          j.vm.provision "file", source: "ansible", destination: "ansible"
-          if str_to_bool(ENV["MIRROR_CHANGE"] || false)
-              j.vm.provision "shell", path: "scripts/bootstrap.sh", args: "mirror"
-            else
-              j.vm.provision "shell", path: "scripts/bootstrap.sh"
-          end
-          if str_to_bool(ENV["DEBUG"] || ENV['debug'] || false)
-            j.vm.provision "shell", keep_color: true, inline: "cd ansible && ANSIBLE_FORCE_COLOR=true ansible-playbook site.yaml -v", privileged: false
+      if root_pass != nil
+        j.vm.provision "shell", inline: root_pass_script
+      end
+      if i < machines.length - 1
+        if str_to_bool(ENV["MIRROR_CHANGE"] || false)
+            j.vm.provision "file", source: "files", destination: "files"
+            j.vm.provision "shell", path: "scripts/bash_ssh_conf.sh", args: "mirror"
           else
-            j.vm.provision "shell", keep_color: true, inline: "cd ansible && ANSIBLE_FORCE_COLOR=true ansible-playbook site.yaml", privileged: false
-          end
+            j.vm.provision "shell", path: "scripts/bash_ssh_conf.sh"
+        end
+      else
+        j.vm.provision "file", source: "files", destination: "files"
+        j.vm.provision "file", source: "ansible", destination: "ansible"
+        if str_to_bool(ENV["MIRROR_CHANGE"] || false)
+            j.vm.provision "shell", path: "scripts/bootstrap.sh", args: "mirror"
+          else
+            j.vm.provision "shell", path: "scripts/bootstrap.sh"
+        end
+        if str_to_bool(ENV["DEBUG"] || ENV['debug'] || false)
+          j.vm.provision "shell", keep_color: true, inline: "cd ansible && ANSIBLE_FORCE_COLOR=true ansible-playbook site.yaml -v", privileged: false
+        else
+          j.vm.provision "shell", keep_color: true, inline: "cd ansible && ANSIBLE_FORCE_COLOR=true ansible-playbook site.yaml", privileged: false
         end
       end
     end
