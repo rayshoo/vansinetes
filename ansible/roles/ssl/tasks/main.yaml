@@ -71,7 +71,20 @@
       privatekey_path: "{{ local['home'] }}/downloads/openssl/RootCA.key"
       privatekey_passphrase: "{{ ssl['ca_cert_pass'] }}"
       csr_path: "{{ local['home'] }}/downloads/openssl/RootCA.csr"
-      provider: selfsigned
+      provider: selfsigned  
+      
+  - when: ssl['pkcs12']
+    name: Generate RootCA PKCS12
+    openssl_pkcs12:
+      action: export
+      path: "{{ local['home'] }}/downloads/openssl/RootCA.p12"
+      friendly_name: vansinetes
+      passphrase: "{{ ssl['ca_cert_pass'] }}"
+      privatekey_path: "{{ local['home'] }}/downloads/openssl/RootCA.key"
+      privatekey_passphrase: "{{ ssl['ca_cert_pass'] }}"
+      certificate_path: "{{ local['home'] }}/downloads/openssl/RootCA.crt"
+      state: present
+      mode: 0644
 
   - when: ansible_version['full'] is version('2.9','<')
     name: "Generate {{ ssl['common_name'] }} private key(backend: pyopenssl)"
@@ -139,7 +152,7 @@
       - dataEncipherment
 
   - when: ssl['pkcs12']
-    name: Build PKCS12 file containing key and cert
+    name: Generate {{ ssl['common_name'] }} PKCS12
     openssl_pkcs12:
       action: export
       path: "{{ local['home'] }}/downloads/openssl/{{ ssl['common_name'] }}.p12"

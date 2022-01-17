@@ -5,4 +5,4 @@ ssl:
   ca_cert_pass: vansinetes
   sub_cert_pass: {}
   public_key: no
-  pkcs12: no
+  pkcs12: yes
