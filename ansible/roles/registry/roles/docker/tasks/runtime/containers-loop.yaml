@@ -2,17 +2,17 @@
 - set_fact:
     count: "{{ count | int + 1 }}"
 
-- when: item['location'] == registry['name']
+- when: item['location'] == registry['docker']['name']
   block:
   - set_fact:
       already_exists: true
 
   - when:
     - item['insecure'] is defined
-    - (registry['ssl']['enable'] and item['insecure']) or (not registry['ssl']['enable'] and not item['insecure'])
+    - (registry['docker']['ssl']['enable'] and item['insecure']) or (not registry['docker']['ssl']['enable'] and not item['insecure'])
     block:
     - name: get registries config
-      shell: cat /etc/containers/registries.conf | yj -tji | jq -r '.registry[{{ count }}].insecure = {{ 'true' if not registry['ssl']['enable'] else 'false' }}' | yj -jt
+      shell: cat /etc/containers/registries.conf | yj -tji | jq -r '.registry[{{ count }}].insecure = {{ 'true' if not registry['docker']['ssl']['enable'] else 'false' }}' | yj -jt
       register: registries_config
       changed_when: false
     - name: comment original config
@@ -31,8 +31,8 @@
       notify: restart podman.socket
 
   - when: item['insecure'] is undefined
-    name: add insecure config on {{ registry['name'] }} registry
+    name: add insecure config on {{ registry['docker']['name'] }} registry
     lineinfile:
       dest: /etc/containers/registries.conf
-      line: insecure = {{ 'true' if not registry['ssl']['enable'] else 'false' }}
-      insertafter: ^[ ]*location[ ]*=[ ]*"{{ registry['name'] }}"
+      line: insecure = {{ 'true' if not registry['docker']['ssl']['enable'] else 'false' }}
+      insertafter: ^[ ]*location[ ]*=[ ]*"{{ registry['docker']['name'] }}"

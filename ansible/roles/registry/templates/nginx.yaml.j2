@@ -38,29 +38,36 @@ spec:
         imagePullPolicy: Always
         name: nginx
         env:
+        {% if registry['docker']['enable'] %}
         - name: REGISTRY_ADDRESS
           valueFrom:
             configMapKeyRef:
               name: registry
               key: REGISTRY_ADDRESS
+        {% endif %}
         ports:
         - containerPort: 80
-        {% if registry['ssl']['enable'] %}
+          hostPort: 80
+        {% if (registry['docker']['enable'] and registry['docker']['ssl']['enable']) or (registry['chartmuseum']['enable'] and registry['chartmuseum']['ssl']['enable']) %}
         - containerPort: 443
+          hostPort: 443
         {% endif %}
         resources: {}
+        {% if registry['docker']['enable'] %}
         volumeMounts:
         - name: registry-config
-          mountPath: /etc/nginx/nginx.conf
-          subPath: nginx.conf
+          mountPath: /etc/nginx/conf.d/registry.conf
+          subPath: registry.conf
           readOnly: true
         - name: registry-ssl
-          mountPath: /etc/nginx/conf.d/ssl
+          mountPath: /etc/nginx/conf.d/registry
           readOnly: true
         - name: registry-htpasswd
-          mountPath: /etc/nginx/conf.d/htpasswd
+          mountPath: /etc/nginx/htpasswd
           readOnly: true
+        {% endif %}
       volumes:
+      {% if registry['docker']['enable'] %}
       - name: registry-config
         configMap:
           name: registry
@@ -69,10 +76,10 @@ spec:
         secret:
           secretName: registry
           items:
-          - key: {{ registry['name'] }}.crt
-            path: {{ registry['name'] }}.crt
-          - key: {{ registry['name'] }}.key
-            path: {{ registry['name'] }}.key
+          - key: {{ registry['docker']['name'] }}.crt
+            path: {{ registry['docker']['name'] }}.crt
+          - key: {{ registry['docker']['name'] }}.key
+            path: {{ registry['docker']['name'] }}.key
           - key: ssl_password
             path: password
       - name: registry-htpasswd
@@ -81,3 +88,4 @@ spec:
           items:
           - key: htpasswd
             path: .registry
+      {% endif %}

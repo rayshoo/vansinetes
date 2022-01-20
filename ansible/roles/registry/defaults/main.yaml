@@ -1,23 +1,27 @@
 ---
 version:
-  nginx: latest
+  nginx: 1.21.5
   registry: 2.7.1
 
 registry:
-  name: m1.dev
-  ssl:
+  docker:
     enable: yes
-    cert_pass: vansinetes
-  allow_delete: yes
-  auth:
+    name: m1.dev
+    ssl:
+      enable: yes
+      cert_pass: vansinetes
+    allow_delete: yes
+    auth:
+      enable: yes
+      file_name: .registry
+      account:
+      - name: admin
+        password: admin
+    volume:
+      path: /data/registry
+      capacity: 5Gi
+      storageClassName: registry-volume
+      accessModes:
+      - ReadWriteOnce
+  chartmuseum:
     enable: yes
-    file_name: .registry
-    account:
-    - name: admin
-      password: admin
-  volume:
-    path: /data/registry
-    capacity: 5Gi
-    storageClassName: registry-volume
-    accessModes:
-    - ReadWriteOnce

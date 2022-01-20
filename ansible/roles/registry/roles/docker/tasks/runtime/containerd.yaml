@@ -2,7 +2,7 @@
 - name: check registry config exists
   shell: |
     cat /etc/containerd/config.toml | yj -tji | \
-    jq -r '.plugins."io.containerd.grpc.v1.cri".registry.mirrors."{{ registry['name'] }}".endpoint'
+    jq -r '.plugins."io.containerd.grpc.v1.cri".registry.mirrors."{{ registry['docker']['name'] }}".endpoint'
   register: result
   changed_when: false
 
@@ -11,7 +11,7 @@
   - name: create registry config text
     shell: |
       cat /etc/containerd/config.toml | yj -tji | \
-      jq -r '.plugins."io.containerd.grpc.v1.cri".registry.mirrors."{{ registry['name'] }}".endpoint = ["http://{{ hostvars[groups['ansible_master'][0]]['ansible_host'] }}"]' | \
+      jq -r '.plugins."io.containerd.grpc.v1.cri".registry.mirrors."{{ registry['docker']['name'] }}".endpoint = ["http://{{ hostvars[groups['ansible_master'][0]]['ansible_host'] }}"]' | \
       yj -jt
     register: containerd_config
     changed_when: false
@@ -36,13 +36,13 @@
     - name: register registry endpoint
       shell: |
         cat /etc/containerd/config.toml | yj -tji | \
-        jq -r '.plugins."io.containerd.grpc.v1.cri".registry.mirrors."{{ registry['name'] }}".endpoint + ["http://{{ hostvars[groups['ansible_master'][0]]['ansible_host'] }}"]'
+        jq -r '.plugins."io.containerd.grpc.v1.cri".registry.mirrors."{{ registry['docker']['name'] }}".endpoint + ["http://{{ hostvars[groups['ansible_master'][0]]['ansible_host'] }}"]'
       register: registry_endpoint
       changed_when: false
     - name: create registry added config text
       shell: |
         cat /etc/containerd/config.toml | yj -tji | \
-        jq -r '.plugins."io.containerd.grpc.v1.cri".registry.mirrors."{{ registry['name'] }}".endpoint = {{ registry_endpoint["stdout"] }}' | \
+        jq -r '.plugins."io.containerd.grpc.v1.cri".registry.mirrors."{{ registry['docker']['name'] }}".endpoint = {{ registry_endpoint["stdout"] }}' | \
         yj -jt
       register: containerd_config
       changed_when: false
@@ -52,12 +52,12 @@
         dest: /etc/containerd/config.toml
       notify: restart containerd
 
-- when: not registry['ssl']['enable']
+- when: not registry['docker']['ssl']['enable']
   block:
   - name: check allow insecure registry config exists
     shell: |
       cat /etc/containerd/config.toml | yj -tji | \
-      jq -r '.plugins."io.containerd.grpc.v1.cri".registry.configs."{{ registry['name'] }}".tls.insecure_skip_verify'
+      jq -r '.plugins."io.containerd.grpc.v1.cri".registry.configs."{{ registry['docker']['name'] }}".tls.insecure_skip_verify'
     register: result
     changed_when: false
   - when: result['stdout'] == 'null' or result['stdout'] | bool == false
@@ -65,7 +65,7 @@
     - name: create added or changed registry config text
       shell: |
         cat /etc/containerd/config.toml | yj -tji | \
-        jq -r '.plugins."io.containerd.grpc.v1.cri".registry.configs."{{ registry['name'] }}".tls.insecure_skip_verify = true' | \
+        jq -r '.plugins."io.containerd.grpc.v1.cri".registry.configs."{{ registry['docker']['name'] }}".tls.insecure_skip_verify = true' | \
         yj -jt
       register: containerd_config
       changed_when: false
@@ -75,12 +75,12 @@
         dest: /etc/containerd/config.toml
       notify: restart containerd
 
-- when: registry['ssl']['enable']
+- when: registry['docker']['ssl']['enable']
   block:
   - name: check ca_file config exists
     shell: |
       cat /etc/containerd/config.toml | yj -tji | \
-      jq -r '.plugins."io.containerd.grpc.v1.cri".registry.configs."{{ registry['name'] }}".tls.ca_file'
+      jq -r '.plugins."io.containerd.grpc.v1.cri".registry.configs."{{ registry['docker']['name'] }}".tls.ca_file'
     register: result
     changed_when: false
   - when: result['stdout'] == 'null' or result['stdout'] | bool == false
@@ -88,7 +88,7 @@
     - name: create added or changed ca_file config text
       shell: |
         cat /etc/containerd/config.toml | yj -tji | \
-        jq -r '.plugins."io.containerd.grpc.v1.cri".registry.configs."{{ registry['name'] }}".tls.ca_file = 
+        jq -r '.plugins."io.containerd.grpc.v1.cri".registry.configs."{{ registry['docker']['name'] }}".tls.ca_file = 
         "{{ '/usr/share/ca-certificates/RootCA.crt' if ansible_os_family == 'Debian' else '/etc/pki/ca-trust/source/anchors/RootCA.crt' if ansible_os_family == 'RedHat' else '' }}"' | \
         yj -jt
       register: containerd_config

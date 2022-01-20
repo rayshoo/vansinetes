@@ -10,22 +10,22 @@
     shell: cat /etc/containers/registries.conf
     register: registries_conf
     changed_when: false
-  - name: remove comment and add {{ registry['name'] }} registry config
+  - name: remove comment and add {{ registry['docker']['name'] }} registry config
     when: registries_conf['stdout'] | regex_search('^#[ ]*\[\[registry\]\]', multiline=True)
     replace:
       dest: /etc/containers/registries.conf
       regexp: ^#[ ]*\[\[registry\]\]
-      replace: "[[registry]]\\nlocation = \"{{ registry['name'] }}\"\\ninsecure = {{ 'true' if not registry['ssl']['enable'] else 'false' }}"
+      replace: "[[registry]]\\nlocation = \"{{ registry['docker']['name'] }}\"\\ninsecure = {{ 'true' if not registry['docker']['ssl']['enable'] else 'false' }}"
       backup: yes 
     notify: restart podman.socket
-  - name: add {{ registry['name'] }} registry config
+  - name: add {{ registry['docker']['name'] }} registry config
     when: not registries_conf['stdout'] | regex_search('^#[ ]*\[\[registry\]\]', multiline=True)
     blockinfile:
       dest: /etc/containers/registries.conf
       block: |
         [[registry]]
-        location = "{{ registry['name'] }}"
-        insecure = {{ 'true' if not registry['ssl']['enable'] else 'false' }}
+        location = "{{ registry['docker']['name'] }}"
+        insecure = {{ 'true' if not registry['docker']['ssl']['enable'] else 'false' }}
       backup: yes
       insertafter: unqualified-search-registries[ ]*=[ ]*\[(?:.*\n?)*?\]
     notify: restart podman.socket
@@ -37,29 +37,29 @@
       count: -1
   - include: containers-loop.yaml 
     with_items: "{{ result['stdout'] | from_json }}"
-  - name: add {{ registry['name'] }} registry config
+  - name: add {{ registry['docker']['name'] }} registry config
     when: not already_exists
     blockinfile:
       dest: /etc/containers/registries.conf
       block: |
         [[registry]]
-        location = "{{ registry['name'] }}"
-        insecure = {{ 'true' if not registry['ssl']['enable'] else 'false' }}
+        location = "{{ registry['docker']['name'] }}"
+        insecure = {{ 'true' if not registry['docker']['ssl']['enable'] else 'false' }}
       backup: yes
       insertbefore: ^[ ]*\[\[registry\]\]
     notify: restart podman.socket
 
-- when: registry['ssl']['enable']
+- when: registry['docker']['ssl']['enable']
   block:
   - name: Ensure containers cert directory exists
     file:
-      path: /etc/containers/certs.d/{{ registry['name'] }}
+      path: /etc/containers/certs.d/{{ registry['docker']['name'] }}
       state: directory
       mode: 0755
   - name: Copy RootCA cert in containers cert directory
     copy:
       src: "{{ local['home'] }}/downloads/openssl/RootCA.crt"
-      dest: /etc/containers/certs.d/{{ registry['name'] }}
+      dest: /etc/containers/certs.d/{{ registry['docker']['name'] }}
       owner: root
       group: root
       mode: 0644

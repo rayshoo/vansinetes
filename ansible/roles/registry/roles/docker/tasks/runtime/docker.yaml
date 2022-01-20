@@ -1,5 +1,5 @@
 ---
-- when: not registry['ssl']['enable']
+- when: not registry['docker']['ssl']['enable']
   block:
   - name: Ensure docker directory exists
     file:
@@ -30,7 +30,7 @@
     block:
     - name: create registry config text
       shell: |
-        cat /etc/docker/daemon.json | jq -r '."insecure-registries" = ["{{ registry['name'] }}"]'
+        cat /etc/docker/daemon.json | jq -r '."insecure-registries" = ["{{ registry['docker']['name'] }}"]'
       register: docker_config
       changed_when: false
       
@@ -46,7 +46,7 @@
         already_exists: false
 
     - name: check registry endpoint config exists
-      when: registry['name'] in item
+      when: registry['docker']['name'] in item
       set_fact:
         already_exists: true
       with_items: "{{ result['stdout_lines'] }}"
@@ -55,7 +55,7 @@
     - when: not already_exists
       block:
       - name: register registry endpoint
-        shell: cat /etc/docker/daemon.json | jq -r '."insecure-registries" + ["{{ registry['name'] }}"]'
+        shell: cat /etc/docker/daemon.json | jq -r '."insecure-registries" + ["{{ registry['docker']['name'] }}"]'
         register: registry_endpoint
         changed_when: false
 
@@ -70,17 +70,17 @@
           dest: /etc/docker/daemon.json
         notify: restart docker
 
-- when: registry['ssl']['enable']
+- when: registry['docker']['ssl']['enable']
   block:
   - name: Ensure docker cert directory exists
     file:
-      path: /etc/docker/certs.d/{{ registry['name'] }}
+      path: /etc/docker/certs.d/{{ registry['docker']['name'] }}
       state: directory
       mode: 0755
   - name: Copy RootCA cert in docker cert directory
     copy:
       src: "{{ local['home'] }}/downloads/openssl/RootCA.crt"
-      dest: /etc/docker/certs.d/{{ registry['name'] }}
+      dest: /etc/docker/certs.d/{{ registry['docker']['name'] }}
       owner: root
       group: root
       mode: 0644

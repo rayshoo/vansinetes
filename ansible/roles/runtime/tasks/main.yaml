@@ -1,8 +1,8 @@
 ---
 - name: runtime install
-  when: item.install
+  when: item['install']
   include_role:
-    name: "{{ item.name }}"
+    name: "{{ item['name'] }}"
   with_items:
     - { name: runtime/roles/containerd, install: "{{ runtime == 'containerd' }}" }
     - { name: runtime/roles/docker, install: "{{ runtime == 'docker' }}" }

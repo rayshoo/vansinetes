@@ -1,0 +1,21 @@
+---
+- when: registry['docker']['ssl']['enable']
+  block:
+  - set_fact:
+      ssl: "{{ ssl | combine({'common_name':registry['docker']['name'], 'sub_cert_pass':registry['docker']['ssl']['cert_pass']}, recursive=true) }}"
+  - include_role:
+      name: ssl
+
+- when: registry['docker']['auth']['enable']
+  block:
+  - set_fact:
+      auth:  "{{ auth | combine({'file_name':registry['docker']['auth']['file_name'], 'account':registry['docker']['auth']['account']}, recursive=true) }}"
+  - include_role:
+      name: authentication
+
+- when: ansible_hostname == groups['ansible_master'][0]
+  include: registry.yaml
+
+- include: runtime.yaml
+
+- meta: flush_handlers
