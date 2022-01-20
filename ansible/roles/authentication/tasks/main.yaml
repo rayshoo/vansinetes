@@ -2,7 +2,7 @@
 - when: ansible_hostname == groups['ansible_master'][0]
   block:      
   - set_fact:
-      passlib: "{{ ansible_python['executable'].split('/')[-1] + '-passlib' }}"
+      passlib: "{{ ansible_python['executable'].split('/')[-1] | regex_search('\\D*[3]?') + '-passlib' }}"
 
   - when: ansible_os_family == "Debian"
     name: install {{ passlib }}(Debian)
