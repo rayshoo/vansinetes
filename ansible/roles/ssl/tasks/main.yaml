@@ -85,6 +85,7 @@
       certificate_path: "{{ local['home'] }}/downloads/openssl/RootCA.crt"
       state: present
       mode: 0644
+    ignore_errors: yes
 
   - when: ansible_version['full'] is version('2.9','<')
     name: "Generate {{ ssl['common_name'] }} private key(backend: pyopenssl)"
@@ -164,6 +165,7 @@
       other_certificates: "{{ local['home'] }}/downloads/openssl/RootCA.crt"
       state: present
       mode: 0644
+    ignore_errors: yes
 
 - when: ansible_os_family == "Debian"
   block:
@@ -199,7 +201,7 @@
   - name: Get cert text
     shell: "{{ item }}"
     with_items:
-    - cat RootCA.crt
+    - cat /etc/pki/ca-trust/source/anchors/RootCA.crt
     - cat /etc/pki/tls/cert.pem
     register: result
     changed_when: false

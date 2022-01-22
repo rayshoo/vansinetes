@@ -91,7 +91,7 @@ alias k='kubectl'
 A private docker registry is created and can be used with initial admin account.(password: admin)<br/>
 User settings can be set in [templates/cluster.erb](../templates/cluster.erb#118).
 ```
-$ curl http://m1.dev/v2/
+$ curl -Lu 'admin:admin' m1.dev/v2/
 {}
 ```
 
