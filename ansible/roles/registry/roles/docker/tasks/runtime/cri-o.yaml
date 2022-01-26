@@ -15,7 +15,7 @@
     replace:
       dest: /etc/crio/crio.conf
       regexp: ^#[ ]*registries[ ]*=[ ]*"?\[[\s\#]*\]"?
-      replace: registries = ["{{ registry['docker']['name'] }}"]
+      replace: registries = ["{{ registry_name }}"]
       backup: yes
     notify: restart cri-o
   - name: add registries on crio.conf
@@ -23,7 +23,7 @@
     lineinfile:
       path: /etc/crio/crio.conf
       insertafter: '[ ]*\[crio\.image\][ ]*'
-      line: registries = ["{{ registry['docker']['name'] }}"]
+      line: registries = ["{{ registry_name }}"]
       backup: yes
     notify: restart cri-o
 
@@ -32,7 +32,7 @@
   - set_fact:
       already_exists: false
   - name: check registry endpoint config exists
-    when: registry['docker']['name'] in item
+    when: registry_name in item
     set_fact:
       already_exists: true
     with_items: "{{ result['stdout_lines'] }}"
@@ -42,7 +42,7 @@
     - name: register registry endpoint
       shell: |
         cat /etc/crio/crio.conf | yj -tji | \
-        jq -r '.crio.image.registries + ["{{ registry['docker']['name'] }}"]'
+        jq -r '.crio.image.registries + ["{{ registry_name }}"]'
       register: registry_endpoint
       changed_when: false
     - name: add registries on crio.conf
@@ -71,7 +71,7 @@
       replace:
         dest: /etc/crio/crio.conf
         regexp: ^#[ ]*insecure_registries[ ]*=[ ]*"?\[[\s\#]*\]"?
-        replace: insecure_registries = ["{{ registry['docker']['name'] }}"]
+        replace: insecure_registries = ["{{ registry_name }}"]
         backup: yes
       notify: restart cri-o
     - name: add insecure_registries on crio.conf
@@ -79,7 +79,7 @@
       lineinfile:
         path: /etc/crio/crio.conf
         insertafter: '[ ]*\[crio\.image\][ ]*'
-        line: insecure_registries = ["{{ registry['docker']['name'] }}"]
+        line: insecure_registries = ["{{ registry_name }}"]
         backup: yes
       notify: restart cri-o
 
@@ -88,7 +88,7 @@
     - set_fact:
         already_exists: false
     - name: check insecure_registries endpoint config exists
-      when: registry['docker']['name'] in item
+      when: registry_name in item
       set_fact:
         already_exists: true
       with_items: "{{ result['stdout_lines'] }}"
@@ -98,7 +98,7 @@
       - name: register insecure_registries endpoint
         shell: |
           cat /etc/crio/crio.conf | yj -tji | \
-          jq -r '.crio.image.insecure_registries + ["{{ registry['docker']['name'] }}"]'
+          jq -r '.crio.image.insecure_registries + ["{{ registry_name }}"]'
         register: insecure_registry_endpoint
         changed_when: false
       - name: add insecure_registries on crio.conf
@@ -113,13 +113,13 @@
   block:
   - name: Ensure containers cert directory exists
     file:
-      path: /etc/containers/certs.d/{{ registry['docker']['name'] }}
+      path: /etc/containers/certs.d/{{ registry_name }}
       state: directory
       mode: 0755
   - name: Copy RootCA cert in containers cert directory
     copy:
       src: "{{ local['home'] }}/downloads/openssl/RootCA.crt"
-      dest: /etc/containers/certs.d/{{ registry['docker']['name'] }}
+      dest: /etc/containers/certs.d/{{ registry_name }}
       owner: root
       group: root
       mode: 0644

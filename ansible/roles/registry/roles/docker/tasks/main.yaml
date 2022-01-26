@@ -2,11 +2,23 @@
 - when: registry['docker']['ssl']['enable']
   block:
   - set_fact:
-      ssl: "{{ ssl | combine({'common_name':registry['docker']['name'], 'sub_cert_pass':registry['docker']['ssl']['cert_pass']}, recursive=true) }}"
+      ssl: "{{ ssl | default({}) | combine({'ip_address':hostvars[groups['ansible_master'][0]]['ansible_host'], 'common_name':registry['docker']['common_name'], 'hosts':registry['docker']['hosts']}, recursive=true) }}"
+  - when: not not registry['docker']['ssl']['cert_pass'] | default('')
+    set_fact:
+      ssl: "{{ ssl | default({}) | combine({'sub_cert_pass':registry['docker']['ssl']['cert_pass']}, recursive=true) }}"
   - include_role:
       name: ssl
 
-- when: registry['docker']['auth']['enable']
+- when: not registry['docker']['ssl']['enable']
+  name: Configure docker host in hosts file
+  lineinfile:
+    dest: /etc/hosts
+    line: "{{ hostvars[groups['ansible_master'][0]]['ansible_host'] }}{{ ' ' + registry['docker']['common_name'] if '@' in registry['docker']['hosts'] else '' }}{% for item in registry['docker']['hosts'] %}{% if item != '@' %} {{ item }}.{{ registry['docker']['common_name'] }}{% endif %}{% endfor %}"
+    insertbefore: BOF
+
+- when:
+  - registry['docker']['auth']['enable']
+  - not not registry['docker']['auth']['account'] | default([])
   block:
   - set_fact:
       auth:  "{{ auth | combine({'file_name':registry['docker']['auth']['file_name'], 'account':registry['docker']['auth']['account']}, recursive=true) }}"
@@ -16,6 +28,9 @@
 - when: ansible_hostname == groups['ansible_master'][0]
   include: registry.yaml
 
-- include: runtime.yaml
+- include: name.yaml
+  with_items: "{{ registry['docker']['hosts'] }}"
+  loop_control:
+    loop_var: host
 
 - meta: flush_handlers

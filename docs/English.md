@@ -93,6 +93,8 @@ User settings can be set in [templates/cluster.erb](../templates/cluster.erb#118
 ```
 $ curl -Lu 'admin:admin' m1.dev/v2/
 {}
+$ curl -Lu 'admin:admin' registry.m1.dev/v2/
+{}
 ```
 
 You can use docker and kubectl commands as the vagrant user.

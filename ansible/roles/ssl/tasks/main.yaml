@@ -1,12 +1,16 @@
 ---
-- name : Configure hosts file
+- name: Configure hosts file
   lineinfile:
     dest: /etc/hosts
-    line: "{{ hostvars[groups['ansible_master'][0]]['ansible_host'] + ' ' + ssl['common_name'] }}"
+    line: "{{ ssl['ip_address'] }}{{ ' ' + ssl['common_name'] if '@' in ssl['hosts'] else '' }}{% for item in ssl['hosts'] %}{% if item != '@' %} {{ item }}.{{ ssl['common_name'] }}{% endif %}{% endfor %}"
     insertbefore: BOF
 
 - when: ansible_hostname == groups['ansible_master'][0]
   block:
+  - set_fact:
+      alt_names: "{{ alt_names | default([]) + [ssl['common_name']] if item == '@' else alt_names | default([]) + [item + '.' + ssl['common_name']] }}"
+    with_items: "{{ ssl['hosts'] }}"
+
   - name: Ensure openssl directory exists
     file:
       path: "{{ local['home'] }}/downloads/openssl"
@@ -32,32 +36,31 @@
     name: "Generate RootCA private key(backend: pyopenssl)"
     openssl_privatekey:
       path: "{{ local['home'] }}/downloads/openssl/RootCA.key"
-      passphrase: "{{ ssl['ca_cert_pass'] }}"
-      select_crypto_backend: pyopenssl
-      cipher: aes256
+      passphrase: "{{ ssl['ca_cert_pass'] if not not ssl['ca_cert_pass'] | default('') else omit }}"
+      cipher: "{{ 'aes256' if not not ssl['ca_cert_pass'] | default('') else omit }}"
       size: 2048
-    become: yes
+      select_crypto_backend: pyopenssl
+
   - when: ansible_version['full'] is version('2.9','>=')
     name: "Generate RootCA private key(backend: auto)"
     openssl_privatekey:
       path: "{{ local['home'] }}/downloads/openssl/RootCA.key"
-      passphrase: "{{ ssl['ca_cert_pass'] }}"
-      cipher: auto
+      passphrase: "{{ ssl['ca_cert_pass'] if not not ssl['ca_cert_pass'] | default('') else omit }}"
+      cipher: "{{ 'auto' if not not ssl['ca_cert_pass'] | default('') else omit }}"
       size: 2048
-    become: yes
 
   - when: ssl['public_key']
     name: Generate RootCA public key
     openssl_publickey:
       path: "{{ local['home'] }}/downloads/openssl/RootCA.pub"
       privatekey_path: "{{ local['home'] }}/downloads/openssl/RootCA.key"
-      privatekey_passphrase: "{{ ssl['ca_cert_pass'] }}"
+      privatekey_passphrase: "{{ ssl['ca_cert_pass'] if not not ssl['ca_cert_pass'] | default('') else omit }}"
 
   - name: Generate RootCA csr
     openssl_csr:
       path: "{{ local['home'] }}/downloads/openssl/RootCA.csr"
       privatekey_path: "{{ local['home'] }}/downloads/openssl/RootCA.key"
-      privatekey_passphrase: "{{ ssl['ca_cert_pass'] }}"
+      privatekey_passphrase: "{{ ssl['ca_cert_pass'] if not not ssl['ca_cert_pass'] | default('') else omit }}"
       country_name: KO
       organization_name: vansinetes
       email_address: fire@dragonz.dev
@@ -69,7 +72,7 @@
     openssl_certificate:
       path: "{{ local['home'] }}/downloads/openssl/RootCA.crt"
       privatekey_path: "{{ local['home'] }}/downloads/openssl/RootCA.key"
-      privatekey_passphrase: "{{ ssl['ca_cert_pass'] }}"
+      privatekey_passphrase: "{{ ssl['ca_cert_pass'] if not not ssl['ca_cert_pass'] | default('') else omit }}"
       csr_path: "{{ local['home'] }}/downloads/openssl/RootCA.csr"
       provider: selfsigned  
       
@@ -79,9 +82,9 @@
       action: export
       path: "{{ local['home'] }}/downloads/openssl/RootCA.p12"
       friendly_name: vansinetes
-      passphrase: "{{ ssl['ca_cert_pass'] }}"
+      passphrase: "{{ ssl['ca_cert_pass'] if not not ssl['ca_cert_pass'] | default('') else omit }}"
       privatekey_path: "{{ local['home'] }}/downloads/openssl/RootCA.key"
-      privatekey_passphrase: "{{ ssl['ca_cert_pass'] }}"
+      privatekey_passphrase: "{{ ssl['ca_cert_pass'] if not not ssl['ca_cert_pass'] | default('') else omit }}"
       certificate_path: "{{ local['home'] }}/downloads/openssl/RootCA.crt"
       state: present
       mode: 0644
@@ -91,43 +94,43 @@
     name: "Generate {{ ssl['common_name'] }} private key(backend: pyopenssl)"
     openssl_privatekey:
       path: "{{ local['home'] }}/downloads/openssl/{{ ssl['common_name'] }}.key"
-      passphrase: "{{ ssl['sub_cert_pass'] }}"
-      select_crypto_backend: pyopenssl
-      cipher: aes256
+      passphrase: "{{ ssl['sub_cert_pass'] if not not ssl['sub_cert_pass'] | default('') else omit }}"
+      cipher: "{{ 'aes256' if not not ssl['sub_cert_pass'] | default('') else omit }}"
       size: 2048 
+      select_crypto_backend: pyopenssl
   - when: ansible_version['full'] is version('2.9','>=')
     name: "Generate {{ ssl['common_name'] }} private key(backend: auto)"
     openssl_privatekey:
       path: "{{ local['home'] }}/downloads/openssl/{{ ssl['common_name'] }}.key"
-      passphrase: "{{ ssl['sub_cert_pass'] }}"
-      select_crypto_backend: auto
-      cipher: auto
+      passphrase: "{{ ssl['sub_cert_pass'] if not not ssl['sub_cert_pass'] | default('') else omit }}"
+      cipher: "{{ 'auto' if not not ssl['sub_cert_pass'] | default('') else omit }}"
       size: 2048 
+      select_crypto_backend: auto
 
   - when: ssl['public_key']
     name: Generate {{ ssl['common_name'] }} public key
     openssl_publickey:
       path: "{{ local['home'] }}/downloads/openssl/{{ ssl['common_name'] }}.pub"
       privatekey_path: "{{ local['home'] }}/downloads/openssl/{{ ssl['common_name'] }}.key"
-      privatekey_passphrase: "{{ ssl['sub_cert_pass'] }}"
+      privatekey_passphrase: "{{ ssl['sub_cert_pass'] if not not ssl['sub_cert_pass'] | default('') else omit }}"
 
   - name: Generate {{ ssl['common_name'] }} csr
     openssl_csr:
       path: "{{ local['home'] }}/downloads/openssl/{{ ssl['common_name'] }}.csr"
       privatekey_path: "{{ local['home'] }}/downloads/openssl/{{ ssl['common_name'] }}.key"
-      privatekey_passphrase: "{{ ssl['sub_cert_pass'] }}"
+      privatekey_passphrase: "{{ ssl['sub_cert_pass'] if not not ssl['sub_cert_pass'] | default('') else omit }}"
       country_name: KO
       organization_name: "{{ ssl['common_name'] }}"
       email_address: admin@{{ ssl['common_name'] }}
       common_name: "{{ ssl['common_name'] }}"
-      subject_alt_name:
-      - DNS:www.{{ ssl['common_name'] }}
-      - DNS:{{ ssl['common_name'] }}
+      subject_alt_name: "{{ item['value'] | map('regex_replace', '^', 'DNS:') | list }}"
       key_usage:
       - digitalSignature
       - nonRepudiation
       - keyEncipherment
       - dataEncipherment
+    with_dict:
+      alt_names: "{{ alt_names }}"
 
   - name: Generate {{ ssl['common_name'] }} cert
     openssl_certificate:
@@ -135,7 +138,7 @@
       csr_path: "{{ local['home'] }}/downloads/openssl/{{ ssl['common_name'] }}.csr"
       ownca_path: "{{ local['home'] }}/downloads/openssl/RootCA.crt"
       ownca_privatekey_path: "{{ local['home'] }}/downloads/openssl/RootCA.key"
-      ownca_privatekey_passphrase: "{{ ssl['ca_cert_pass'] }}"
+      ownca_privatekey_passphrase: "{{ ssl['ca_cert_pass'] if not not ssl['ca_cert_pass'] | default('') else omit }}"
       provider: ownca
 
   - when: ansible_version['full'] is version('2.9','<')
@@ -143,14 +146,14 @@
     openssl_certificate:
       path: "{{ local['home'] }}/downloads/openssl/{{ ssl['common_name'] }}.crt"
       provider: assertonly
-      subject_alt_name:
-      - DNS:www.{{ ssl['common_name'] }}
-      - DNS:{{ ssl['common_name'] }}
+      subject_alt_name: "{{ item['value'] | map('regex_replace', '^', 'DNS:') | list }}"
       key_usage:
       - digitalSignature
       - nonRepudiation
       - keyEncipherment
       - dataEncipherment
+    with_dict:
+      alt_names: "{{ alt_names }}"
 
   - when: ssl['pkcs12']
     name: Generate {{ ssl['common_name'] }} PKCS12
@@ -158,9 +161,9 @@
       action: export
       path: "{{ local['home'] }}/downloads/openssl/{{ ssl['common_name'] }}.p12"
       friendly_name: "{{ ssl['common_name'] }}"
-      passphrase: "{{ ssl['sub_cert_pass'] }}"
+      passphrase: "{{ ssl['sub_cert_pass'] if not not ssl['sub_cert_pass'] | default('') else omit }}"
       privatekey_path: "{{ local['home'] }}/downloads/openssl/{{ ssl['common_name'] }}.key"
-      privatekey_passphrase: "{{ ssl['sub_cert_pass'] }}"
+      privatekey_passphrase: "{{ ssl['sub_cert_pass'] if not not ssl['sub_cert_pass'] | default('') else omit }}"
       certificate_path: "{{ local['home'] }}/downloads/openssl/{{ ssl['common_name'] }}.crt"
       other_certificates: "{{ local['home'] }}/downloads/openssl/RootCA.crt"
       state: present

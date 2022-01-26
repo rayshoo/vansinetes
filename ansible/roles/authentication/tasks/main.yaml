@@ -1,5 +1,7 @@
 ---
-- when: ansible_hostname == groups['ansible_master'][0]
+- when:
+  - ansible_hostname == groups['ansible_master'][0]
+  - not not auth['account'] | default([])
   block:      
   - set_fact:
       passlib: "python{{ ansible_python_version | regex_search('^[3]?') + '-passlib' }}"
@@ -38,7 +40,9 @@
     - set_fact:
         to_be_account: "{{ to_be_account | default([]) + [item['name']] }}"
       with_items: "{{ auth['account'] }}"
-    - when: not item in to_be_account
+    - when: 
+      - not not as_is_account | default([])
+      - not item in to_be_account
       name: Delete account in {{ auth['file_name'] }} file
       htpasswd:
         path: "{{ local['home'] }}/downloads/htpasswd/{{ auth['file_name'] }}"

@@ -41,15 +41,16 @@
     register: result
     failed_when: false
     changed_when: "' created' in result['stdout']"
-
-- name: allow required registry ports to firewalld
-  when: item == 'http' or (registry['docker']['enable'] and registry['docker']['ssl']['enable']) or (registry['chartmuseum']['enable'] and registry['chartmuseum']['ssl']['enable'])
-  firewalld:
-    service: "{{ item }}"
-    permanent: true
-    immediate: yes
-    state: enabled
-  with_items:
-  - http
-  - https
-  failed_when: false
+  - name: allow required registry ports to firewalld
+    when:
+    - ansible_os_family == 'RedHat'
+    - item == 'http' or (registry['docker']['enable'] and registry['docker']['ssl']['enable']) or (registry['chartmuseum']['enable'] and registry['chartmuseum']['ssl']['enable'])
+    firewalld:
+      service: "{{ item }}"
+      permanent: true
+      immediate: yes
+      state: enabled
+    with_items:
+    - http
+    - https
+    ignore_errors: yes

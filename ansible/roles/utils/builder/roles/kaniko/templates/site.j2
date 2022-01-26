@@ -2,7 +2,7 @@
 - hosts: localhost
   gather_facts: no
   vars:
-    registry: {{ registry['docker']['name'] }}
+    registry: {{ registry['docker']['common_name'] }}
     username: kaniko
     image: hello-world
     version: 

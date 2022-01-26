@@ -30,7 +30,7 @@
     block:
     - name: create registry config text
       shell: |
-        cat /etc/docker/daemon.json | jq -r '."insecure-registries" = ["{{ registry['docker']['name'] }}"]'
+        cat /etc/docker/daemon.json | jq -r '."insecure-registries" = ["{{ registry_name }}"]'
       register: docker_config
       changed_when: false
       
@@ -46,7 +46,7 @@
         already_exists: false
 
     - name: check registry endpoint config exists
-      when: registry['docker']['name'] in item
+      when: registry_name in item
       set_fact:
         already_exists: true
       with_items: "{{ result['stdout_lines'] }}"
@@ -55,7 +55,7 @@
     - when: not already_exists
       block:
       - name: register registry endpoint
-        shell: cat /etc/docker/daemon.json | jq -r '."insecure-registries" + ["{{ registry['docker']['name'] }}"]'
+        shell: cat /etc/docker/daemon.json | jq -r '."insecure-registries" + ["{{ registry_name }}"]'
         register: registry_endpoint
         changed_when: false
 
@@ -74,13 +74,13 @@
   block:
   - name: Ensure docker cert directory exists
     file:
-      path: /etc/docker/certs.d/{{ registry['docker']['name'] }}
+      path: /etc/docker/certs.d/{{ registry_name }}
       state: directory
       mode: 0755
   - name: Copy RootCA cert in docker cert directory
     copy:
       src: "{{ local['home'] }}/downloads/openssl/RootCA.crt"
-      dest: /etc/docker/certs.d/{{ registry['docker']['name'] }}
+      dest: /etc/docker/certs.d/{{ registry_name }}
       owner: root
       group: root
       mode: 0644

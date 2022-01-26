@@ -6,10 +6,13 @@ version:
 registry:
   docker:
     enable: yes
-    name: m1.dev
+    common_name: m1.dev
+    hosts:
+    - '@'
+    - registry
     ssl:
       enable: yes
-      cert_pass: vansinetes
+      cert_pass: docker registry is a private container repository
     allow_delete: yes
     auth:
       enable: yes
@@ -25,3 +28,5 @@ registry:
       - ReadWriteOnce
   chartmuseum:
     enable: yes
+    ssl:
+      enable: no

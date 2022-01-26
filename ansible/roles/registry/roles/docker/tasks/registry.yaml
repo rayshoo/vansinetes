@@ -52,10 +52,14 @@
   - filename: secret.yaml
     command: |
       kubectl --kubeconfig=/etc/kubernetes/admin.conf -n registry \
-      create secret generic registry{{ ' --from-file htpasswd=' + local['home'] + '/downloads/htpasswd/.registry' if registry['docker']['auth']['account'] | length != 0 else '' }} \
-      --from-file {{ local['home'] }}/downloads/openssl/{{ registry['docker']['name'] }}.key \
-      --from-file {{ local['home'] }}/downloads/openssl/{{ registry['docker']['name'] }}.crt \
-      --from-literal ssl_password={{ registry['docker']['ssl']['cert_pass'] }} \
+      create secret generic registry{{ ' --from-file htpasswd=' + local['home'] + '/downloads/htpasswd/.registry' if not not registry['docker']['auth']['account'] | default([]) else '' }} \
+      {% if registry['docker']['ssl']['enable'] %}
+      --from-file {{ local['home'] }}/downloads/openssl/{{ registry['docker']['common_name'] }}.key \
+      --from-file {{ local['home'] }}/downloads/openssl/{{ registry['docker']['common_name'] }}.crt \
+      {% if not not registry['docker']['ssl']['cert_pass'] | default('') %}
+      --from-literal ssl_password='{{ registry['docker']['ssl']['cert_pass'] }}' \
+      {% endif %}
+      {% endif %}
       --dry-run=client -o yaml
   register: manifest_result
 

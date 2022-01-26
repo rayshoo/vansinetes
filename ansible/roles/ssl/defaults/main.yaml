@@ -1,8 +1,10 @@
 ---
 ssl:
   force: no
-  common_name: {}
-  ca_cert_pass: vansinetes
-  sub_cert_pass: {}
+  ip_address: 
+  common_name: 
+  hosts: []
+  ca_cert_pass: vansinetes - Easy k8s cluster creation in virtual machines
+  sub_cert_pass: 
   public_key: no
   pkcs12: yes  # May not work depending on Ansible and Python version

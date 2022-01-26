@@ -13,7 +13,12 @@ map $upstream_http_docker_distribution_api_version $docker_distribution_api_vers
 
 server {
   listen 80;
-  server_name ~^(www\.)?{{ registry['docker']['name'] }};
+{% if '@' in registry['docker']['hosts'] %}
+  server_name ~^{% for host in registry['docker']['hosts'] %}{{ '' if host == '@' else '(' + host + '\.)?' }}{% endfor %}{{ registry['docker']['common_name'] }};
+{% else %}
+  server_name{% for host in registry['docker']['hosts'] %} {{ host }}.{{ registry['docker']['common_name'] }}{% endfor %};
+{% endif %}
+
 {% if registry['docker']['ssl']['enable'] %}
   return 301 https://$host$request_uri;
 {% else %}
@@ -31,10 +36,10 @@ server {
       return 404;
     }
 
-{% if registry['docker']['auth']['enable'] and registry['docker']['auth']['account'] | length != 0 %}
+{% if registry['docker']['auth']['enable'] and not not registry['docker']['auth']['account'] | default([]) %}
     # To add basic authentication to v2 use auth_basic setting.
     auth_basic "Registry realm";
-    auth_basic_user_file /etc/nginx/conf.d/htpasswd/.registry;
+    auth_basic_user_file /etc/nginx/htpasswd/.registry;
 {% endif %}
 
     ## If $docker_distribution_api_version is empty, the header is not added.
@@ -54,21 +59,27 @@ server {
 
 server {
   listen 443{{ ' ssl' if version['nginx'] | regex_search('\d*') | int > 1 or version['nginx'] | regex_search('\d*') | int == 1 and (version['nginx'] | regex_search('\d*.\d*')).split('.')[1] | int >= 15 else '' }};
-  server_name ~^(www\.)?{{ registry['docker']['name'] }};
+{% if '@' in registry['docker']['hosts'] %}
+  server_name ~^{% for host in registry['docker']['hosts'] %}{{ '' if host == '@' else '(' + host + '\.)?' }}{% endfor %}{{ registry['docker']['common_name'] }};
+{% else %}
+  server_name{% for host in registry['docker']['hosts'] %} {{ host }}.{{ registry['docker']['common_name'] }}{% endfor %};
+{% endif %}
 
   # SSL
 {% if version['nginx'] | regex_search('\d*') | int < 1 or version['nginx'] | regex_search('\d*') | int == 1 and (version['nginx'] | regex_search('\d*.\d*')).split('.')[1] | int < 15 %}
   ssl on;
 {% endif %}
-  ssl_certificate /etc/nginx/conf.d/registry/{{ registry['docker']['name'] }}.crt;
-  ssl_certificate_key /etc/nginx/conf.d/registry/{{ registry['docker']['name'] }}.key;
+  ssl_certificate /etc/nginx/conf.d/registry/{{ registry['docker']['common_name'] }}.crt;
+  ssl_certificate_key /etc/nginx/conf.d/registry/{{ registry['docker']['common_name'] }}.key;
+{% if not not registry['docker']['ssl']['cert_pass'] | default('') %}
+  ssl_password_file /etc/nginx/conf.d/registry/password;
+{% endif %}
   
   # Recommendations from https://raymii.org/s/tutorials/Strong_SSL_Security_On_nginx.html
   ssl_protocols TLSv1.2{{ ' TLSv1.3' if version['nginx'] == 'latest' or version['nginx'] | regex_search('\d*') | int > 1 or (version['nginx'] | regex_search('\d*') | int == 1 and (version['nginx'] | regex_search('\d*.\d*')).split('.')[1] | int >= 13) else '' }};
   ssl_ciphers 'EECDH+AESGCM:EDH+AESGCM:AES256+EECDH:AES256+EDH';
   ssl_prefer_server_ciphers on;
   ssl_session_cache shared:SSL:10m;
-  ssl_password_file /etc/nginx/conf.d/registry/password;
 
   # disable any limits to avoid HTTP 413 for large image uploads
   client_max_body_size 0;
@@ -83,7 +94,7 @@ server {
       return 404;
     }
 
-{% if registry['docker']['auth']['enable'] and registry['docker']['auth']['account'] | length != 0 %}
+{% if registry['docker']['auth']['enable'] and not not registry['docker']['auth']['account'] | default([]) %}
     # To add basic authentication to v2 use auth_basic setting.
     auth_basic "Registry realm";
     auth_basic_user_file /etc/nginx/htpasswd/.registry;

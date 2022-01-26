@@ -92,6 +92,8 @@ alias k='kubectl'
 ```
 $ curl -Lu 'admin:admin' m1.dev/v2/
 {}
+$ curl -Lu 'admin:admin' registry.m1.dev/v2/
+{}
 ```
 
 vagrant 유저로 docker와 kubectl 명령어를 사용 가능하다.

@@ -76,15 +76,15 @@ dashboard:
   service_type: LoadBalancer
 
 builder:
-  - docker
-  - kaniko
-  - buildah
-  - podman
+- docker
+- kaniko
+- buildah
+- podman
 
 compose_util:
-  - docker
-  - podman
-  - kubernetes
+- docker
+- podman
+- kubernetes
 
 <% if metallb_ip_range.length() == 0 %>metallb_ip_range: []
 <% else %>metallb_ip_range:
@@ -104,15 +104,18 @@ kaniko:
     capacity: 1Gi
     storageClassName: kaniko-volume
     accessModes:
-      - ReadWriteOnce
+    - ReadWriteOnce
 
 registry:
   docker:
     enable: yes
-    name: m1.dev
+    common_name: m1.dev
+    hosts:
+    - '@'
+    - registry
     ssl:
       enable: yes
-      cert_pass: vansinetes
+      cert_pass: docker registry is a private container repository
     allow_delete: yes
     auth:
       enable: yes
@@ -128,12 +131,16 @@ registry:
       - ReadWriteOnce
   chartmuseum:
     enable: yes
+    ssl:
+      enable: no
 
 ssl:
   force: no
-  common_name: {}
-  ca_cert_pass: vansinetes
-  sub_cert_pass: {}
+  ip_address: 
+  common_name: 
+  hosts: []
+  ca_cert_pass: vansinetes - Easy k8s cluster creation in virtual machines
+  sub_cert_pass: 
   public_key: no
   pkcs12: yes  # May not work depending on Ansible and Python version
 

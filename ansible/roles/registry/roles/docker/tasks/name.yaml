@@ -1,0 +1,6 @@
+---
+- name: Set registry name
+  set_fact:
+    registry_name: "{{ '' if host == '@' else host + '.' }}{{ registry['docker']['common_name'] }}"
+
+- include_tasks: runtime.yaml

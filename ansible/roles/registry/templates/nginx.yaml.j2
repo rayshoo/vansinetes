@@ -59,33 +59,43 @@ spec:
           mountPath: /etc/nginx/conf.d/registry.conf
           subPath: registry.conf
           readOnly: true
+        {% if registry['docker']['ssl']['enable'] %}
         - name: registry-ssl
           mountPath: /etc/nginx/conf.d/registry
           readOnly: true
+        {% endif %}
+        {% if registry['docker']['auth']['enable'] and not not registry['docker']['auth']['account'] | default([]) %}
         - name: registry-htpasswd
           mountPath: /etc/nginx/htpasswd
           readOnly: true
+        {% endif %}
         {% endif %}
       volumes:
       {% if registry['docker']['enable'] %}
       - name: registry-config
         configMap:
           name: registry
-          defaultMode: 400 
+          defaultMode: 400
+      {% if registry['docker']['ssl']['enable'] %}
       - name: registry-ssl
         secret:
           secretName: registry
           items:
-          - key: {{ registry['docker']['name'] }}.crt
-            path: {{ registry['docker']['name'] }}.crt
-          - key: {{ registry['docker']['name'] }}.key
-            path: {{ registry['docker']['name'] }}.key
+          - key: {{ registry['docker']['common_name'] }}.crt
+            path: {{ registry['docker']['common_name'] }}.crt
+          - key: {{ registry['docker']['common_name'] }}.key
+            path: {{ registry['docker']['common_name'] }}.key
+      {% if not not registry['docker']['ssl']['cert_pass'] | default('') %}
           - key: ssl_password
             path: password
+      {% endif %}
+      {% endif %}
+      {% if registry['docker']['auth']['enable'] and not not registry['docker']['auth']['account'] | default([]) %}
       - name: registry-htpasswd
         secret:
           secretName: registry
           items:
           - key: htpasswd
             path: .registry
+      {% endif %}
       {% endif %}

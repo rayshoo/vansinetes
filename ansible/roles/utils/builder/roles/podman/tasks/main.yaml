@@ -10,6 +10,7 @@
   retries: 5
   delay: 3
   notify: restart podman.socket
+  failed_when: false
 
 - name: Install podman(RedHat)
   when: ansible_os_family == "RedHat"
