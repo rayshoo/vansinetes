@@ -16,13 +16,13 @@
   roles:
   - role: custom/motd
   - role: common/target/default
-  - role: custom/vim/vim-plugins
+  # - role: custom/vim/vim-plugins - need fix
   - role: custom/vim/vim-custom
   - role: custom/git
   - role: custom/alias
 
   - role: common/target/root
-  - role: custom/vim/vim-plugins
+  # - role: custom/vim/vim-plugins - need fix
   - role: custom/vim/vim-custom
   - role: custom/git
   - role: custom/alias
