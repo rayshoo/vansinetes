@@ -90,9 +90,9 @@ alias k='kubectl'
 사설 도커 레지스트리가 생성되며, 초기 admin 계정으로 사용 가능하다.(password: admin)<br/>
 사용자 설정은 [templates/cluster.erb](../templates/cluster.erb#118)에서 설정할 수 있다.
 ```
-$ curl -Lu 'admin:admin' m1.dev/v2/
+$ curl -u 'admin:admin' https://m1.dev/v2/
 {}
-$ curl -Lu 'admin:admin' registry.m1.dev/v2/
+$ curl -u 'admin:admin' https://registry.m1.dev/v2/
 {}
 ```
 

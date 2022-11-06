@@ -1,6 +1,6 @@
 # Vansinetes
 ![vansinetes](assets/jpg/vansinetes_horizon_default.jpg)
-## 소개, Introduce
+## 소개, Introduction
 쉽고 빠른 Kubernetes 개발, 학습 및 강의 환경 구축을 위해 설계된<br/>
 Vagrant, Ansible, Kubeadm를 사용한 IaC(Infra as Code) 도구
 
