@@ -1,0 +1,6 @@
+---
+- when: ansible_hostname == groups['ansible_master'][0]
+  name: cicd install
+  include_role:
+    name: cicd/roles/{{ item }}
+  with_items: "{{ cicd }}"

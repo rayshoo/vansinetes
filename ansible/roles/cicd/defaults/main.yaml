@@ -1,0 +1,21 @@
+---
+cicd:
+- jenkins
+- argocd
+
+version:
+  jenkins: 2.361.3-lts-jdk11
+  argocd: 2.5.2 # 'stable' if you want to use latest
+
+jenkins:
+  service_type: LoadBalancer
+  volume:
+    path: /data/jenkins
+    capacity: 5Gi
+    storageClassName: jenkins-volume
+    accessModes:
+    - ReadWriteOnce
+
+argocd:
+  ha: yes
+  service_type: LoadBalancer

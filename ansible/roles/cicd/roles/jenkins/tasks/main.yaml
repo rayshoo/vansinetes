@@ -1,0 +1,22 @@
+---
+- name: Ensure {{ local['home'] }}/downloads/jenkins directory exists
+  file:
+    path: "{{ local['home'] }}/downloads/jenkins"
+    state: directory
+    owner: "{{ local['user'] }}"
+    group: "{{ local['user'] }}"
+    mode: 0775
+
+- name: Generate jenkins manifests file
+  template:
+    src: jenkins.yaml.j2
+    dest: "{{ local['home'] }}/downloads/jenkins/jenkins.yaml"
+    owner: "{{ local['user'] }}"
+    group: "{{ local['user'] }}"
+    mode: 0664
+
+- name: Install jenkins
+  shell: kubectl --kubeconfig=/etc/kubernetes/admin.conf create -f {{ local['home'] }}/downloads/jenkins/jenkins.yaml
+  register: result
+  failed_when: false
+  changed_when: result['stderr'] is undefined or result['stderr'] | length == 0

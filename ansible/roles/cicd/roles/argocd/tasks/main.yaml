@@ -1,0 +1,42 @@
+---
+- name: Ensure {{ local['home'] }}/downloads/argocd directory exists
+  file:
+    path: "{{ local['home'] }}/downloads/argocd"
+    state: directory
+    owner: "{{ local['user'] }}"
+    group: "{{ local['user'] }}"
+    mode: 0775
+
+- name: Copy argocd namespace.yaml file
+  copy:
+    src: namespace.yaml
+    dest: "{{ local['home'] }}/downloads/argocd/namespace.yaml"
+    owner: "{{ local['user'] }}"
+    group: "{{ local['user'] }}"
+    mode: 0664
+
+- name: Create argocd namespace
+  shell: kubectl --kubeconfig=/etc/kubernetes/admin.conf create -f {{ local['home'] }}/downloads/argocd/namespace.yaml
+  register: result
+  failed_when: false
+  changed_when: result['stderr'] is undefined or result['stderr'] | length == 0
+
+- name: Download argocd manifests file
+  get_url:
+    url: https://raw.githubusercontent.com/argoproj/argo-cd/{{ 'v' if version['argocd'] != 'stable' else '' }}{{ version['argocd'] }}/manifests{{ '/ha' if argocd['ha'] else '' }}/install.yaml
+    dest: "{{ local['home'] }}/downloads/argocd/install.yaml"
+    owner: "{{ local['user'] }}"
+    group: "{{ local['user'] }}"
+    mode: 0644
+
+- name: Install argocd
+  shell: kubectl --kubeconfig=/etc/kubernetes/admin.conf create -n argocd -f {{ local['home'] }}/downloads/argocd/install.yaml
+  register: result
+  failed_when: false
+  changed_when: result['stderr'] is undefined or result['stderr'] | length == 0
+
+- name: Change service type
+  shell: "kubectl --kubeconfig=/etc/kubernetes/admin.conf patch svc argocd-server -n argocd -p '{\"spec\": {\"type\": \"{{ argocd['service_type'] }}\"}}'"
+  register: result
+  failed_when: false
+  changed_when: not 'no change' in result['stdout']

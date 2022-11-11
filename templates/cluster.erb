@@ -44,7 +44,10 @@ version:
   k9s: 0.24.15
   stern: 1.20.0
   dashboard: 2.3.1
-  
+
+  jenkins: 2.361.3-lts-jdk11
+  argocd: 2.5.2 # 'stable' if you want to use latest
+
   kaniko: 1.6.0
   buildah: latest
   podman: latest
@@ -73,6 +76,23 @@ version:
   jq: 1.6
 
 dashboard:
+  service_type: LoadBalancer
+
+cicd:
+- jenkins
+- argocd
+
+jenkins:
+  service_type: LoadBalancer
+  volume:
+    path: /data/jenkins
+    capacity: 5Gi
+    storageClassName: jenkins-volume
+    accessModes:
+    - ReadWriteOnce
+
+argocd:
+  ha: yes
   service_type: LoadBalancer
 
 builder:

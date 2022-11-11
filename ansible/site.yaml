@@ -50,6 +50,7 @@
   - role: helm
   - role: metallb
   - role: ingress-controller
+  - role: cicd
   tasks:
   - when: alert is defined and alert != ''
     name: alert
