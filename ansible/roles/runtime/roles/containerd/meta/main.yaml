@@ -2,5 +2,4 @@
 dependencies:
   - role: common/os-check
   - role: runtime/roles/runc
-  - role: utils/yj
-  - role: utils/jq
+  - role: utils/toml

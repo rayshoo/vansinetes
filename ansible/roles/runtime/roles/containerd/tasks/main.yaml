@@ -1,4 +1,12 @@
 ---
+- name: Copy toml binary in path
+  copy:
+    src: "{{ local['home'] }}/downloads/toml/toml-{{ version['toml_cli'] }}-x86_64-linux/toml"
+    dest: /usr/local/bin/toml
+    owner: root
+    group: root
+    mode: 0755
+
 - name: Ensure downloads directory exists
   file:
     path: "{{ local['home'] }}/downloads"
@@ -70,7 +78,9 @@
     notify: restart containerd
 
 - name: check SystemdCgroup config
-  shell: cat /etc/containerd/config.toml | yj -tji | jq -r '.plugins."io.containerd.grpc.v1.cri".containerd.runtimes.runc.options.SystemdCgroup'
+  shell: |
+    toml get /etc/containerd/config.toml \
+    'plugins."io.containerd.grpc.v1.cri".containerd.runtimes.runc.options.SystemdCgroup'
   register: result
   changed_when: false
 
@@ -78,15 +88,19 @@
   block:
   - name: create containerd config text with SystemdCgroup
     shell: |
-      cat /etc/containerd/config.toml | yj -tji | \
-      jq -r '.plugins."io.containerd.grpc.v1.cri".containerd.runtimes.runc.options.SystemdCgroup = {{ "true" if systemd_cgroup else "false" }}' | \
-      yj -jt
+      toml set /etc/containerd/config.toml \
+      'plugins."io.containerd.grpc.v1.cri".containerd.runtimes.runc.options.SystemdCgroup' {{ "true" if systemd_cgroup else "false" }}
     register: containerd_config
-
   - name: generate containerd config file with SystemdCgroup
     copy:
       content: "{{ containerd_config['stdout'] }}"
       dest: /etc/containerd/config.toml
+  - name: delete double quotes
+    replace:
+      dest: /etc/containerd/config.toml
+      regexp: '(SystemdCgroup\s*\=\s*)\"(.*)\"'
+      replace: '\1\2'
+      backup: yes
     notify: restart containerd
 
 - meta: flush_handlers

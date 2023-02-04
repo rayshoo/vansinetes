@@ -1,8 +1,8 @@
 ---
 - name: check registry config exists
   shell: |
-    cat /etc/containerd/config.toml | yj -tji | \
-    jq -r '.plugins."io.containerd.grpc.v1.cri".registry.mirrors."{{ registry_name }}".endpoint'
+    toml get /etc/containerd/config.toml \
+    'plugins."io.containerd.grpc.v1.cri".registry.mirrors."{{ registry_name }}".endpoint'
   register: result
   changed_when: false
 
@@ -10,9 +10,9 @@
   block:
   - name: create registry config text
     shell: |
-      cat /etc/containerd/config.toml | yj -tji | \
-      jq -r '.plugins."io.containerd.grpc.v1.cri".registry.mirrors."{{ registry_name }}".endpoint = ["http://{{ hostvars[groups['ansible_master'][0]]['ansible_host'] }}"]' | \
-      yj -jt
+      toml set /etc/containerd/config.toml \
+      'plugins."io.containerd.grpc.v1.cri".registry.mirrors."{{ registry_name }}".endpoint[0]' \
+      http://{{ hostvars[groups['ansible_master'][0]]['ansible_host'] }}
     register: containerd_config
     changed_when: false
   - name: generate registry config file
@@ -25,25 +25,21 @@
   block:
   - set_fact:
       already_exists: false
+    
   - name: check registry endpoint config exists
     when: hostvars[groups['ansible_master'][0]]['ansible_host'] in item
     set_fact:
       already_exists: true
     with_items: "{{ result['stdout_lines'] }}"
     changed_when: false
+
   - when: not already_exists
     block:
-    - name: register registry endpoint
-      shell: |
-        cat /etc/containerd/config.toml | yj -tji | \
-        jq -r '.plugins."io.containerd.grpc.v1.cri".registry.mirrors."{{ registry_name }}".endpoint + ["http://{{ hostvars[groups['ansible_master'][0]]['ansible_host'] }}"]'
-      register: registry_endpoint
-      changed_when: false
     - name: create registry added config text
       shell: |
-        cat /etc/containerd/config.toml | yj -tji | \
-        jq -r '.plugins."io.containerd.grpc.v1.cri".registry.mirrors."{{ registry_name }}".endpoint = {{ registry_endpoint["stdout"] }}' | \
-        yj -jt
+        toml set /etc/containerd/config.toml \
+        'plugins."io.containerd.grpc.v1.cri".registry.mirrors."{{ registry_name }}".endpoint[{{ result['stdout_lines'] | length }}]' \
+        http://{{ hostvars[groups['ansible_master'][0]]['ansible_host'] }}
       register: containerd_config
       changed_when: false
     - name: generate registry added config file
@@ -56,41 +52,45 @@
   block:
   - name: check allow insecure registry config exists
     shell: |
-      cat /etc/containerd/config.toml | yj -tji | \
-      jq -r '.plugins."io.containerd.grpc.v1.cri".registry.configs."{{ registry_name }}".tls.insecure_skip_verify'
+      toml get /etc/containerd/config.toml \
+      'plugins."io.containerd.grpc.v1.cri".registry.configs."{{ registry_name }}".tls.insecure_skip_verify'
     register: result
     changed_when: false
   - when: result['stdout'] == 'null' or result['stdout'] | bool == false
     block:
     - name: create added or changed registry config text
       shell: |
-        cat /etc/containerd/config.toml | yj -tji | \
-        jq -r '.plugins."io.containerd.grpc.v1.cri".registry.configs."{{ registry_name }}".tls.insecure_skip_verify = true' | \
-        yj -jt
+        toml set /etc/containerd/config.toml \
+        'plugins."io.containerd.grpc.v1.cri".registry.configs."{{ registry_name }}".tls.insecure_skip_verify' true
       register: containerd_config
       changed_when: false
     - name: generate added or changed registry config file
       copy:
         content: "{{ containerd_config['stdout'] }}"
         dest: /etc/containerd/config.toml
+    - name: delete double quotes
+      replace:
+        dest: /etc/containerd/config.toml
+        regexp: '(insecure_skip_verify\s*\=\s*)\"(.*)\"'
+        replace: '\1\2'
+        backup: yes
       notify: restart containerd
 
 - when: registry['docker']['ssl']['enable']
   block:
   - name: check ca_file config exists
     shell: |
-      cat /etc/containerd/config.toml | yj -tji | \
-      jq -r '.plugins."io.containerd.grpc.v1.cri".registry.configs."{{ registry_name }}".tls.ca_file'
+      toml get /etc/containerd/config.toml \
+      'plugins."io.containerd.grpc.v1.cri".registry.configs."{{ registry_name }}".tls.ca_file'
     register: result
     changed_when: false
   - when: result['stdout'] == 'null' or result['stdout'] | bool == false
     block:
     - name: create added or changed ca_file config text
       shell: |
-        cat /etc/containerd/config.toml | yj -tji | \
-        jq -r '.plugins."io.containerd.grpc.v1.cri".registry.configs."{{ registry_name }}".tls.ca_file = 
-        "{{ '/usr/share/ca-certificates/RootCA.crt' if ansible_os_family == 'Debian' else '/etc/pki/ca-trust/source/anchors/RootCA.crt' if ansible_os_family == 'RedHat' else '' }}"' | \
-        yj -jt
+        toml set /etc/containerd/config.toml \
+        'plugins."io.containerd.grpc.v1.cri".registry.configs."{{ registry_name }}".tls.ca_file' \
+        {{ '/usr/share/ca-certificates/RootCA.crt' if ansible_os_family == 'Debian' else '/etc/pki/ca-trust/source/anchors/RootCA.crt' if ansible_os_family == 'RedHat' else '' }}
       register: containerd_config
       changed_when: false
     - name: generate added or changed ca_file config file

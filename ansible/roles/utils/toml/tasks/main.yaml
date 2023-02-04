@@ -1,0 +1,23 @@
+---
+- when: ansible_hostname == groups['ansible_master'][0]
+  block:
+  - name: Ensure downloads/toml directory exists
+    file:
+      path: "{{ local['home'] }}/downloads/toml"
+      owner: "{{ local['user'] }}"
+      group: "{{ local['user'] }}"
+      state: directory
+      mode: 0750
+  - name: Download toml-{{ version['toml_cli'] }}-x86_64-linux.tar.gz
+    get_url:
+      url: https://github.com/gnprice/toml-cli/releases/download/v{{ version['toml_cli'] }}/toml-{{ version['toml_cli'] }}-x86_64-linux.tar.gz
+      dest: "{{ local['home'] }}/downloads/toml/toml-{{ version['toml_cli'] }}-x86_64-linux.tar.gz"
+      owner: "{{ local['user'] }}"
+      group: "{{ local['user'] }}"
+      mode: 0664
+  - name: Unarchive toml-{{ version['toml_cli'] }}-x86_64-linux.tar.gz
+    unarchive:
+      src: "{{ local['home'] }}/downloads/toml/toml-{{ version['toml_cli'] }}-x86_64-linux.tar.gz"
+      dest: "{{ local['home'] }}/downloads/toml"
+      owner: "{{ local['user'] }}"
+      group: "{{ local['user'] }}"

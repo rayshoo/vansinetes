@@ -4,3 +4,4 @@ dependencies:
   - role: common/download
   - role: utils/yj
   - role: utils/jq
+  - role: utils/toml
