@@ -5,9 +5,28 @@
     'plugins."io.containerd.grpc.v1.cri".registry.mirrors."{{ registry_name }}".endpoint'
   register: result
   changed_when: false
+  failed_when: false
 
-- when: result['stdout'] == 'null'
+- when: result['stdout'] == ''
   block:
+  - name: add registry endpoint array
+    shell: |
+      toml set /etc/containerd/config.toml \
+      'plugins."io.containerd.grpc.v1.cri".registry.mirrors."{{ registry_name }}".endpoint' \
+      [vansinetes]
+    register: containerd_config
+    changed_when: false
+  - name: generate containerd config file with registry endpoint array
+    copy:
+      content: "{{ containerd_config['stdout'] }}"
+      dest: /etc/containerd/config.toml
+  - name: delete double quotes, delimeters
+    replace:
+      dest: /etc/containerd/config.toml
+      regexp: '(endpoint\s*\=\s*)\"\[vansinetes\]\"'
+      replace: '\1[""]'
+      backup: yes
+    notify: restart containerd
   - name: create registry config text
     shell: |
       toml set /etc/containerd/config.toml \
@@ -21,7 +40,7 @@
       dest: /etc/containerd/config.toml
     notify: restart containerd
 
-- when: result['stdout'] != 'null'
+- when: result['stdout'] != ''
   block:
   - set_fact:
       already_exists: false
@@ -35,6 +54,12 @@
 
   - when: not already_exists
     block:
+    - name: Add endpoint last index
+      replace:
+        dest: /etc/containerd/config.toml
+        regexp: '(endpoint\s*\=\s*)\[(.*)\]'
+        replace: '\1[\2,""]'
+        backup: yes
     - name: create registry added config text
       shell: |
         toml set /etc/containerd/config.toml \
@@ -56,7 +81,8 @@
       'plugins."io.containerd.grpc.v1.cri".registry.configs."{{ registry_name }}".tls.insecure_skip_verify'
     register: result
     changed_when: false
-  - when: result['stdout'] == 'null' or result['stdout'] | bool == false
+    failed_when: false
+  - when: result['stdout'] == '' or result['stdout'] | bool == false
     block:
     - name: create added or changed registry config text
       shell: |
@@ -84,7 +110,8 @@
       'plugins."io.containerd.grpc.v1.cri".registry.configs."{{ registry_name }}".tls.ca_file'
     register: result
     changed_when: false
-  - when: result['stdout'] == 'null' or result['stdout'] | bool == false
+    failed_when: false
+  - when: result['stdout'] == '' or result['stdout'] | bool == false
     block:
     - name: create added or changed ca_file config text
       shell: |
