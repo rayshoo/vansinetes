@@ -30,12 +30,17 @@ MIRROR_CHANGE=yes # 한국 사용자들은 centos 이미지를 사용할 경우,
 <span>3.</span> [Vagrantfile](../Vagrantfile)이 위치한 경로에서 하단의 명령어를 bash 쉘에 입력한다.
 
 ```sh
-$ vagrant plugin install vagrant-env && \
+vagrant plugin install vagrant-env && \
 vagrant up --no-provision && \
-vagrant snapshot save up && \
+machines=$(vagrant status | tail -8 |  head -n 4 | awk '{ print $1}') && \
+for machine in $machines; do
+vagrant snapshot save $machine up
+done && \
 root_pass=vagrant vagrant provision --color && \
 vagrant halt && \
-vagrant snapshot save kube && \
+for machine in $machines; do
+vagrant snapshot save $machine kube
+done && \
 vagrant up
 
 $ vagrant ssh $(vagrant status | tail -5 | sed -n '1p' | awk '{ print $1}')

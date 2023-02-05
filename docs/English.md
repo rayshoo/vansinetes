@@ -31,12 +31,17 @@ MIRROR_CHANGE=yes
 <span>3.</span> Type the following command into the bash shell in the path where the [Vagrantfile](../Vagrantfile) is located.
 
 ```sh
-$ vagrant plugin install vagrant-env && \
+vagrant plugin install vagrant-env && \
 vagrant up --no-provision && \
-vagrant snapshot save up && \
+machines=$(vagrant status | tail -8 |  head -n 4 | awk '{ print $1}') && \
+for machine in $machines; do
+vagrant snapshot save $machine up
+done && \
 root_pass=vagrant vagrant provision --color && \
 vagrant halt && \
-vagrant snapshot save kube && \
+for machine in $machines; do
+vagrant snapshot save $machine kube
+done && \
 vagrant up
 
 $ vagrant ssh $(vagrant status | tail -5 | sed -n '1p' | awk '{ print $1}')

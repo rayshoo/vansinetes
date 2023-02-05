@@ -2,5 +2,5 @@
 runtime: containerd
 version:
   runc: 1.0.0-rc95
-  containerd: 1.5.2 # https://containerd.io/downloads/
+  containerd: 1.6.16 # https://containerd.io/downloads/
   docker: 20.10.7
