@@ -4,31 +4,20 @@
 
 ## Requirements before use
 
-[Vagrant](https://www.vagrantup.com/downloads) and [VirtualBox](https://www.virtualbox.org/wiki/Downloads) must be installed in the user's environment in advance.
+1. Currently works only on `amd64 architecture`. 
+
+2. In case of Windows operating system, it is recommended to turn off the hypervisor.
+
+```ps
+bcdedit /set hypervisorlaunchtype off
+shutdown -r -t 0
+```
+
+3. [Vagrant](https://www.vagrantup.com/downloads) and [VirtualBox](https://www.virtualbox.org/wiki/Downloads) must be installed in the user's environment in advance.
 
 ## How to Use
-
-<span>1.</span> Configure the [.env](../.env), [templates/cluster.erb](../templates/cluster.erb) files. (The basic settings are already done)
-```sh
-# .env
-MIRROR_CHANGE=yes
-# There was a case where an error occurred due to a repo problem in the generic/centos8 image.
-# In this case, change this option to yes and refer to the repo files in the files/mirror path and create them.
-```
-<span>2.</span> Some tools are commented out to speed up provisioning. Uncomment the necessary parts in [ansible/site.yaml](../ansible/site.yaml).
-
-```sh
-- name: utils, components install
-  hosts: cluster
-  roles:
-  # - role: utils/k9s
-  # - role: utils/stern
-  # - role: utils/dashboard
-  # - role: utils/builder
-  # - role: utils/skopeo
-  # - role: utils/compose
-```
-<span>3.</span> Type the following command into the bash shell in the path where the [Vagrantfile](../Vagrantfile) is located.
+Type the following command into the bash shell in the path where the [Vagrantfile](../Vagrantfile) is located.<br/>
+For Windows OS, it is recommended to use git bash.
 
 ```sh
 vagrant plugin install vagrant-env && \
@@ -48,7 +37,7 @@ $ vagrant ssh $(vagrant status | tail -5 | sed -n '1p' | awk '{ print $1}')
 password: vagrant
 ```
 
-## Command
+## Command meaning
 
 ```sh
 # Install required plugins
@@ -83,7 +72,27 @@ vagrant
 
 ## Note
 
-Several aliases are automatically registered.
+<span>1.</span> Configure the [.env](../.env), [templates/cluster.erb](../templates/cluster.erb) files. (The basic settings are already done)
+```sh
+# .env
+MIRROR_CHANGE=yes
+# There was a case where an error occurred due to a repo problem in the generic/centos8 image.
+# In this case, change this option to yes and refer to the repo files in the files/mirror path and create them.
+```
+<span>2.</span> Some tools are commented out to speed up provisioning. Uncomment the necessary parts in [ansible/site.yaml](../ansible/site.yaml).
+
+```sh
+- name: utils, components install
+  hosts: cluster
+  roles:
+  # - role: utils/k9s
+  # - role: utils/stern
+  # - role: utils/dashboard
+  # - role: utils/builder
+  # - role: utils/skopeo
+  # - role: utils/compose
+```
+<span>3.</span> Several aliases are automatically registered.
 
 ```
 alias ans='ansible'
@@ -93,7 +102,7 @@ alias d='docker'
 alias k='kubectl'
 ```
 
-A private docker registry is created and can be used with initial admin account.(password: admin)<br/>
+<span>4.</span> A private docker registry is created and can be used with initial admin account.(password: admin)<br/>
 User settings can be set in [templates/cluster.erb](../templates/cluster.erb#118).
 ```
 $ curl -u 'admin:admin' https://m1.dev/v2/
@@ -102,7 +111,7 @@ $ curl -u 'admin:admin' https://registry.m1.dev/v2/
 {}
 ```
 
-You can use docker and kubectl commands as the vagrant user.
+<span>5.</span> You can use docker and kubectl commands as the vagrant user.
 ```
 $ d ps
 $ k get nodes -o wide

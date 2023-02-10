@@ -4,30 +4,21 @@
 
 ## 사용 전 필요 조건
 
-사용자의 환경에 [Vagrant](https://www.vagrantup.com/downloads)와 [VirtualBox](https://www.virtualbox.org/wiki/Downloads)가 미리 설치되있어야 한다.
+1. 현재 `amd64 아키텍처`에서만 동작한다.
+
+2. Windows 운영체제일 경우 hypervisor를 끄고 하는 것을 추천한다.
+
+```ps
+bcdedit /set hypervisorlaunchtype off
+shutdown -r -t 0
+```
+
+3. 사용자의 환경에 [Vagrant](https://www.vagrantup.com/downloads)와 [VirtualBox](https://www.virtualbox.org/wiki/Downloads)가 미리 설치되있어야 한다.
 
 ## 사용 방법
 
-<span>1.</span> [.env](../.env), [templates/cluster.erb](../templates/cluster.erb) 파일들을 구성한다. (기본적인 세팅은 이미 되어있다.)
-```sh
-# .env
-MIRROR_CHANGE=yes # 한국 사용자들은 centos 이미지를 사용할 경우, MIRROR_CHANGE를 활성화하는 것을 적극 권장한다.
-```
-<span>2.</span> 몇 가지 툴들은 프로비저닝 속도 단축을 위해 주석 처리되어있다. [ansible/site.yaml](../ansible/site.yaml)에서 필요한 부분을 주석 제거한다.
-
-```sh
-- name: utils, components install
-  hosts: cluster
-  roles:
-  # - role: utils/k9s
-  # - role: utils/stern
-  # - role: utils/dashboard
-  # - role: utils/builder
-  # - role: utils/skopeo
-  # - role: utils/compose
-```
-
-<span>3.</span> [Vagrantfile](../Vagrantfile)이 위치한 경로에서 하단의 명령어를 bash 쉘에 입력한다.
+[Vagrantfile](../Vagrantfile)이 위치한 경로에서 하단의 명령어를 bash 쉘에 입력한다.<br/>
+※ Windows 운용체제인 경우, git bash 사용 권장.
 
 ```sh
 vagrant plugin install vagrant-env && \
@@ -47,7 +38,7 @@ $ vagrant ssh $(vagrant status | tail -5 | sed -n '1p' | awk '{ print $1}')
 password: vagrant
 ```
 
-## 명령어
+## 명령어 의미
 
 ```sh
 # 필수 플러그인 설치
@@ -82,7 +73,25 @@ vagrant
 
 ## 참고 사항
 
-몇 가지 alias가 자동 등록된다.
+<span>1.</span> [.env](../.env), [templates/cluster.erb](../templates/cluster.erb) 파일들을 구성한다. (기본적인 세팅은 이미 되어있다.)
+```sh
+# .env
+MIRROR_CHANGE=yes # 한국 사용자들은 centos 이미지를 사용할 경우, MIRROR_CHANGE를 활성화하는 것을 적극 권장한다.
+```
+<span>2.</span> 몇 가지 툴들은 프로비저닝 속도 단축을 위해 주석 처리되어있다. [ansible/site.yaml](../ansible/site.yaml)에서 필요한 부분을 주석 제거한다.
+
+```sh
+- name: utils, components install
+  hosts: cluster
+  roles:
+  # - role: utils/k9s
+  # - role: utils/stern
+  # - role: utils/dashboard
+  # - role: utils/builder
+  # - role: utils/skopeo
+  # - role: utils/compose
+```
+<span>3.</span> 몇 가지 alias가 자동 등록된다.
 
 ```
 alias ans='ansible'
@@ -92,7 +101,7 @@ alias d='docker'
 alias k='kubectl'
 ```
 
-사설 도커 레지스트리가 생성되며, 초기 admin 계정으로 사용 가능하다.(password: admin)<br/>
+<span>4.</span> 사설 도커 레지스트리가 생성되며, 초기 admin 계정으로 사용 가능하다.(password: admin)<br/>
 사용자 설정은 [templates/cluster.erb](../templates/cluster.erb#118)에서 설정할 수 있다.
 ```
 $ curl -u 'admin:admin' https://m1.dev/v2/
@@ -101,7 +110,7 @@ $ curl -u 'admin:admin' https://registry.m1.dev/v2/
 {}
 ```
 
-vagrant 유저로 docker와 kubectl 명령어를 사용 가능하다.
+<span>5.</span> vagrant 유저로 docker와 kubectl 명령어를 사용 가능하다.
 ```
 $ d ps
 $ k get nodes -o wide
