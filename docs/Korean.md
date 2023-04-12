@@ -18,7 +18,7 @@ shutdown -r -t 0
 ## 사용 방법
 
 [Vagrantfile](../Vagrantfile)이 위치한 경로에서 하단의 명령어를 bash 쉘에 입력한다.<br/>
-※ Windows 운용체제인 경우, git bash 사용 권장.
+※ Windows 운영체제인 경우, git bash 사용 권장.
 
 ```sh
 vagrant plugin install vagrant-env && \
