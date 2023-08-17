@@ -1,8 +1,8 @@
 ---
 compose_util:
 - docker
-- podman
-- kubernetes
+# - podman
+# - kubernetes
 
 version:
   compose_util:

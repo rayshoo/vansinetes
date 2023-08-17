@@ -1,0 +1,37 @@
+---
+- when: ansible_hostname == groups['ansible_master'][0]
+  block:
+  - name: Ensure downloads/kubens directory exists
+    file:
+      path: "{{ local['home'] }}/downloads/kubens"
+      owner: "{{ local['user'] }}"
+      group: "{{ local['user'] }}"
+      state: directory
+      mode: 0750
+  - name: Download kubens_v{{ version['kubens'] }}_linux_{{ ansible_architecture }}.tar.gz
+    get_url:
+      url: https://github.com/ahmetb/kubectx/releases/download/v{{ version['kubens'] }}/kubens_v{{ version['kubens'] }}_linux_{{ ansible_architecture }}.tar.gz
+      dest: "{{ local['home'] }}/downloads/kubens"
+      owner: "{{ local['user'] }}"
+      group: "{{ local['user'] }}"
+      mode: 0664
+  - name: Unarchive kubens_v{{ version['kubens'] }}_linux_{{ ansible_architecture }}.tar.gz
+    unarchive:
+      src: "{{ local['home'] }}/downloads/kubens/kubens_v{{ version['kubens'] }}_linux_{{ ansible_architecture }}.tar.gz"
+      dest: "{{ local['home'] }}/downloads/kubens"
+      owner: "{{ local['user'] }}"
+      group: "{{ local['user'] }}"
+
+- name: Copy kubens binary in path
+  when: ansible_hostname in groups['master']
+  copy:
+    src: "{{ local['home'] }}/downloads/kubens/kubens"
+    dest: /usr/local/bin/kubens
+    owner: root
+    group: root
+    mode: 0755
+
+- name: Configure Bashrc
+  lineinfile:
+    dest: "{{ target['home'] }}/.bashrc"
+    line: "alias kns='kubens'"

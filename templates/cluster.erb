@@ -40,6 +40,9 @@ version:
   calico: 3.18
   flannel: 0.14.0
   canal: 3.14
+
+  kubectx: 0.9.5
+  kubens: 0.9.4
   
   k9s: 0.24.15
   stern: 1.20.0
@@ -80,8 +83,8 @@ dashboard:
   service_type: LoadBalancer
 
 cicd:
-- jenkins
 - argocd
+# - jenkins
 
 jenkins:
   service_type: LoadBalancer
@@ -99,13 +102,13 @@ argocd:
 builder:
 - docker
 - kaniko
-- buildah
-- podman
+# - buildah
+# - podman
 
 compose_util:
 - docker
-- podman
-- kubernetes
+# - podman
+# - kubernetes
 
 <% if metallb_ip_range.length() == 0 %>metallb_ip_range: []
 <% else %>metallb_ip_range:

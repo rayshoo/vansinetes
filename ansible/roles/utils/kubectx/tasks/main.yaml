@@ -1,0 +1,49 @@
+---
+- when: ansible_hostname == groups['ansible_master'][0]
+  block:
+  - name: Ensure downloads/kubectx directory exists
+    file:
+      path: "{{ local['home'] }}/downloads/kubectx"
+      owner: "{{ local['user'] }}"
+      group: "{{ local['user'] }}"
+      state: directory
+      mode: 0750
+  - name: Download kubectx_v{{ version['kubectx'] }}_linux_{{ ansible_architecture }}.tar.gz
+    get_url:
+      url: https://github.com/ahmetb/kubectx/releases/download/v{{ version['kubectx'] }}/kubectx_v{{ version['kubectx'] }}_linux_{{ ansible_architecture }}.tar.gz
+      dest: "{{ local['home'] }}/downloads/kubectx"
+      owner: "{{ local['user'] }}"
+      group: "{{ local['user'] }}"
+      mode: 0664
+  - name: Unarchive kubectx_v{{ version['kubectx'] }}_linux_{{ ansible_architecture }}.tar.gz
+    unarchive:
+      src: "{{ local['home'] }}/downloads/kubectx/kubectx_v{{ version['kubectx'] }}_linux_{{ ansible_architecture }}.tar.gz"
+      dest: "{{ local['home'] }}/downloads/kubectx"
+      owner: "{{ local['user'] }}"
+      group: "{{ local['user'] }}"
+
+- name: Copy kubectx binary in path
+  when: ansible_hostname in groups['master']
+  copy:
+    src: "{{ local['home'] }}/downloads/kubectx/kubectx"
+    dest: /usr/local/bin/kubectx
+    owner: root
+    group: root
+    mode: 0755
+
+- when: ansible_os_family == "Debian"
+  name: install fzf(Debian)
+  apt:
+    name: fzf
+    state: present
+
+- when: ansible_os_family == "RedHat"
+  name: install fzf(RedHat)
+  yum:
+    name: fzf
+    state: present
+
+- name: Configure Bashrc
+  lineinfile:
+    dest: "{{ target['home'] }}/.bashrc"
+    line: "alias kctx='kubectx'"

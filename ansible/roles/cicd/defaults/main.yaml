@@ -1,7 +1,7 @@
 ---
 cicd:
-- jenkins
 - argocd
+# - jenkins
 
 version:
   jenkins: 2.361.3-lts-jdk11
