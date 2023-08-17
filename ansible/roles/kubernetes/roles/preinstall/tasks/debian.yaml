@@ -8,13 +8,17 @@
       - ca-certificates{{ '=' + version['ca_certificates'] if version['ca_certificates'] is defined and version['ca_certificates'] != 'latest' else '' }}
     state: present
 
-- name: Download the Google Cloud public signing key
-  get_url:
-    url: https://packages.cloud.google.com/apt/doc/apt-key.gpg
-    dest: /usr/share/keyrings/kubernetes-archive-keyring.gpg
-    owner: root
-    group: root
-    mode: 0644
+#- name: Download the Google Cloud public signing key
+#  get_url:
+#    url: https://packages.cloud.google.com/apt/doc/apt-key.gpg
+#    dest: /usr/share/keyrings/kubernetes-archive-keyring.gpg
+#    owner: root
+#    group: root
+#    mode: 0644
+- name:  Add an apt key by id from a keyserver
+  apt_key:
+    keyserver: keyserver.ubuntu.com
+    id: B53DC80D13EDEF05
 
 - name: Create Kubernetes apt repository list file if no exists
   file:
@@ -27,7 +31,7 @@
 - name: write Kubernetes apt repository in list file
   lineinfile:
     dest: /etc/apt/sources.list.d/kubernetes.list
-    line: deb [signed-by=/usr/share/keyrings/kubernetes-archive-keyring.gpg] https://apt.kubernetes.io/ kubernetes-xenial main
+    line: deb [] https://apt.kubernetes.io/ kubernetes-xenial main
 
 - name: Install kubelet, kubeadm, kubectl, kubernetes-cni
   apt:
