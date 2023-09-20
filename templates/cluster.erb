@@ -26,7 +26,7 @@ kubernetes_ver: 1.20.2
 version:
   runc: 1.0.0-rc95
   containerd: 1.6.16 # https://containerd.io/downloads/
-  docker: 20.10.7
+  docker: 20.10.10
   cri_o: "{{ kubernetes_ver | regex_replace('^([0-9]+)\\.([0-9]+).*', '\\1.\\2') }}"
   kubelet: "{{ kubernetes_ver }}"
   kubeadm: "{{ kubernetes_ver }}"
