@@ -20,6 +20,7 @@ Type the following command into the bash shell in the path where the [Vagrantfil
 For Windows OS, it is recommended to use git bash.
 
 ```sh
+VAGRANT_DISABLE_STRICT_DEPENDENCY_ENFORCEMENT=1 vagrant plugin install vagrant-vbguest &&
 vagrant plugin install vagrant-env && \
 vagrant up --no-provision && \
 machines=$(vagrant status | tail -8 |  head -n 4 | awk '{ print $1}') && \

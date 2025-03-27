@@ -21,6 +21,7 @@ shutdown -r -t 0
 ※ Windows 운영체제인 경우, git bash 사용 권장.
 
 ```sh
+VAGRANT_DISABLE_STRICT_DEPENDENCY_ENFORCEMENT=1 vagrant plugin install vagrant-vbguest &&
 vagrant plugin install vagrant-env && \
 vagrant up --no-provision && \
 machines=$(vagrant status | tail -8 |  head -n 4 | awk '{ print $1}') && \
